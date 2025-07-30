@@ -1,4 +1,3 @@
 streamlit
 pandas
 gtts
-google-generativeai
