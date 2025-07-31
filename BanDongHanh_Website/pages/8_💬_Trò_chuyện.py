@@ -77,7 +77,7 @@ def get_config():
     }
 CONFIG = get_config()
 
-# Cấu hình Gemini AI
+# Cấu hình Gemini AI sử dụng Secrets
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     gemini_model = genai.GenerativeModel('gemini-1.5-flash')
@@ -91,23 +91,22 @@ st.set_page_config(page_title=CONFIG["ui"]["title"], layout="wide")
 st.markdown(r"""
 <style>
     #MainMenu, footer, header { visibility: hidden; }
-    /* Nền xanh dương nhạt cho toàn bộ ứng dụng */
+    /* MODIFIED: Đổi nền thành màu xanh dương nhạt */
     .stApp { background-color: #E7F3FF; }
     
     .chat-container { position: fixed; top: 60px; left: 0; right: 0; bottom: 150px; overflow-y: auto; padding: 1rem; }
     
-    /* Bong bóng chat */
+    /* MODIFIED: Cập nhật bong bóng chat */
     .bot-message-container, .user-message-container { display: flex; margin: 5px 0; align-items: flex-end; }
     .user-message-container { justify-content: flex-end; }
     .bot-message, .user-message { padding: 8px 14px; border-radius: 18px; max-width: 70%; font-size: 0.95rem; line-height: 1.6; }
     .bot-message { background: #FFFFFF; color: #050505; }
     .user-message { background: #0084FF; color: white; }
     
-    /* Footer */
     .footer-fixed { position: fixed; bottom: 0; left: 0; right: 0; background: #FFFFFF; box-shadow: 0 -1px 4px rgba(0,0,0,0.08); padding: 8px 15px; z-index: 1000; }
     .buttons-and-input-container { display: flex; flex-direction: column; gap: 8px; }
     
-    /* Nút bấm phẳng, tối giản */
+    /* MODIFIED: Cập nhật nút bấm */
     .horizontal-buttons-container { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
     .horizontal-buttons-container .stButton button { 
         background: #F0F2F5;
@@ -124,7 +123,6 @@ st.markdown(r"""
         color: black;
     }
     
-    /* Thanh nhập liệu */
     .input-container { display: flex; align-items: center; gap: 10px; }
     .stTextInput { flex-grow: 1; }
     .stTextInput > div > div > input { 
@@ -134,10 +132,8 @@ st.markdown(r"""
         padding: 0.6rem 1rem;
     }
     
-    /* Chỉ báo đang gõ */
     .typing-indicator span { height: 8px; width: 8px; margin: 0 2px; background-color: #9E9E9E; display: inline-block; border-radius: 50%; opacity: 0.4; animation: bob 1s infinite; }
     @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-    
     audio { display: none; }
 </style>
 """, unsafe_allow_html=True)
@@ -151,7 +147,9 @@ if "page_state" not in st.session_state:
     st.session_state.turns = 0
     st.session_state.current_mood = None
     st.session_state.current_scenario = None
+    st.session_state.show_emojis = False
     st.session_state.user_input = ""
+    st.session_state.ai_history = []
 
 
 # --- 4. CÁC HÀM TIỆN ÍCH & LOGIC ---
@@ -184,8 +182,13 @@ def stream_response_generator(text):
         yield word + " "
         time.sleep(0.05)
 
-def add_message(sender, text):
+def add_message(sender, text, add_to_ai_history=True):
     st.session_state.history.append({"sender": sender, "text": text})
+    if add_to_ai_history and AI_ENABLED:
+        role = "user" if sender == "user" else "model"
+        st.session_state.ai_history.append({"role": role, "parts": [text]})
+        if len(st.session_state.ai_history) > 10:
+            st.session_state.ai_history = st.session_state.ai_history[-10:]
 
 def set_chat_state(state, **kwargs):
     st.session_state.chat_state = state
@@ -204,13 +207,23 @@ def detect_mood_from_text(text):
             matched_mood = mood
     return matched_mood
 
-def call_gemini(prompt):
-    """Gửi yêu cầu đến Gemini và trả về kết quả."""
+def call_gemini(user_prompt, chat_history):
     if not AI_ENABLED:
         return "Xin lỗi, tính năng AI hiện không khả dụng."
+    
+    system_prompt = """
+    Bạn tên là Chip, một người bạn đồng hành AI thân thiện, kiên nhẫn và thấu hiểu. 
+    Nhiệm vụ của bạn là hỗ trợ sức khỏe tinh thần cho học sinh.
+    
+    QUY TẮC:
+    1. Luôn trả lời bằng tiếng Việt.
+    2. **Giữ câu trả lời ngắn gọn, súc tích, tối đa 2-3 câu.**
+    3. Không bao giờ đưa ra lời khuyên y tế chuyên nghiệp.
+    4. Sử dụng lịch sử trò chuyện để hiểu ngữ cảnh.
+    """
     try:
-        contextual_prompt = f"Hãy trả lời câu hỏi sau đây với vai trò là một người bạn đồng hành AI thân thiện, kiên nhẫn và thấu hiểu dành cho học sinh. Trả lời bằng tiếng Việt. Câu hỏi là: '{prompt}'"
-        response = gemini_model.generate_content(contextual_prompt)
+        chat = gemini_model.start_chat(history=chat_history)
+        response = chat.send_message(system_prompt + "\n" + user_prompt)
         return response.text
     except Exception as e:
         return f"Xin lỗi, đã có lỗi xảy ra khi kết nối với AI: {e}"
@@ -253,11 +266,13 @@ def practice_button_callback(action):
 def end_chat_callback():
     set_chat_state(CHAT_STATE_MAIN)
     st.session_state.next_bot_response = random.choice(CONFIG["general"]["end_chat_replies"])
+    st.session_state.ai_history = []
 
 def positive_affirmation_callback():
     add_message("user", CONFIG["tam_su"]["positive_affirmation_trigger"])
     set_chat_state(CHAT_STATE_MAIN)
     st.session_state.next_bot_response = random.choice(CONFIG["tam_su"]["positive_affirmations"])
+    st.session_state.ai_history = []
 
 def user_input_callback():
     user_text = st.session_state.get("user_input", "")
@@ -278,7 +293,8 @@ def user_input_callback():
         st.session_state.next_bot_response = CONFIG["tam_su"]["moods"][detected_mood]["initial"]
     else:
         set_chat_state(CHAT_STATE_AWAITING_FOLLOWUP)
-        ai_response = call_gemini(user_text)
+        ai_history = st.session_state.ai_history[:-1]
+        ai_response = call_gemini(user_text, ai_history)
         st.session_state.next_bot_response = ai_response
     st.session_state.user_input = ""
 
