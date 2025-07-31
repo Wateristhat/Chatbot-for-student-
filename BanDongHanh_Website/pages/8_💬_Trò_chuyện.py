@@ -24,10 +24,12 @@ CHAT_STATE_GIAO_TIEP_SELECTION_EXTENDED = 'giao_tiep_selection_extended'
 CHAT_STATE_GIAO_TIEP_PRACTICE = 'giao_tiep_practice'
 CHAT_STATE_AWAITING_FOLLOWUP = 'awaiting_followup'
 
+
 # --- 1. TỐI ƯU HÓA CẤU HÌNH BẰNG CACHING ---
 @st.cache_data
 def get_config():
     """Tải và trả về toàn bộ cấu hình của chatbot."""
+    # --- PHẦN ĐƯỢC BỔ SUNG ---
     return {
         "ui": { "title": "Bạn đồng hành 💖", "input_placeholder": "Nhập tin nhắn..." },
         "emojis": { "vui": "😄", "buồn": "😔", "tức giận": "😡", "tủi thân": "🥺", "khóc": "😭", "mắc ói": "🤢", "bất ngờ": "😮", "hy vọng": "🙏" },
@@ -60,7 +62,6 @@ def get_config():
                 "🙌 Xin lỗi": "Khi làm bạn buồn, bạn có thể nói: ‘Xin lỗi nha, mình không cố ý đâu.’ hoặc ‘Mình buồn vì đã làm bạn không vui, mong bạn tha lỗi.’",
                 "🎉 Chúc mừng bạn": "Bạn có thể nói: ‘Chúc mừng nha, bạn làm tốt lắm!’ hoặc ‘Tuyệt vời quá, mình rất vui cho bạn!’"
             },
-            # MODIFIED: Bổ sung lại các kịch bản mở rộng
             "scenarios_extended": {
                 "📚 Nhờ bạn giúp đỡ": "Bạn thử nói: ‘Cậu giúp mình bài tập này nha, mình chưa hiểu lắm.’ Hoặc: ‘Bạn chỉ mình cách làm phần này với được không?’",
                 "🕒 Xin phép ra ngoài": "Bạn có thể nói: ‘Thầy/cô ơi, em xin phép ra ngoài một lát ạ.’ hoặc ‘Em xin phép đi vệ sinh ạ.’",
@@ -77,7 +78,7 @@ def get_config():
     }
 CONFIG = get_config()
 
-# Cấu hình Gemini AI
+# Cấu hình Gemini AI sử dụng Secrets
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     gemini_model = genai.GenerativeModel('gemini-1.5-flash')
@@ -90,6 +91,7 @@ except Exception as e:
 st.set_page_config(page_title=CONFIG["ui"]["title"], layout="wide")
 st.markdown(r"""
 <style>
+    /* --- PHẦN ĐƯỢC BỔ SUNG --- */
     #MainMenu, footer, header { visibility: hidden; }
     .stApp { background-color: #FFFFFF; }
     .chat-container { position: fixed; top: 60px; left: 0; right: 0; bottom: 150px; overflow-y: auto; padding: 1rem; }
@@ -131,6 +133,7 @@ if "page_state" not in st.session_state:
 
 
 # --- 4. CÁC HÀM TIỆN ÍCH & LOGIC ---
+# --- PHẦN ĐƯỢC BỔ SUNG ---
 @st.cache_data
 def text_to_speech(text):
     try:
@@ -151,7 +154,6 @@ def autoplay_audio(audio_data: bytes):
             <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
             </audio>
             """
-        # Sử dụng st.components.v1.html để tương thích tốt hơn
         st.components.v1.html(md, height=0)
     except Exception as e:
         print(f"Lỗi phát âm thanh: {e}")
@@ -177,7 +179,8 @@ def detect_mood_from_text(text):
     for mood, config in CONFIG["tam_su"]["moods"].items():
         matches = len(user_words.intersection(set(config['keywords'])))
         if matches > max_matches:
-            max_matches, matched_mood = matches, mood
+            max_matches = matches
+            matched_mood = mood
     return matched_mood
 
 def call_gemini(prompt):
@@ -192,6 +195,7 @@ def call_gemini(prompt):
         return f"Xin lỗi, đã có lỗi xảy ra khi kết nối với AI: {e}"
 
 # --- 5. CÁC HÀM CALLBACK ---
+# --- PHẦN ĐƯỢC BỔ SUNG ---
 def switch_page(page):
     st.session_state.page_state = page
 
@@ -261,7 +265,7 @@ def user_input_callback():
 
 
 # --- 6. CÁC HÀM VẼ GIAO DIỆN CHO TỪNG TÍNH NĂNG ---
-
+# --- PHẦN ĐƯỢC BỔ SUNG ---
 def render_chat_ui():
     """Vẽ toàn bộ giao diện trò chuyện."""
     chat_container = st.container()
@@ -316,7 +320,6 @@ def render_chat_ui():
         elif chat_state == CHAT_STATE_TAM_SU_CHAT:
             st.button(CONFIG["tam_su"]["positive_affirmation_trigger"], on_click=positive_affirmation_callback)
             st.button("🏁 Kết thúc", on_click=end_chat_callback)
-        # MODIFIED: Bổ sung lại các logic nút bấm còn thiếu
         elif chat_state == CHAT_STATE_GIAO_TIEP_SELECTION_BASIC:
             for scenario in CONFIG["giao_tiep"]["scenarios_basic"].keys():
                 st.button(scenario, on_click=scenario_selection_callback, args=(scenario,))
@@ -330,7 +333,6 @@ def render_chat_ui():
             st.button("Dừng nhé", on_click=end_chat_callback)
         st.markdown("</div>", unsafe_allow_html=True)
         
-        # MODIFIED: Sửa lại phần thanh nhập liệu để không bị lỗi
         input_container = st.container()
         with input_container:
             st.markdown("<div class='input-container'>", unsafe_allow_html=True)
