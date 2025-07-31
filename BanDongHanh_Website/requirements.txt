@@ -2,3 +2,4 @@ streamlit
 pandas
 gtts
 google-generativeai
+streamlit-drawable-canvas
