@@ -6,12 +6,10 @@ import html
 import pandas as pd
 from datetime import datetime
 import os
-import json
 from gtts import gTTS
 from io import BytesIO
 import base64
 import google.generativeai as genai
-from google.cloud import texttospeech
 
 # --- 0. CÁC HẰNG SỐ ĐIỀU KHIỂN TRẠNG THÁI ---
 STATE_CHAT = 'chat'
@@ -79,7 +77,7 @@ def get_config():
     }
 CONFIG = get_config()
 
-# Cấu hình Gemini AI
+# Cấu hình Gemini AI sử dụng Secrets
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     gemini_model = genai.GenerativeModel('gemini-1.5-flash')
@@ -93,31 +91,49 @@ st.set_page_config(page_title=CONFIG["ui"]["title"], layout="wide")
 st.markdown(r"""
 <style>
     #MainMenu, footer, header { visibility: hidden; }
-    .stApp { background-color: #FFFFFF; }
+    /* MODIFIED: Đổi nền thành màu xanh dương nhạt */
+    .stApp { background-color: #E7F3FF; }
+    
     .chat-container { position: fixed; top: 60px; left: 0; right: 0; bottom: 150px; overflow-y: auto; padding: 1rem; }
-    .bot-message-container, .user-message-container { display: flex; margin: 5px 0; }
+    
+    /* MODIFIED: Cập nhật bong bóng chat */
+    .bot-message-container, .user-message-container { display: flex; margin: 5px 0; align-items: flex-end; }
     .user-message-container { justify-content: flex-end; }
-    .bot-message, .user-message { padding: 10px 15px; border-radius: 20px; max-width: 75%; font-size: 1rem; line-height: 1.5; }
-    .bot-message { background: #F0F2F5; color: #1E1E1E; border-radius: 20px 20px 20px 5px; }
-    .user-message { background: #E5E5EA; color: #1E1E1E; border-radius: 20px 20px 5px 20px; }
-    .footer-fixed { position: fixed; bottom: 0; left: 0; right: 0; background: #FFFFFF; box-shadow: 0 -2px 5px rgba(0,0,0,0.05); padding: 10px 15px; z-index: 1000; }
-    .buttons-and-input-container { display: flex; flex-direction: column; gap: 10px; }
-    .horizontal-buttons-container { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-    .horizontal-buttons-container .stButton button { padding: 8px 16px; border: 1px solid #0084FF; background: #E7F3FF; color: #0084FF; border-radius: 20px; font-size: 0.95rem; font-weight: 500; transition: all 0.2s; }
-    .horizontal-buttons-container .stButton button:hover { background: #0084FF; color: white; }
+    .bot-message, .user-message { padding: 8px 14px; border-radius: 18px; max-width: 70%; font-size: 0.95rem; line-height: 1.6; }
+    .bot-message { background: #FFFFFF; color: #050505; }
+    .user-message { background: #0084FF; color: white; }
+    
+    .footer-fixed { position: fixed; bottom: 0; left: 0; right: 0; background: #FFFFFF; box-shadow: 0 -1px 4px rgba(0,0,0,0.08); padding: 8px 15px; z-index: 1000; }
+    .buttons-and-input-container { display: flex; flex-direction: column; gap: 8px; }
+    
+    /* MODIFIED: Cập nhật nút bấm */
+    .horizontal-buttons-container { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .horizontal-buttons-container .stButton button { 
+        background: #F0F2F5;
+        color: #0084FF;
+        border: none;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .horizontal-buttons-container .stButton button:hover { 
+        background: #D8DBE2;
+        color: black;
+    }
+    
     .input-container { display: flex; align-items: center; gap: 10px; }
     .stTextInput { flex-grow: 1; }
-    /* MODIFIED: Đổi nền ô nhập liệu thành màu trắng */
     .stTextInput > div > div > input { 
-        border-radius: 25px; 
-        border: 1px solid #CDD1D9; 
-        padding: 0.75rem 1rem; 
-        background-color: #FFFFFF; 
+        border-radius: 20px; 
+        border: none; 
+        background-color: #F0F2F5;
+        padding: 0.6rem 1rem;
     }
+    
     .typing-indicator span { height: 8px; width: 8px; margin: 0 2px; background-color: #9E9E9E; display: inline-block; border-radius: 50%; opacity: 0.4; animation: bob 1s infinite; }
     @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-    .typing-indicator span:nth-child(1) { animation-delay: -0.3s; }
-    .typing-indicator span:nth-child(2) { animation-delay: -0.15s; }
     audio { display: none; }
 </style>
 """, unsafe_allow_html=True)
@@ -139,39 +155,15 @@ if "page_state" not in st.session_state:
 # --- 4. CÁC HÀM TIỆN ÍCH & LOGIC ---
 @st.cache_data
 def text_to_speech(text):
-    """Sử dụng Google Cloud TTS để tạo giọng nói WaveNet tự nhiên."""
     try:
-        if "GOOGLE_CREDENTIALS" not in st.secrets:
-            # Fallback về gTTS nếu không có key cao cấp
-            print("Đang sử dụng gTTS (fallback)...")
-            audio_bytes_io = BytesIO()
-            tts = gTTS(text=text, lang='vi')
-            tts.write_to_fp(audio_bytes_io)
-            audio_bytes_io.seek(0)
-            return audio_bytes_io.read()
-
-        creds_info = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
-        client = texttospeech.TextToSpeechClient.from_service_account_info(creds_info)
-        synthesis_input = texttospeech.SynthesisInput(text=text)
-        
-        # MODIFIED: Đổi sang giọng nam (Wavenet-B)
-        voice = texttospeech.VoiceSelectionParams(
-            language_code="vi-VN",
-            name="vi-VN-Wavenet-B" 
-        )
-        
-        audio_config = texttospeech.AudioConfig(
-            audio_encoding=texttospeech.AudioEncoding.MP3
-        )
-        response = client.synthesize_speech(input=synthesis_input, voice=voice, audio_config=audio_config)
-        return response.audio_content
-    except Exception as e:
-        print(f"Lỗi TTS: {e}. Sử dụng gTTS (fallback)...")
-        audio_bytes_io = BytesIO()
+        audio_bytes = BytesIO()
         tts = gTTS(text=text, lang='vi')
-        tts.write_to_fp(audio_bytes_io)
-        audio_bytes_io.seek(0)
-        return audio_bytes_io.read()
+        tts.write_to_fp(audio_bytes)
+        audio_bytes.seek(0)
+        return audio_bytes.read()
+    except Exception as e:
+        print(f"Lỗi gTTS: {e}")
+        return None
 
 def autoplay_audio(audio_data: bytes):
     try:
@@ -307,6 +299,7 @@ def user_input_callback():
 
 
 # --- 6. CÁC HÀM VẼ GIAO DIỆN CHO TỪNG TÍNH NĂNG ---
+
 def render_chat_ui():
     """Vẽ toàn bộ giao diện trò chuyện."""
     chat_container = st.container()
@@ -348,7 +341,7 @@ def render_chat_ui():
         chat_state = st.session_state.chat_state
 
         if chat_state in [CHAT_STATE_MAIN, CHAT_STATE_AWAITING_FOLLOWUP]:
-            # MODIFIED: Loại bỏ nút Nhật ký và Thư giãn
+            # MODIFIED: Loại bỏ nút Nhật ký và Thư giãn khỏi giao diện chính của chat
             st.button("💖 Tâm sự", on_click=main_chat_button_callback, args=("Tâm sự",))
             st.button("🗣️ Giao tiếp", on_click=main_chat_button_callback, args=("Giao tiếp",))
         elif chat_state == CHAT_STATE_TAM_SU_SELECTION:
@@ -385,16 +378,77 @@ def render_chat_ui():
 def render_journal_ui():
     """Vẽ giao diện Nhật ký Cảm xúc."""
     st.title("📔 Nhật Ký Cảm Xúc")
-    # ... (Code cho Nhật ký) ...
+    MOOD_FILE = "mood_journal.csv"
+    MOOD_OPTIONS = ["😄 Vui", "😔 Buồn", "😡 Tức giận", "😢 Tủi thân", "😴 Mệt mỏi", "😐 Bình thường"]
+
+    def load_mood_data():
+        if os.path.exists(MOOD_FILE):
+            try:
+                return pd.read_csv(MOOD_FILE)
+            except pd.errors.EmptyDataError:
+                return pd.DataFrame(columns=["Ngày", "Cảm xúc", "Ghi chú"])
+        return pd.DataFrame(columns=["Ngày", "Cảm xúc", "Ghi chú"])
+
+    journal_df = load_mood_data()
+    
+    st.header("Hôm nay bạn cảm thấy thế nào?")
+    log_date = st.date_input("Chọn ngày", datetime.now())
+    selected_mood = st.selectbox("Chọn cảm xúc của bạn", MOOD_OPTIONS)
+    note = st.text_input("Bạn có muốn ghi chú thêm điều gì không?")
+
+    if st.button("Lưu lại cảm xúc"):
+        new_entry = pd.DataFrame([{"Ngày": log_date.strftime("%Y-%m-%d"), "Cảm xúc": selected_mood, "Ghi chú": note}])
+        if not journal_df.empty:
+            journal_df['Ngày'] = journal_df['Ngày'].astype(str)
+        if log_date.strftime("%Y-%m-%d") in journal_df["Ngày"].values:
+            st.warning("Bạn đã ghi lại cảm xúc cho ngày này rồi.")
+        else:
+            journal_df = pd.concat([journal_df, new_entry], ignore_index=True)
+            journal_df.to_csv(MOOD_FILE, index=False)
+            st.success("Đã lưu lại cảm xúc!")
+            st.rerun()
+
+    st.header("Lịch sử cảm xúc của bạn")
+    if not journal_df.empty:
+        st.dataframe(journal_df.sort_values(by="Ngày", ascending=False), use_container_width=True)
+        st.header("Thống kê cảm xúc")
+        st.bar_chart(journal_df["Cảm xúc"].value_counts())
+    else:
+        st.info("Nhật ký của bạn còn trống.")
+
+    if st.button("⬅️ Quay lại Trò chuyện"):
+        switch_page(STATE_CHAT)
 
 def render_relax_ui():
     """Vẽ giao diện Góc Thư giãn."""
     st.title("🧘 Góc Thư Giãn")
-    # ... (Code cho Góc thư giãn) ...
+    st.write("Hãy dành một chút thời gian để hít thở sâu và lắng nghe những âm thanh nhẹ nhàng nhé.")
+
+    st.header("Bài tập hít thở hộp (4-4-4-4)")
+    if st.button("Bắt đầu hít thở"):
+        placeholder = st.empty()
+        for i in range(3):
+            placeholder.info("Chuẩn bị..."); time.sleep(2)
+            placeholder.success("Hít vào bằng mũi... (4 giây)"); time.sleep(4)
+            placeholder.warning("Giữ hơi... (4 giây)"); time.sleep(4)
+            placeholder.success("Thở ra từ từ bằng miệng... (4 giây)"); time.sleep(4)
+            placeholder.warning("Nghỉ... (4 giây)"); time.sleep(4)
+        placeholder.success("Hoàn thành! Bạn cảm thấy tốt hơn rồi chứ?")
+
+    st.header("Lắng nghe âm thanh thiên nhiên")
+    tab1, tab2, tab3 = st.tabs(["Tiếng mưa 🌧️", "Suối chảy 🏞️", "Nhạc thiền 🕉️"])
+    with tab1: st.video("https://www.youtube.com/watch?v=eKFTSSKCzWA")
+    with tab2: st.video("https://www.youtube.com/watch?v=gM_r4c6i25s")
+    with tab3: st.video("https://www.youtube.com/watch?v=aIIEI33EUqI")
+
+
+    if st.button("⬅️ Quay lại Trò chuyện"):
+        switch_page(STATE_CHAT)
 
 # --- 7. CHƯƠNG TRÌNH CHÍNH (MAIN APP ROUTER) ---
 st.markdown(f"<h1 style='color: #1E1E1E; text-align: center; position: fixed; top: 0; left: 0; right: 0; background: #FFFFFF; z-index: 999; padding: 5px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);'>{CONFIG['ui']['title']}</h1>", unsafe_allow_html=True)
 
+# Router chính để quyết định giao diện nào sẽ được hiển thị
 if st.session_state.page_state == STATE_CHAT:
     render_chat_ui()
 elif st.session_state.page_state == STATE_JOURNAL:
