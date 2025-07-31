@@ -24,12 +24,10 @@ CHAT_STATE_GIAO_TIEP_SELECTION_EXTENDED = 'giao_tiep_selection_extended'
 CHAT_STATE_GIAO_TIEP_PRACTICE = 'giao_tiep_practice'
 CHAT_STATE_AWAITING_FOLLOWUP = 'awaiting_followup'
 
-
 # --- 1. TỐI ƯU HÓA CẤU HÌNH BẰNG CACHING ---
 @st.cache_data
 def get_config():
     """Tải và trả về toàn bộ cấu hình của chatbot."""
-    # ... (Toàn bộ dữ liệu CONFIG của bạn) ...
     return {
         "ui": { "title": "Bạn đồng hành 💖", "input_placeholder": "Nhập tin nhắn..." },
         "emojis": { "vui": "😄", "buồn": "😔", "tức giận": "😡", "tủi thân": "🥺", "khóc": "😭", "mắc ói": "🤢", "bất ngờ": "😮", "hy vọng": "🙏" },
@@ -62,6 +60,7 @@ def get_config():
                 "🙌 Xin lỗi": "Khi làm bạn buồn, bạn có thể nói: ‘Xin lỗi nha, mình không cố ý đâu.’ hoặc ‘Mình buồn vì đã làm bạn không vui, mong bạn tha lỗi.’",
                 "🎉 Chúc mừng bạn": "Bạn có thể nói: ‘Chúc mừng nha, bạn làm tốt lắm!’ hoặc ‘Tuyệt vời quá, mình rất vui cho bạn!’"
             },
+            # MODIFIED: Bổ sung lại các kịch bản mở rộng
             "scenarios_extended": {
                 "📚 Nhờ bạn giúp đỡ": "Bạn thử nói: ‘Cậu giúp mình bài tập này nha, mình chưa hiểu lắm.’ Hoặc: ‘Bạn chỉ mình cách làm phần này với được không?’",
                 "🕒 Xin phép ra ngoài": "Bạn có thể nói: ‘Thầy/cô ơi, em xin phép ra ngoài một lát ạ.’ hoặc ‘Em xin phép đi vệ sinh ạ.’",
@@ -78,14 +77,13 @@ def get_config():
     }
 CONFIG = get_config()
 
-# NEW: Cấu hình Gemini AI sử dụng Secrets
+# Cấu hình Gemini AI
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     gemini_model = genai.GenerativeModel('gemini-1.5-flash')
     AI_ENABLED = True
 except Exception as e:
     AI_ENABLED = False
-    # In ra lỗi khi chạy local để dễ debug, nhưng không hiển thị trên app
     print(f"Lỗi cấu hình Gemini: {e}") 
 
 # --- 2. THIẾT LẬP GIAO DIỆN & CSS ---
@@ -153,6 +151,7 @@ def autoplay_audio(audio_data: bytes):
             <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
             </audio>
             """
+        # Sử dụng st.components.v1.html để tương thích tốt hơn
         st.components.v1.html(md, height=0)
     except Exception as e:
         print(f"Lỗi phát âm thanh: {e}")
@@ -181,7 +180,6 @@ def detect_mood_from_text(text):
             max_matches, matched_mood = matches, mood
     return matched_mood
 
-# NEW: Hàm gọi AI Gemini
 def call_gemini(prompt):
     """Gửi yêu cầu đến Gemini và trả về kết quả."""
     if not AI_ENABLED:
@@ -238,15 +236,12 @@ def positive_affirmation_callback():
     set_chat_state(CHAT_STATE_MAIN)
     st.session_state.next_bot_response = random.choice(CONFIG["tam_su"]["positive_affirmations"])
 
-# MODIFIED: Cập nhật hàm xử lý input của người dùng để tích hợp AI
 def user_input_callback():
     user_text = st.session_state.get("user_input", "")
     if not user_text: return
     add_message("user", user_text)
     st.session_state.turns += 1
-
     detected_mood = detect_mood_from_text(user_text)
-
     if st.session_state.chat_state == CHAT_STATE_TAM_SU_CHAT:
         mood = st.session_state.current_mood
         response_text = random.choice(sum(CONFIG["tam_su"]["moods"][mood]["styles"].values(), []))
@@ -259,11 +254,9 @@ def user_input_callback():
         set_chat_state(CHAT_STATE_TAM_SU_CHAT, current_mood=detected_mood, turns=0)
         st.session_state.next_bot_response = CONFIG["tam_su"]["moods"][detected_mood]["initial"]
     else:
-        # Nếu không khớp với logic nào, hãy gọi AI
         set_chat_state(CHAT_STATE_AWAITING_FOLLOWUP)
         ai_response = call_gemini(user_text)
         st.session_state.next_bot_response = ai_response
-            
     st.session_state.user_input = ""
 
 
@@ -312,8 +305,8 @@ def render_chat_ui():
         if chat_state in [CHAT_STATE_MAIN, CHAT_STATE_AWAITING_FOLLOWUP]:
             st.button("💖 Tâm sự", on_click=main_chat_button_callback, args=("tam_su",))
             st.button("🗣️ Giao tiếp", on_click=main_chat_button_callback, args=("giao_tiep",))
-            st.button("📔 Nhật ký Cảm xúc", on_click=switch_page, args=(STATE_JOURNAL,))
-            st.button("🧘 Góc Thư giãn", on_click=switch_page, args=(STATE_RELAX,))
+            st.button("📔 Nhật ký", on_click=switch_page, args=(STATE_JOURNAL,))
+            st.button("🧘 Thư giãn", on_click=switch_page, args=(STATE_RELAX,))
         elif chat_state == CHAT_STATE_TAM_SU_SELECTION:
             moods = list(CONFIG["tam_su"]["moods"].keys())
             cols = st.columns(len(moods))
@@ -323,20 +316,31 @@ def render_chat_ui():
         elif chat_state == CHAT_STATE_TAM_SU_CHAT:
             st.button(CONFIG["tam_su"]["positive_affirmation_trigger"], on_click=positive_affirmation_callback)
             st.button("🏁 Kết thúc", on_click=end_chat_callback)
+        # MODIFIED: Bổ sung lại các logic nút bấm còn thiếu
         elif chat_state == CHAT_STATE_GIAO_TIEP_SELECTION_BASIC:
             for scenario in CONFIG["giao_tiep"]["scenarios_basic"].keys():
                 st.button(scenario, on_click=scenario_selection_callback, args=(scenario,))
         elif chat_state == CHAT_STATE_GIAO_TIEP_SELECTION_EXTENDED:
             for scenario in CONFIG["giao_tiep"]["scenarios_extended"].keys():
                 st.button(scenario, on_click=scenario_selection_callback, args=(scenario,))
-        elif chat_state == CHAT_STATE_PRACTICE:
+        elif chat_state == CHAT_STATE_GIAO_TIEP_PRACTICE:
             buttons_cfg = CONFIG["giao_tiep"]["confirm_buttons"]
             st.button(buttons_cfg["understood"], on_click=practice_button_callback, args=("understood",))
             st.button(buttons_cfg["not_understood"], on_click=practice_button_callback, args=("not_understood",))
             st.button("Dừng nhé", on_click=end_chat_callback)
         st.markdown("</div>", unsafe_allow_html=True)
         
-        st.text_input("Input", placeholder=CONFIG["ui"]["input_placeholder"], key="user_input", on_change=user_input_callback, label_visibility="collapsed")
+        # MODIFIED: Sửa lại phần thanh nhập liệu để không bị lỗi
+        input_container = st.container()
+        with input_container:
+            st.markdown("<div class='input-container'>", unsafe_allow_html=True)
+            col1, col2 = st.columns([0.9, 0.1])
+            with col1:
+                st.text_input("Input", placeholder=CONFIG["ui"]["input_placeholder"], key="user_input", on_change=user_input_callback, label_visibility="collapsed")
+            if col2.button("😊", key="toggle_emoji", help="Chọn biểu cảm nhanh"):
+                st.session_state.show_emojis = not st.session_state.get('show_emojis', False)
+
+            st.markdown("</div>", unsafe_allow_html=True)
         
         st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
@@ -382,7 +386,7 @@ def render_journal_ui():
     else:
         st.info("Nhật ký của bạn còn trống.")
 
-    if st.button("⬅️ Quay lại"):
+    if st.button("⬅️ Quay lại Trò chuyện"):
         switch_page(STATE_CHAT)
 
 def render_relax_ui():
@@ -407,7 +411,7 @@ def render_relax_ui():
     with tab2: st.video("https://www.youtube.com/watch?v=gM_r4c6i25s")
     with tab3: st.video("https://www.youtube.com/watch?v=aIIEI33EUqI")
 
-    if st.button("⬅️ Quay lại"):
+    if st.button("⬅️ Quay lại Trò chuyện"):
         switch_page(STATE_CHAT)
 
 # --- 7. CHƯƠNG TRÌNH CHÍNH (MAIN APP ROUTER) ---
