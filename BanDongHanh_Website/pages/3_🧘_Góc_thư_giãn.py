@@ -30,7 +30,7 @@ with tab1:
     st.video("https://www.youtube.com/watch?v=eKFTSSKCzWA")
 
 with tab2:
-    st.video("https://www.youtube.com/watch?v=gM_r4c6i25s")
+    st.video("https://www.youtube.com/watch?v=IvjMgVS6kng")
 
 with tab3:
-    st.video("https://www.youtube.com/watch?v=aIIEI33EUqI")
+    st.video("https://www.youtube.com/watch?v=a3_o4-4z_ds")
