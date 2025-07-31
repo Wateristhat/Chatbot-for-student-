@@ -1,28 +1,56 @@
 import streamlit as st
+import google.generativeai as genai
+import time
 
-st.set_page_config(
-    page_title="Giới thiệu - Bạn Đồng Hành",
-    page_icon="💖",
-    layout="wide"
+st.set_page_config(page_title="Người Kể Chuyện AI", page_icon="📖", layout="centered")
+
+try:
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+    AI_ENABLED = True
+except Exception:
+    AI_ENABLED = False
+
+@st.cache_data
+def generate_story(prompt):
+    if not AI_ENABLED:
+        return "Lỗi: Không thể kết nối tới AI. Vui lòng kiểm tra API Key."
+    try:
+        creative_prompt = (
+            f"Hãy viết một câu chuyện cổ tích thật ngắn (khoảng 4-5 câu), "
+            f"với nội dung thật trong sáng, vui vẻ và có một kết thúc tốt đẹp dành cho trẻ em. "
+            f"Chủ đề của câu chuyện là: '{prompt}'"
+        )
+        response = gemini_model.generate_content(creative_prompt)
+        return response.text
+    except Exception:
+        return "Rất tiếc, mình không thể nghĩ ra câu chuyện ngay lúc này."
+
+# --- Giao diện trang ---
+st.title("📖 Người Kể Chuyện AI")
+st.markdown("Hãy cho mình biết bạn muốn nghe câu chuyện về điều gì nhé!")
+
+if 'story_topic' not in st.session_state:
+    st.session_state.story_topic = ""
+if 'generated_story' not in st.session_state:
+    st.session_state.generated_story = ""
+
+topic = st.text_input(
+    "Chủ đề câu chuyện (ví dụ: một chú thỏ dũng cảm...)", 
+    value=st.session_state.story_topic
 )
 
-st.title("Giới thiệu về Bạn Đồng Hành 💖")
+if st.button("Kể chuyện cho mình nghe!", type="primary"):
+    if topic:
+        st.session_state.story_topic = topic
+        with st.spinner("Mình đang nghĩ ý tưởng..."):
+            story = generate_story(topic)
+            st.session_state.generated_story = story
+    else:
+        st.warning("Bạn ơi, hãy cho mình biết chủ đề câu chuyện nhé!")
 
-st.markdown(
-    """
-    **Bạn Đồng Hành** là một không gian an toàn, được xây dựng với mục tiêu hỗ trợ và nâng cao 
-    năng lực giao tiếp cho các bạn học sinh hòa nhập tại Việt Nam.
-
-    Chúng mình hiểu rằng đôi khi việc bày tỏ cảm xúc hay bắt đầu một cuộc trò chuyện có thể 
-    khó khăn. Vì vậy, ứng dụng này ra đời để:
-
-    - **🤝 Hỗ trợ giao tiếp**: Giúp bạn luyện tập các tình huống giao tiếp thường ngày với thầy cô, bạn bè.
-    - **💖 Tạo động lực**: Luôn ở đây để lắng nghe, cổ vũ và tạo động lực để bạn tự tin hơn.
-    - **😊 Giảm áp lực tâm lý**: Cung cấp một nơi để bạn thoải mái chia sẻ suy nghĩ, cảm xúc mà không bị phán xét.
-
-    ### Các tính năng chính:
-    - **💬 Trò chuyện**: Một người bạn AI luôn sẵn sàng lắng nghe và đưa ra các gợi ý giao tiếp.
-    - **📔 Nhật ký cảm xúc**: Ghi lại cảm xúc mỗi ngày để hiểu rõ hơn về bản thân.
-    - **🧘 Góc thư giãn**: Các bài tập đơn giản giúp bạn bình tĩnh và giải tỏa căng thẳng.
-    """
-)
+if st.session_state.generated_story:
+    st.write("---")
+    st.subheader(f"Câu chuyện về '{st.session_state.story_topic}'")
+    st.write(st.session_state.generated_story)
+    st.success("Chúc bạn đọc truyện vui vẻ!", icon="🎉")
