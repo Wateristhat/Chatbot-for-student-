@@ -3,12 +3,19 @@ import streamlit as st
 import re
 import time
 import html
+import pandas as pd
+from datetime import datetime
+import os
 from gtts import gTTS
 from io import BytesIO
 import base64
 import google.generativeai as genai
 
 # --- 0. CÁC HẰNG SỐ ĐIỀU KHIỂN TRẠNG THÁI ---
+STATE_CHAT = 'chat'
+STATE_JOURNAL = 'journal'
+STATE_RELAX = 'relax'
+
 CHAT_STATE_MAIN = 'main'
 CHAT_STATE_TAM_SU_SELECTION = 'tam_su_selection'
 CHAT_STATE_TAM_SU_CHAT = 'tam_su_chat'
@@ -17,12 +24,14 @@ CHAT_STATE_GIAO_TIEP_SELECTION_EXTENDED = 'giao_tiep_selection_extended'
 CHAT_STATE_GIAO_TIEP_PRACTICE = 'giao_tiep_practice'
 CHAT_STATE_AWAITING_FOLLOWUP = 'awaiting_followup'
 
+
 # --- 1. TỐI ƯU HÓA CẤU HÌNH BẰNG CACHING ---
 @st.cache_data
 def get_config():
     """Tải và trả về toàn bộ cấu hình của chatbot."""
+    # --- PHẦN ĐƯỢC BỔ SUNG ---
     return {
-        "ui": { "title": "Trò chuyện cùng Bot 💬", "input_placeholder": "Nhập tin nhắn..." },
+        "ui": { "title": "Bạn đồng hành 💖", "input_placeholder": "Nhập tin nhắn..." },
         "emojis": { "vui": "😄", "buồn": "😔", "tức giận": "😡", "tủi thân": "🥺", "khóc": "😭", "mắc ói": "🤢", "bất ngờ": "😮", "hy vọng": "🙏" },
         "tam_su": {
             "intro_message": "Hôm nay bạn cảm thấy như thế nào nè? Mình luôn sẵn lòng lắng nghe bạn nha 🌟",
@@ -35,7 +44,7 @@ def get_config():
             "moods": {
                 "😄 Vui": {"keywords": ["vui","dzui","vuii","hạnh phúc","hp","sướng","phấn khích","tuyệt vời","awesome","perfect","quá đã","tự hào","phấn khởi","hào hứng","hớn hở","proud","giỏi","10 điểm","đậu rồi","thành công","đi chơi","picnic","nhận thưởng","được khen", "😄"],"initial": "Tuyệt vời quá! Có chuyện gì vui không, kể mình nghe với nè!","styles": { "Hứng thú & Khuyến khích": ["Nghe là thấy vui giùm bạn luôn á! Kể thêm chút nữa đi!", "Hôm nay chắc là một ngày đặc biệt với bạn đúng không? Chia sẻ cho mình với nhé!"], "Khen ngợi & Khẳng định": ["Wow, bạn làm tốt lắm luôn đó! Mình tự hào về bạn ghê á!", "Bạn giỏi thật sự đó! Những nỗ lực của bạn đã được đền đáp xứng đáng rồi nè."], "Đồng hành & Vui chung": ["Mình rất vui cùng bạn. Bạn muốn chia sẻ thêm gì nữa không?", "Mình cảm nhận được niềm vui của bạn luôn á! Cảm xúc tích cực này truyền năng lượng lắm."], "Lan tỏa niềm vui": ["Bạn muốn làm gì để ăn mừng không? Kể mình nghe để cùng lên kế hoạch vui nè!", "Niềm vui này mà lan sang người khác nữa thì tuyệt vời luôn á!"] }},
                 "😔 Buồn": {"keywords": ["buồn","chán","thất vọng","stress","áp lực","cô đơn","nhớ nhà","tệ","bad day","xui xẻo","tụt mood", "😔"],"initial": "Ôi, mình nghe rồi nè, có chuyện gì làm bạn buồn vậy?","styles": { "Lắng nghe nhẹ nhàng": ["Không sao đâu, bạn buồn cũng được mà. Có chuyện gì khiến bạn buồn không?", "Bạn không cần phải vui vẻ suốt ngày đâu. Chỉ cần bạn biết mình đang không ổn – là đã mạnh mẽ rồi đó."], "Khích lệ suy ngẫm": ["Bạn có biết điều gì khiến bạn thấy tụt mood hôm nay không?", "Nếu bạn có thể làm điều gì để cảm thấy nhẹ lòng hơn, bạn sẽ làm gì đầu tiên?"], "Đồng hành & Thấu hiểu": ["Mình từng trải qua những ngày thấy hơi tệ như vậy, nên mình hiểu lắm.", "Bạn không cần phải gồng lên tỏ ra ổn. Cứ là chính mình thôi, và mình luôn bên bạn."], "Hành động nhẹ": ["Bạn muốn thử cùng mình viết ra 3 điều nhỏ làm bạn thấy ổn hơn không? Có thể là trà sữa, mèo, hay ngủ nướng chẳng hạn.", "Hay mình kể cho bạn một chuyện vui nhẹ nhàng nha?"] }},
-                "😢 Tủi thân": {"keywords": ["tủi thân","bị bỏ rơi","bị lãng quên","không ai hiểu","thiếu quan tâm","bị coi thường","bị cô lập","thấy mình kém cỏi","trách oan", "🥺", "😭"],"initial": "Tớ hiểu, cảm giác tủi thân không vui chút nào. Kể tớ nghe nha, mình ở đây rồi.","styles": { "Lắng nghe & Vỗ về": ["Bạn không cô đơn đâu. Mình luôn sẵn lòng lắng nghe bạn nè.", "Bạn đã rất mạnh mẽ khi chia sẻ cảm xúc đó. Mình ở đây và sẵn sàng lắng nghe."], "Khích lệ suy ngẫm": ["Có điều gì đã khiến bạn tổn thương hôm nay? Nói ra có thể nhẹ lòng hơn đó.", "Nếu bạn có thể nói điều gì với người làm bạn tổn thương, bạn θα nói gì?"], "Đồng hành & Thấu hiểu": ["Không có ai đáng phải cảm thấy như ‘người vô hình’ cả. Mình thấy bạn, thật sự thấy bạn.", "Những giọt nước mắt của bạn không hề yếu đuối – đó là sức mạnh của sự chân thật."], "Hành động nhẹ": ["Bạn muốn cùng mình viết một lá thư (dù không gửi) cho người làm bạn tổn thương không?", "Hay thử một điều nho nhỏ dễ thương giúp bạn xoa dịu bản thân – như xem ảnh mèo hoặc tô màu?"] }},
+                "😢 Tủi thân": {"keywords": ["tủi thân","bị bỏ rơi","bị lãng quên","không ai hiểu","thiếu quan tâm","bị coi thường","bị cô lập","thấy mình kém cỏi","trách oan", "🥺", "😭"],"initial": "Tớ hiểu, cảm giác tủi thân không vui chút nào. Kể tớ nghe nha, mình ở đây rồi.","styles": { "Lắng nghe & Vỗ về": ["Bạn không cô đơn đâu. Mình luôn sẵn lòng lắng nghe bạn nè.", "Bạn đã rất mạnh mẽ khi chia sẻ cảm xúc đó. Mình ở đây và sẵn sàng lắng nghe."], "Khích lệ suy ngẫm": ["Có điều gì đã khiến bạn tổn thương hôm nay? Nói ra có thể nhẹ lòng hơn đó.", "Nếu bạn có thể nói điều gì với người làm bạn tổn thương, bạn sẽ nói gì?"], "Đồng hành & Thấu hiểu": ["Không có ai đáng phải cảm thấy như ‘người vô hình’ cả. Mình thấy bạn, thật sự thấy bạn.", "Những giọt nước mắt của bạn không hề yếu đuối – đó là sức mạnh của sự chân thật."], "Hành động nhẹ": ["Bạn muốn cùng mình viết một lá thư (dù không gửi) cho người làm bạn tổn thương không?", "Hay thử một điều nho nhỏ dễ thương giúp bạn xoa dịu bản thân – như xem ảnh mèo hoặc tô màu?"] }},
                 "😡 Tức giận": {"keywords": ["tức","giận","bực mình","khó chịu","điên","phát cáu","ức chế","bất công","bị ép", "😡"],"initial": "Giận dữ làm mình khó chịu lắm. Bạn kể ra đi, đỡ hơn nhiều đó!","styles": { "Xác nhận cảm xúc": ["Cảm xúc của bạn là thật và hoàn toàn có lý. Đừng ngại chia sẻ nha.", "Cảm giác bị ép hay không được tôn trọng dễ làm mình bùng nổ. Mình ở đây để lắng nghe bạn."], "Làm dịu cảm xúc": ["Mình thử hít sâu 3 lần nhé. Hít vào, thở ra... Rồi nói tiếp với mình nha.", "Bạn có muốn thử viết ra hết mấy điều làm bạn tức? Mình đọc cho."], "Khơi gợi suy ngẫm": ["Điều gì khiến bạn cảm thấy bị ép buộc hay mất quyền lựa chọn?", "Nếu bạn được nói thật lòng với người làm bạn bực, bạn muốn nói gì?"], "Định hướng hành động": ["Khi mình tức, mình hay vẽ nguệch ngoạc cho dịu lại. Bạn muốn thử không?", "Bạn có muốn chọn một emoji thể hiện đúng cảm xúc bạn đang có không?"] }},
                 "😴 Mệt mỏi": {"keywords": ["mệt", "kiệt sức", "hết pin", "đuối", "nhức đầu", "căng thẳng", "buồn ngủ", "stress", "hết năng lượng", "quá sức"],"initial": "Hôm nay bạn có vẻ mệt. Hít thở sâu nào, rồi kể tiếp cho mình nghe nha.","styles": { "Lắng nghe": ["Bạn cần nghỉ ngơi một chút đó. Mình luôn ở đây nếu cần.", "Nếu không muốn nói gì cũng không sao. Mình chờ bạn."], "Khơi gợi": ["Bạn nghĩ vì sao lại mệt đến vậy?", "Có điều gì nhỏ bạn nghĩ giúp bạn thư giãn không?"], "Thư giãn": ["Bạn muốn gợi ý hoạt động nhẹ giúp thư giãn không?", "Hay thử nhắm mắt 1 phút, hít thở chậm nhé?"] }},
                 "🤔 Vô định": {"keywords": ["vô định", "mông lung", "lạc lõng", "trống rỗng", "vô nghĩa", "mơ hồ", "chênh vênh", "không biết làm gì"],"initial": "Đôi khi cảm thấy trống rỗng là dấu hiệu bạn cần kết nối lại với bản thân.","styles": { "Lắng nghe": ["Bạn muốn nói thêm về điều này không? Mình lắng nghe.", "Mình ở đây, bạn cứ thoải mái chia sẻ."], "Suy ngẫm": ["Bạn nghĩ vì sao cảm giác này xuất hiện?", "Bạn mong điều gì nhất lúc này?"], "Hành động nhẹ": ["Bạn có muốn thử viết một câu miêu tả cảm xúc của mình hiện tại không?", "Nếu bạn muốn, mình có thể gửi một vài câu hỏi gợi ý để bạn khám phá bản thân."] }},
@@ -111,7 +120,8 @@ st.markdown(r"""
 
 
 # --- 3. KHỞI TẠO SESSION STATE ---
-if "chat_state" not in st.session_state:
+if "page_state" not in st.session_state:
+    st.session_state.page_state = STATE_CHAT
     st.session_state.chat_state = CHAT_STATE_MAIN
     st.session_state.history = [{"sender": "bot", "text": "Chào bạn, mình là Bạn đồng hành đây! Mình có thể giúp gì cho bạn hôm nay?"}]
     st.session_state.turns = 0
@@ -167,7 +177,8 @@ def detect_mood_from_text(text):
     for mood, config in CONFIG["tam_su"]["moods"].items():
         matches = len(user_words.intersection(set(config['keywords'])))
         if matches > max_matches:
-            max_matches, matched_mood = matches, mood
+            max_matches = matches
+            matched_mood = mood
     return matched_mood
 
 def call_gemini(prompt):
@@ -182,6 +193,9 @@ def call_gemini(prompt):
         return f"Xin lỗi, đã có lỗi xảy ra khi kết nối với AI: {e}"
 
 # --- 5. CÁC HÀM CALLBACK ---
+def switch_page(page):
+    st.session_state.page_state = page
+
 def main_chat_button_callback(action):
     add_message("user", action)
     if action == "Tâm sự":
@@ -245,82 +259,167 @@ def user_input_callback():
         st.session_state.next_bot_response = ai_response
     st.session_state.user_input = ""
 
-# --- 6. VẼ GIAO DIỆN CHÍNH ---
-st.title(CONFIG['ui']['title'])
 
-chat_container = st.container()
-with chat_container:
-    st.markdown("<div class='chat-container'>", unsafe_allow_html=True)
-    for message in st.session_state.history:
-        sender_class = "user-message-container" if message["sender"] == "user" else "bot-message-container"
-        message_class = "user-message" if message["sender"] == "user" else "bot-message"
-        escaped_text = html.escape(message['text'])
-        st.markdown(f"<div class='{sender_class}'><div class='{message_class}'>{escaped_text}</div></div>", unsafe_allow_html=True)
+# --- 6. CÁC HÀM VẼ GIAO DIỆN CHO TỪNG TÍNH NĂNG ---
+def render_chat_ui():
+    """Vẽ toàn bộ giao diện trò chuyện."""
+    chat_container = st.container()
+    with chat_container:
+        st.markdown("<div class='chat-container'>", unsafe_allow_html=True)
+        for message in st.session_state.history:
+            sender_class = "user-message-container" if message["sender"] == "user" else "bot-message-container"
+            message_class = "user-message" if message["sender"] == "user" else "bot-message"
+            escaped_text = html.escape(message['text'])
+            st.markdown(f"<div class='{sender_class}'><div class='{message_class}'>{escaped_text}</div></div>", unsafe_allow_html=True)
 
-    if "next_bot_response" in st.session_state:
-        bot_response_text = st.session_state.pop("next_bot_response")
-        audio_data = text_to_speech(bot_response_text)
-        if audio_data:
-            autoplay_audio(audio_data)
+        if "next_bot_response" in st.session_state:
+            bot_response_text = st.session_state.pop("next_bot_response")
+            audio_data = text_to_speech(bot_response_text)
+            if audio_data:
+                autoplay_audio(audio_data)
 
-        bot_message_placeholder = st.empty()
-        indicator_html = "<div class='bot-message-container'><div class='bot-message typing-indicator'><span></span><span></span><span></span></div></div>"
-        bot_message_placeholder.markdown(indicator_html, unsafe_allow_html=True)
-        time.sleep(0.5)
-        
-        full_response_html = ""
-        for chunk in stream_response_generator(bot_response_text):
-            full_response_html += chunk
-            escaped_chunk = html.escape(full_response_html)
-            styled_html = f"<div class='bot-message-container'><div class='bot-message'>{escaped_chunk}</div></div>"
-            bot_message_placeholder.markdown(styled_html, unsafe_allow_html=True)
-        
-        add_message("bot", bot_response_text)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-footer = st.container()
-with footer:
-    st.markdown("<div class='footer-fixed'>", unsafe_allow_html=True)
-    st.markdown("<div class='buttons-and-input-container'>", unsafe_allow_html=True)
-    
-    st.markdown("<div class='horizontal-buttons-container'>", unsafe_allow_html=True)
-    chat_state = st.session_state.chat_state
-
-    if chat_state in [CHAT_STATE_MAIN, CHAT_STATE_AWAITING_FOLLOWUP]:
-        st.button("💖 Tâm sự", on_click=main_chat_button_callback, args=("Tâm sự",))
-        st.button("🗣️ Giao tiếp", on_click=main_chat_button_callback, args=("Giao tiếp",))
-    elif chat_state == CHAT_STATE_TAM_SU_SELECTION:
-        moods = list(CONFIG["tam_su"]["moods"].keys())
-        cols = st.columns(len(moods))
-        for i, mood in enumerate(moods):
-            with cols[i]:
-                st.button(mood, on_click=mood_selection_callback, args=(mood,), use_container_width=True)
-    elif chat_state == CHAT_STATE_TAM_SU_CHAT:
-        st.button(CONFIG["tam_su"]["positive_affirmation_trigger"], on_click=positive_affirmation_callback)
-        st.button("🏁 Kết thúc", on_click=end_chat_callback)
-    elif chat_state == CHAT_STATE_GIAO_TIEP_SELECTION_BASIC:
-        for scenario in CONFIG["giao_tiep"]["scenarios_basic"].keys():
-            st.button(scenario, on_click=scenario_selection_callback, args=(scenario,))
-    elif chat_state == CHAT_STATE_GIAO_TIEP_SELECTION_EXTENDED:
-        for scenario in CONFIG["giao_tiep"]["scenarios_extended"].keys():
-            st.button(scenario, on_click=scenario_selection_callback, args=(scenario,))
-    elif chat_state == CHAT_STATE_GIAO_TIEP_PRACTICE:
-        buttons_cfg = CONFIG["giao_tiep"]["confirm_buttons"]
-        st.button(buttons_cfg["understood"], on_click=practice_button_callback, args=("understood",))
-        st.button(buttons_cfg["not_understood"], on_click=practice_button_callback, args=("not_understood",))
-        st.button("Dừng nhé", on_click=end_chat_callback)
-    st.markdown("</div>", unsafe_allow_html=True)
-    
-    input_container = st.container()
-    with input_container:
-        st.markdown("<div class='input-container'>", unsafe_allow_html=True)
-        col1, col2 = st.columns([0.9, 0.1])
-        with col1:
-            st.text_input("Input", placeholder=CONFIG["ui"]["input_placeholder"], key="user_input", on_change=user_input_callback, label_visibility="collapsed")
-        if col2.button("😊", key="toggle_emoji", help="Chọn biểu cảm nhanh"):
-            st.session_state.show_emojis = not st.session_state.get('show_emojis', False)
-
+            bot_message_placeholder = st.empty()
+            indicator_html = "<div class='bot-message-container'><div class='bot-message typing-indicator'><span></span><span></span><span></span></div></div>"
+            bot_message_placeholder.markdown(indicator_html, unsafe_allow_html=True)
+            time.sleep(0.5)
+            
+            full_response_html = ""
+            for chunk in stream_response_generator(bot_response_text):
+                full_response_html += chunk
+                escaped_chunk = html.escape(full_response_html)
+                styled_html = f"<div class='bot-message-container'><div class='bot-message'>{escaped_chunk}</div></div>"
+                bot_message_placeholder.markdown(styled_html, unsafe_allow_html=True)
+            
+            add_message("bot", bot_response_text)
         st.markdown("</div>", unsafe_allow_html=True)
+
+    footer = st.container()
+    with footer:
+        st.markdown("<div class='footer-fixed'>", unsafe_allow_html=True)
+        st.markdown("<div class='buttons-and-input-container'>", unsafe_allow_html=True)
+        
+        st.markdown("<div class='horizontal-buttons-container'>", unsafe_allow_html=True)
+        chat_state = st.session_state.chat_state
+
+        if chat_state in [CHAT_STATE_MAIN, CHAT_STATE_AWAITING_FOLLOWUP]:
+            st.button("💖 Tâm sự", on_click=main_chat_button_callback, args=("Tâm sự",))
+            st.button("🗣️ Giao tiếp", on_click=main_chat_button_callback, args=("Giao tiếp",))
+            st.button("📔 Nhật ký", on_click=switch_page, args=(STATE_JOURNAL,))
+            st.button("🧘 Thư giãn", on_click=switch_page, args=(STATE_RELAX,))
+        elif chat_state == CHAT_STATE_TAM_SU_SELECTION:
+            moods = list(CONFIG["tam_su"]["moods"].keys())
+            cols = st.columns(len(moods))
+            for i, mood in enumerate(moods):
+                with cols[i]:
+                    st.button(mood, on_click=mood_selection_callback, args=(mood,), use_container_width=True)
+        elif chat_state == CHAT_STATE_TAM_SU_CHAT:
+            st.button(CONFIG["tam_su"]["positive_affirmation_trigger"], on_click=positive_affirmation_callback)
+            st.button("🏁 Kết thúc", on_click=end_chat_callback)
+        elif chat_state == CHAT_STATE_GIAO_TIEP_SELECTION_BASIC:
+            for scenario in CONFIG["giao_tiep"]["scenarios_basic"].keys():
+                st.button(scenario, on_click=scenario_selection_callback, args=(scenario,))
+        elif chat_state == CHAT_STATE_GIAO_TIEP_SELECTION_EXTENDED:
+            for scenario in CONFIG["giao_tiep"]["scenarios_extended"].keys():
+                st.button(scenario, on_click=scenario_selection_callback, args=(scenario,))
+        elif chat_state == CHAT_STATE_GIAO_TIEP_PRACTICE:
+            buttons_cfg = CONFIG["giao_tiep"]["confirm_buttons"]
+            st.button(buttons_cfg["understood"], on_click=practice_button_callback, args=("understood",))
+            st.button(buttons_cfg["not_understood"], on_click=practice_button_callback, args=("not_understood",))
+            st.button("Dừng nhé", on_click=end_chat_callback)
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+        input_container = st.container()
+        with input_container:
+            st.markdown("<div class='input-container'>", unsafe_allow_html=True)
+            col1, col2 = st.columns([0.9, 0.1])
+            with col1:
+                st.text_input("Input", placeholder=CONFIG["ui"]["input_placeholder"], key="user_input", on_change=user_input_callback, label_visibility="collapsed")
+            if col2.button("😊", key="toggle_emoji", help="Chọn biểu cảm nhanh"):
+                st.session_state.show_emojis = not st.session_state.get('show_emojis', False)
+
+            st.markdown("</div>", unsafe_allow_html=True)
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+def render_journal_ui():
+    """Vẽ giao diện Nhật ký Cảm xúc."""
+    st.title("📔 Nhật Ký Cảm Xúc")
+    MOOD_FILE = "mood_journal.csv"
+    MOOD_OPTIONS = ["😄 Vui", "😔 Buồn", "😡 Tức giận", "😢 Tủi thân", "😴 Mệt mỏi", "😐 Bình thường"]
+
+    def load_mood_data():
+        if os.path.exists(MOOD_FILE):
+            try:
+                return pd.read_csv(MOOD_FILE)
+            except pd.errors.EmptyDataError:
+                return pd.DataFrame(columns=["Ngày", "Cảm xúc", "Ghi chú"])
+        return pd.DataFrame(columns=["Ngày", "Cảm xúc", "Ghi chú"])
+
+    journal_df = load_mood_data()
     
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.header("Hôm nay bạn cảm thấy thế nào?")
+    log_date = st.date_input("Chọn ngày", datetime.now())
+    selected_mood = st.selectbox("Chọn cảm xúc của bạn", MOOD_OPTIONS)
+    note = st.text_input("Bạn có muốn ghi chú thêm điều gì không?")
+
+    if st.button("Lưu lại cảm xúc"):
+        new_entry = pd.DataFrame([{"Ngày": log_date.strftime("%Y-%m-%d"), "Cảm xúc": selected_mood, "Ghi chú": note}])
+        if not journal_df.empty:
+            journal_df['Ngày'] = journal_df['Ngày'].astype(str)
+        if log_date.strftime("%Y-%m-%d") in journal_df["Ngày"].values:
+            st.warning("Bạn đã ghi lại cảm xúc cho ngày này rồi.")
+        else:
+            journal_df = pd.concat([journal_df, new_entry], ignore_index=True)
+            journal_df.to_csv(MOOD_FILE, index=False)
+            st.success("Đã lưu lại cảm xúc!")
+            st.rerun()
+
+    st.header("Lịch sử cảm xúc của bạn")
+    if not journal_df.empty:
+        st.dataframe(journal_df.sort_values(by="Ngày", ascending=False), use_container_width=True)
+        st.header("Thống kê cảm xúc")
+        st.bar_chart(journal_df["Cảm xúc"].value_counts())
+    else:
+        st.info("Nhật ký của bạn còn trống.")
+
+    if st.button("⬅️ Quay lại Trò chuyện"):
+        switch_page(STATE_CHAT)
+
+def render_relax_ui():
+    """Vẽ giao diện Góc Thư giãn."""
+    st.title("🧘 Góc Thư Giãn")
+    st.write("Hãy dành một chút thời gian để hít thở sâu và lắng nghe những âm thanh nhẹ nhàng nhé.")
+
+    st.header("Bài tập hít thở hộp (4-4-4-4)")
+    if st.button("Bắt đầu hít thở"):
+        placeholder = st.empty()
+        for i in range(3):
+            placeholder.info("Chuẩn bị..."); time.sleep(2)
+            placeholder.success("Hít vào bằng mũi... (4 giây)"); time.sleep(4)
+            placeholder.warning("Giữ hơi... (4 giây)"); time.sleep(4)
+            placeholder.success("Thở ra từ từ bằng miệng... (4 giây)"); time.sleep(4)
+            placeholder.warning("Nghỉ... (4 giây)"); time.sleep(4)
+        placeholder.success("Hoàn thành! Bạn cảm thấy tốt hơn rồi chứ?")
+
+    st.header("Lắng nghe âm thanh thiên nhiên")
+    tab1, tab2, tab3 = st.tabs(["Tiếng mưa 🌧️", "Suối chảy 🏞️", "Nhạc thiền 🕉️"])
+    with tab1: st.video("https://www.youtube.com/watch?v=eKFTSSKCzWA")
+    with tab2: st.video("https://www.youtube.com/watch?v=IvjMgVS6kng")
+    with tab3: st.video("https://www.youtube.com/watch?v=aIIEI33EUqI")
+
+
+    if st.button("⬅️ Quay lại Trò chuyện"):
+        switch_page(STATE_CHAT)
+
+# --- 7. CHƯƠNG TRÌNH CHÍNH (MAIN APP ROUTER) ---
+st.markdown(f"<h1 style='color: #1E1E1E; text-align: center; position: fixed; top: 0; left: 0; right: 0; background: #FFFFFF; z-index: 999; padding: 5px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);'>{CONFIG['ui']['title']}</h1>", unsafe_allow_html=True)
+
+# Router chính để quyết định giao diện nào sẽ được hiển thị
+if st.session_state.page_state == STATE_CHAT:
+    render_chat_ui()
+elif st.session_state.page_state == STATE_JOURNAL:
+    render_journal_ui()
+elif st.session_state.page_state == STATE_RELAX:
+    render_relax_ui()
+đoạn code trên dường như thiếu đi phần chatbot4.8.py, bạn có thể thêm nó vào được chứ
