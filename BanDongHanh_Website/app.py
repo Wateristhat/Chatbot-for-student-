@@ -120,4 +120,5 @@ else:
 
     st.markdown("---")
 
-    st.info("👈 **Hãy chọn một tính
+    st.info("👈 **Hãy chọn một tính năng từ thanh điều hướng bên trái để bắt đầu!**", icon="😊")
+
