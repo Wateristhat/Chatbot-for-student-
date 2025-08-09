@@ -1,103 +1,104 @@
-# File: pages/5_🎲_Tro_Choi_Tri_Tue.py
-
 import streamlit as st
 import random
-import time
 
-st.set_page_config(page_title="Trò Chơi Trí Tuệ", page_icon="🎲", layout="centered")
+st.set_page_config(page_title="Trò Chơi Trí Tuệ Đơn Giản", page_icon="🎲", layout="centered")
 
-st.title("🎲 Trò Chơi Trí Tuệ")
-st.markdown("Cùng thư giãn với những trò chơi nhẹ nhàng, không áp lực để rèn luyện sự tập trung và trí nhớ nhé!")
+st.title("🎲 Trò Chơi Nhận Biết Màu Sắc")
+st.markdown(
+    "<div style='font-size:1.15rem'>"
+    "Bạn hãy chọn đúng màu theo yêu cầu. Trò chơi này rất đơn giản, phù hợp cho mọi đối tượng, kể cả người khiếm khuyết về trí tuệ.<br>"
+    "<b>Chúc bạn vui vẻ!</b>"
+    "</div>", unsafe_allow_html=True
+)
 st.write("---")
 
-# --- Trò chơi: Nối Hình Giống Nhau (Memory Match) ---
-st.header("🧠 Nối Hình Giống Nhau")
+# Danh sách các màu cơ bản
+COLOR_LIST = [
+    {"name": "Đỏ", "code": "#FF3333"},
+    {"name": "Vàng", "code": "#FFD600"},
+    {"name": "Xanh Lá", "code": "#4CAF50"},
+    {"name": "Xanh Dương", "code": "#2196F3"},
+    {"name": "Tím", "code": "#9C27B0"},
+    {"name": "Cam", "code": "#FF9800"},
+    {"name": "Hồng", "code": "#FF69B4"},
+    {"name": "Nâu", "code": "#795548"},
+]
 
-# MODIFIED: Sửa lại cách tạo danh sách ICONS
-# Biến một chuỗi thành một danh sách các ký tự (emoji)
-ICONS = list("🐶🐱🐭🐹🐰🦊🐻🐼🐨🐯🦁🐮🐷🐸🐵🙈🙉🙊🐒🐔🐧🐦🐤🐣🐥🦆🦅🦉🦇🐺🐗🐴🦄🐝🐛🦋🐌🐞🐜🦟🦗🕷️🦂🐢🐍🦎🦖🦕🐙🦑🦐🦀🐡🐠🐟🐬🐳🐋🦈🐊🐅🐆🦓🦍🐘🦛🦏🐪🐫🦒🐃🐂🐄🐎🐖🐏🐑🐐🦌🐕🐩🐈🐓🦃🕊️🐇🐁🐀🐿️🦔")
+if 'score' not in st.session_state:
+    st.session_state.score = 0
+if 'round' not in st.session_state:
+    st.session_state.round = 1
+if 'question' not in st.session_state or st.button("Chơi lại/Bắt đầu mới", type="primary"):
+    st.session_state.question = random.choice(COLOR_LIST)
+    st.session_state.options = random.sample(COLOR_LIST, k=4)
+    if st.session_state.question not in st.session_state.options:
+        # Đảm bảo đáp án luôn nằm trong options
+        st.session_state.options[random.randint(0, 3)] = st.session_state.question
+    st.session_state.answered = False
+    st.session_state.round = 1
+    st.session_state.score = 0
 
-def setup_game(rows, cols):
-    """Khởi tạo trò chơi"""
-    if rows * cols % 2 != 0:
-        st.error("Số ô phải là số chẵn!")
-        return
+st.header(f"🟢 Vòng {st.session_state.round}")
+st.subheader("Chọn đúng màu:")
 
-    num_pairs = (rows * cols) // 2
+# Hiển thị tên màu cần chọn với màu chữ đen rõ ràng
+st.markdown(
+    f"<div style='font-size:2.4rem;font-weight:bold;color:#222;margin:16px 0 24px'>{st.session_state.question['name']}</div>",
+    unsafe_allow_html=True
+)
 
-    # Bước kiểm tra an toàn
-    if num_pairs > len(ICONS):
-        st.error(f"Lỗi cấu hình: Trò chơi cần {num_pairs} cặp icon, nhưng chỉ có {len(ICONS)} icon khác nhau. Vui lòng thêm icon vào danh sách ICONS trong code.")
-        return
+cols = st.columns(2)
+selected = None
 
-    icons_for_game = random.sample(ICONS, num_pairs) * 2
-    random.shuffle(icons_for_game)
+for idx, color in enumerate(st.session_state.options):
+    btn = cols[idx % 2].button(
+        label=" ",
+        key=f"color_btn_{idx}_{st.session_state.round}",
+        help=f"Đây là màu {color['name']}",
+        use_container_width=True
+    )
+    # CSS cho nút màu lớn
+    st.markdown(
+        f"""
+        <style>
+        div[data-testid="column"]:nth-of-type({idx%2+1}) button[kind="secondary"] {{
+            height: 85px !important;
+            background: {color['code']} !important;
+            border-radius: 20px;
+            border: 3px solid #ddd;
+            margin: 12px 0 24px 0;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    if btn and not st.session_state.get('answered', False):
+        selected = color
 
-    st.session_state.board = [[icons_for_game.pop() for _ in range(cols)] for _ in range(rows)]
-    st.session_state.flipped = [[False for _ in range(cols)] for _ in range(rows)]
-    st.session_state.matched = [[False for _ in range(cols)] for _ in range(rows)]
-    st.session_state.first_pick = None
-    st.session_state.second_pick = None
-    st.session_state.moves = 0
-    st.session_state.game_over = False
-
-# Lựa chọn độ khó
-difficulty = st.selectbox("Chọn độ khó:", ["Dễ (2x4)", "Vừa (4x4)", "Khó (4x5)"])
-
-rows, cols = 0, 0
-if difficulty == "Dễ (2x4)":
-    rows, cols = 2, 4
-elif difficulty == "Vừa (4x4)":
-    rows, cols = 4, 4
-elif difficulty == "Khó (4x5)":
-    rows, cols = 4, 5
-
-if 'board' not in st.session_state or st.button("Chơi lại/Bắt đầu ván mới", type="primary"):
-    setup_game(rows, cols)
-    st.rerun()
-
-if 'board' in st.session_state and st.session_state.board:
-    if st.session_state.game_over:
-        st.success(f"🎉 Chúc mừng! Bạn đã hoàn thành trò chơi sau {st.session_state.moves} lượt. 🎉")
+if selected:
+    st.session_state.answered = True
+    if selected == st.session_state.question:
+        st.success("🎉 Chính xác! Bạn đã chọn đúng màu.", icon="✅")
+        st.session_state.score += 1
         st.balloons()
     else:
-        st.info(f"Số lượt đã đi: {st.session_state.moves}")
-        
-        # Logic lật bài và kiểm tra
-        if st.session_state.second_pick:
-            r1, c1 = st.session_state.first_pick
-            r2, c2 = st.session_state.second_pick
-            if st.session_state.board[r1][c1] != st.session_state.board[r2][c2]:
-                # Dừng một chút để người dùng nhìn thấy thẻ thứ 2
-                time.sleep(0.5) 
-                st.session_state.flipped[r1][c1] = False
-                st.session_state.flipped[r2][c2] = False
-            st.session_state.first_pick, st.session_state.second_pick = None, None
-            st.rerun()
+        st.error(f"❌ Sai rồi! Đây là màu {selected['name']}.", icon="❌")
+    # Sau khi trả lời, tự chuyển sang câu tiếp theo sau 1.5s
+    st.experimental_rerun()
 
-        # Vẽ bàn chơi
-        for r in range(rows):
-            grid_cols = st.columns(cols)
-            for c in range(cols):
-                is_flipped = st.session_state.flipped[r][c]
-                is_matched = st.session_state.matched[r][c]
-                
-                button_label = st.session_state.board[r][c] if is_flipped or is_matched else "❓"
-                
-                if grid_cols[c].button(button_label, key=f"btn_{r}_{c}", use_container_width=True, disabled=(is_flipped or is_matched)):
-                    st.session_state.flipped[r][c] = True
-                    if not st.session_state.first_pick:
-                        st.session_state.first_pick = (r, c)
-                    else:
-                        st.session_state.second_pick = (r, c)
-                        st.session_state.moves += 1
-                        r1, c1 = st.session_state.first_pick
-                        r2, c2 = st.session_state.second_pick
-                        if st.session_state.board[r1][c1] == st.session_state.board[r2][c2]:
-                            st.session_state.matched[r1][c1] = True
-                            st.session_state.matched[r2][c2] = True
-                            st.session_state.first_pick, st.session_state.second_pick = None, None
-                            
-                            if all(all(row) for row in st.session_state.matched):
-                                st.session_state.game_over = True
-                    st.rerun()
+if st.session_state.get('answered', False):
+    if st.button("Câu tiếp theo ➡️", type="primary"):
+        st.session_state.round += 1
+        st.session_state.question = random.choice(COLOR_LIST)
+        st.session_state.options = random.sample(COLOR_LIST, k=4)
+        if st.session_state.question not in st.session_state.options:
+            st.session_state.options[random.randint(0, 3)] = st.session_state.question
+        st.session_state.answered = False
+        st.experimental_rerun()
+
+# Hiển thị điểm số
+st.write("---")
+st.info(f"🌟 Số câu trả lời đúng: {st.session_state.score}", icon="💡")
+
+st.write("<br>", unsafe_allow_html=True)
+st.caption("Trò chơi dành cho mọi người, kể cả các bạn nhỏ hoặc người khiếm khuyết về trí tuệ. Chỉ cần bấm đúng màu là được nhé!")
