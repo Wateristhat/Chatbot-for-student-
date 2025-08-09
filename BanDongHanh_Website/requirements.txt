@@ -5,3 +5,5 @@ google-generativeai
 streamlit-drawable-canvas
 google-cloud-texttospeech
 google-cloud-aiplatform
+st-fontawesome
+streamlit-extras
