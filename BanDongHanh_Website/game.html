@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Trò chơi tránh vật cản</title>
+  <style>
+    canvas {
+      border: 1px solid black;
+      display: block;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align: center;">Trò chơi Tránh Vật Cản</h1>
+  <p style="text-align: center;">Nhấn phím SPACE để nhảy và tránh vật cản!</p>
+  <canvas id="gameCanvas" width="480" height="320"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let player = { x: 50, y: 150, width: 20, height: 20, gravity: 2, velocity: 0 };
+    let obstacles = [];
+    let score = 0;
+    let gameOver = false;
+
+    function drawPlayer() {
+      ctx.fillStyle = "blue";
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+
+    function drawObstacle(obstacle) {
+      ctx.fillStyle = "red";
+      ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+    }
+
+    function handlePlayerJump() {
+      player.velocity = -10; // Nhảy lên
+    }
+
+    function updatePlayer() {
+      player.velocity += player.gravity;
+      player.y += player.velocity;
+
+      // Giới hạn không cho rơi ra ngoài khung
+      if (player.y + player.height > canvas.height) {
+        player.y = canvas.height - player.height;
+        player.velocity = 0;
+      }
+      if (player.y < 0) {
+        player.y = 0;
+        player.velocity = 0;
+      }
+    }
+
+    function spawnObstacle() {
+      const obstacleHeight = Math.random() * 100 + 50;
+      const obstacle = {
+        x: canvas.width,
+        y: canvas.height - obstacleHeight,
+        width: 20,
+        height: obstacleHeight,
+      };
+      obstacles.push(obstacle);
+    }
+
+    function updateObstacles() {
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        obstacles[i].x -= 5;
+
+        // Xóa vật cản nếu ra khỏi khung
+        if (obstacles[i].x + obstacles[i].width < 0) {
+          obstacles.splice(i, 1);
+          score++;
+        }
+
+        // Kiểm tra va chạm
+        if (
+          player.x < obstacles[i].x + obstacles[i].width &&
+          player.x + player.width > obstacles[i].x &&
+          player.y < obstacles[i].y + obstacles[i].height &&
+          player.y + player.height > obstacles[i].y
+        ) {
+          gameOver = true;
+        }
+      }
+    }
+
+    function drawScore() {
+      ctx.fillStyle = "black";
+      ctx.font = "20px Arial";
+      ctx.fillText(`Điểm: ${score}`, 10, 20);
+    }
+
+    function gameLoop() {
+      if (gameOver) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "black";
+        ctx.font = "30px Arial";
+        ctx.fillText("Game Over!", canvas.width / 2 - 70, canvas.height / 2);
+        return;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      updatePlayer();
+      updateObstacles();
+
+      drawPlayer();
+      obstacles.forEach(drawObstacle);
+      drawScore();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function startGame() {
+      setInterval(spawnObstacle, 1500); // Sinh vật cản mỗi 1.5 giây
+      gameLoop();
+    }
+
+    document.body.addEventListener("keydown", (e) => {
+      if (e.code === "Space") {
+        handlePlayerJump();
+      }
+    });
+
+    startGame();
+  </script>
+</body>
+</html>
