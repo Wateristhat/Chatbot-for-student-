@@ -1,87 +1,97 @@
-import streamlit as st
-import time
+import pygame
 import random
 
-# Cấu hình trang
-st.set_page_config(page_title="🏎️ Đua Xe Ảo", page_icon="🏎️", layout="centered")
+# Khởi tạo Pygame
+pygame.init()
 
-# Khởi tạo trạng thái
-if 'score' not in st.session_state:
-    st.session_state.score = 0
-if 'highscore' not in st.session_state:
-    st.session_state.highscore = 0
-if 'obstacle_position' not in st.session_state:
-    st.session_state.obstacle_position = random.randint(0, 4)
-if 'player_position' not in st.session_state:
-    st.session_state.player_position = 2
-if 'game_active' not in st.session_state:
-    st.session_state.game_active = True
+# Kích thước cửa sổ trò chơi
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("🏃 Trò Chơi Chạy Kiểu Flash")
 
-# Tiêu đề trò chơi
-st.title("🏎️ Đua Xe Ảo")
-st.markdown(
-    "<div style='font-size:1.15rem'>"
-    "Điều khiển xe của bạn để tránh các chướng ngại vật! Mỗi lần tránh thành công, bạn sẽ nhận được điểm.<br>"
-    "<b>Chúc bạn vui vẻ!</b>"
-    "</div>", unsafe_allow_html=True
-)
-st.write("---")
+# Màu sắc
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
 
-# Hiển thị điểm số
-col1, col2 = st.columns(2)
-col1.metric(label="🌟 Điểm hiện tại", value=st.session_state.score)
-col2.metric(label="🏆 Điểm cao nhất", value=st.session_state.highscore)
+# FPS
+clock = pygame.time.Clock()
+FPS = 60
 
-# Hiển thị đường đua
-def render_race():
-    road = ["🛣️"] * 5
-    player_icon = "🚗"
-    obstacle_icon = "🚧"
+# Nhân vật chạy
+player = pygame.Rect(100, HEIGHT // 2, 50, 50)
+player_speed = 5
 
-    # Vẽ xe của người chơi
-    road[st.session_state.player_position] = player_icon
+# Chướng ngại vật
+obstacles = []
+obstacle_width = 50
+obstacle_height = 50
+obstacle_speed = 7
 
-    # Vẽ chướng ngại vật
-    road[st.session_state.obstacle_position] = obstacle_icon
+# Điểm số
+score = 0
+font = pygame.font.Font(None, 36)
 
-    # Hiển thị đường đua
-    st.markdown(
-        f"<div style='font-size:2rem;text-align:center'>{''.join(road)}</div>",
-        unsafe_allow_html=True
-    )
+# Âm thanh
+jump_sound = pygame.mixer.Sound("jump.wav")
 
-# Điều khiển xe
-def move_left():
-    if st.session_state.player_position > 0:
-        st.session_state.player_position -= 1
+# Hàm hiển thị điểm số
+def draw_score():
+    score_text = font.render(f"Điểm: {score}", True, WHITE)
+    screen.blit(score_text, (10, 10))
 
-def move_right():
-    if st.session_state.player_position < 4:
-        st.session_state.player_position += 1
+# Hàm tạo chướng ngại vật
+def create_obstacle():
+    x = random.randint(WIDTH, WIDTH + 200)
+    y = random.randint(0, HEIGHT - obstacle_height)
+    return pygame.Rect(x, y, obstacle_width, obstacle_height)
 
-# Nút điều khiển
-col1, col2 = st.columns(2)
-col1.button("⬅️ Sang Trái", on_click=move_left)
-col2.button("➡️ Sang Phải", on_click=move_right)
+# Vòng lặp chính
+running = True
+while running:
+    screen.fill(BLACK)
 
-# Xử lý logic trò chơi
-if st.session_state.game_active:
-    render_race()
+    # Xử lý sự kiện
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
-    # Kiểm tra va chạm
-    if st.session_state.player_position == st.session_state.obstacle_position:
-        st.error("💥 Bạn đã va chạm với chướng ngại vật! Trò chơi kết thúc.", icon="❌")
-        st.session_state.game_active = False
-    else:
-        st.session_state.score += 1
-        st.session_state.highscore = max(st.session_state.highscore, st.session_state.score)
-        st.session_state.obstacle_position = random.randint(0, 4)
-        time.sleep(0.5)  # Tăng tốc độ chướng ngại vật
+    # Di chuyển nhân vật
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_UP] and player.top > 0:
+        player.y -= player_speed
+        jump_sound.play()
+    if keys[pygame.K_DOWN] and player.bottom < HEIGHT:
+        player.y += player_speed
 
-# Nút chơi lại
-if not st.session_state.game_active and st.button("🔄 Chơi lại"):
-    st.session_state.score = 0
-    st.session_state.player_position = 2
-    st.session_state.obstacle_position = random.randint(0, 4)
-    st.session_state.game_active = True
-    st.experimental_rerun()
+    # Tạo chướng ngại vật
+    if random.randint(1, 100) > 98:
+        obstacles.append(create_obstacle())
+
+    # Di chuyển chướng ngại vật
+    for obstacle in obstacles[:]:
+        obstacle.x -= obstacle_speed
+        if obstacle.right < 0:
+            obstacles.remove(obstacle)
+            score += 1
+
+    # Va chạm
+    for obstacle in obstacles:
+        if player.colliderect(obstacle):
+            running = False
+
+    # Vẽ nhân vật và chướng ngại vật
+    pygame.draw.rect(screen, RED, player)
+    for obstacle in obstacles:
+        pygame.draw.rect(screen, BLUE, obstacle)
+
+    # Hiển thị điểm số
+    draw_score()
+
+    # Cập nhật màn hình
+    pygame.display.flip()
+    clock.tick(FPS)
+
+# Kết thúc trò chơi
+pygame.quit()
