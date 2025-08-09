@@ -1,104 +1,87 @@
 import streamlit as st
+import time
 import random
 
-st.set_page_config(page_title="Trò Chơi Trí Tuệ Đơn Giản", page_icon="🎲", layout="centered")
+# Cấu hình trang
+st.set_page_config(page_title="🏎️ Đua Xe Ảo", page_icon="🏎️", layout="centered")
 
-st.title("🎲 Trò Chơi Nhận Biết Màu Sắc")
+# Khởi tạo trạng thái
+if 'score' not in st.session_state:
+    st.session_state.score = 0
+if 'highscore' not in st.session_state:
+    st.session_state.highscore = 0
+if 'obstacle_position' not in st.session_state:
+    st.session_state.obstacle_position = random.randint(0, 4)
+if 'player_position' not in st.session_state:
+    st.session_state.player_position = 2
+if 'game_active' not in st.session_state:
+    st.session_state.game_active = True
+
+# Tiêu đề trò chơi
+st.title("🏎️ Đua Xe Ảo")
 st.markdown(
     "<div style='font-size:1.15rem'>"
-    "Bạn hãy chọn đúng màu theo yêu cầu. Trò chơi này rất đơn giản, phù hợp cho mọi đối tượng, kể cả người khiếm khuyết về trí tuệ.<br>"
+    "Điều khiển xe của bạn để tránh các chướng ngại vật! Mỗi lần tránh thành công, bạn sẽ nhận được điểm.<br>"
     "<b>Chúc bạn vui vẻ!</b>"
     "</div>", unsafe_allow_html=True
 )
 st.write("---")
 
-# Danh sách các màu cơ bản
-COLOR_LIST = [
-    {"name": "Đỏ", "code": "#FF3333"},
-    {"name": "Vàng", "code": "#FFD600"},
-    {"name": "Xanh Lá", "code": "#4CAF50"},
-    {"name": "Xanh Dương", "code": "#2196F3"},
-    {"name": "Tím", "code": "#9C27B0"},
-    {"name": "Cam", "code": "#FF9800"},
-    {"name": "Hồng", "code": "#FF69B4"},
-    {"name": "Nâu", "code": "#795548"},
-]
-
-if 'score' not in st.session_state:
-    st.session_state.score = 0
-if 'round' not in st.session_state:
-    st.session_state.round = 1
-if 'question' not in st.session_state or st.button("Chơi lại/Bắt đầu mới", type="primary"):
-    st.session_state.question = random.choice(COLOR_LIST)
-    st.session_state.options = random.sample(COLOR_LIST, k=4)
-    if st.session_state.question not in st.session_state.options:
-        # Đảm bảo đáp án luôn nằm trong options
-        st.session_state.options[random.randint(0, 3)] = st.session_state.question
-    st.session_state.answered = False
-    st.session_state.round = 1
-    st.session_state.score = 0
-
-st.header(f"🟢 Vòng {st.session_state.round}")
-st.subheader("Chọn đúng màu:")
-
-# Hiển thị tên màu cần chọn với màu chữ đen rõ ràng
-st.markdown(
-    f"<div style='font-size:2.4rem;font-weight:bold;color:#222;margin:16px 0 24px'>{st.session_state.question['name']}</div>",
-    unsafe_allow_html=True
-)
-
-cols = st.columns(2)
-selected = None
-
-# Hiển thị nút với màu sắc
-for idx, color in enumerate(st.session_state.options):
-    btn = cols[idx % 2].button(
-        label="Chọn",
-        key=f"color_btn_{idx}_{st.session_state.round}",
-        help=f"Đây là màu {color['name']}",
-    )
-    # CSS cho nút màu lớn
-    st.markdown(
-        f"""
-        <style>
-        div[data-testid="column"]:nth-of-type({idx%2+1}) button[kind="secondary"] {{
-            height: 85px !important;
-            background-color: {color['code']} !important;
-            border-radius: 20px;
-            border: 3px solid #ddd;
-            margin: 12px 0 24px 0;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-    if btn and not st.session_state.get('answered', False):
-        selected = color
-
-if selected:
-    st.session_state.answered = True
-    if selected == st.session_state.question:
-        st.success("🎉 Chính xác! Bạn đã chọn đúng màu.", icon="✅")
-        st.session_state.score += 1
-        st.balloons()
-    else:
-        st.error(f"❌ Sai rồi! Đây là màu {selected['name']}.", icon="❌")
-    # Sau khi trả lời, tự chuyển sang câu tiếp theo sau 1.5s
-    st.experimental_rerun()
-
-if st.session_state.get('answered', False):
-    if st.button("Câu tiếp theo ➡️", type="primary"):
-        st.session_state.round += 1
-        st.session_state.question = random.choice(COLOR_LIST)
-        st.session_state.options = random.sample(COLOR_LIST, k=4)
-        if st.session_state.question not in st.session_state.options:
-            st.session_state.options[random.randint(0, 3)] = st.session_state.question
-        st.session_state.answered = False
-        st.experimental_rerun()
-
 # Hiển thị điểm số
-st.write("---")
-st.info(f"🌟 Số câu trả lời đúng: {st.session_state.score}", icon="💡")
+col1, col2 = st.columns(2)
+col1.metric(label="🌟 Điểm hiện tại", value=st.session_state.score)
+col2.metric(label="🏆 Điểm cao nhất", value=st.session_state.highscore)
 
-st.write("<br>", unsafe_allow_html=True)
-st.caption("Trò chơi dành cho mọi người, kể cả các bạn nhỏ hoặc người khiếm khuyết về trí tuệ. Chỉ cần bấm đúng màu là được nhé!")
+# Hiển thị đường đua
+def render_race():
+    road = ["🛣️"] * 5
+    player_icon = "🚗"
+    obstacle_icon = "🚧"
+
+    # Vẽ xe của người chơi
+    road[st.session_state.player_position] = player_icon
+
+    # Vẽ chướng ngại vật
+    road[st.session_state.obstacle_position] = obstacle_icon
+
+    # Hiển thị đường đua
+    st.markdown(
+        f"<div style='font-size:2rem;text-align:center'>{''.join(road)}</div>",
+        unsafe_allow_html=True
+    )
+
+# Điều khiển xe
+def move_left():
+    if st.session_state.player_position > 0:
+        st.session_state.player_position -= 1
+
+def move_right():
+    if st.session_state.player_position < 4:
+        st.session_state.player_position += 1
+
+# Nút điều khiển
+col1, col2 = st.columns(2)
+col1.button("⬅️ Sang Trái", on_click=move_left)
+col2.button("➡️ Sang Phải", on_click=move_right)
+
+# Xử lý logic trò chơi
+if st.session_state.game_active:
+    render_race()
+
+    # Kiểm tra va chạm
+    if st.session_state.player_position == st.session_state.obstacle_position:
+        st.error("💥 Bạn đã va chạm với chướng ngại vật! Trò chơi kết thúc.", icon="❌")
+        st.session_state.game_active = False
+    else:
+        st.session_state.score += 1
+        st.session_state.highscore = max(st.session_state.highscore, st.session_state.score)
+        st.session_state.obstacle_position = random.randint(0, 4)
+        time.sleep(0.5)  # Tăng tốc độ chướng ngại vật
+
+# Nút chơi lại
+if not st.session_state.game_active and st.button("🔄 Chơi lại"):
+    st.session_state.score = 0
+    st.session_state.player_position = 2
+    st.session_state.obstacle_position = random.randint(0, 4)
+    st.session_state.game_active = True
+    st.experimental_rerun()
