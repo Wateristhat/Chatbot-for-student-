@@ -2,7 +2,7 @@ import streamlit as st
 import google.generativeai as genai
 import time
 
-st.set_page_config(page_title="Người Kể Chuyện AI", page_icon="📖", layout="centered")
+st.set_page_config(page_title="Người Kể Chuyện", page_icon="📖", layout="centered")
 
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
@@ -27,7 +27,7 @@ def generate_story(prompt):
         return "Rất tiếc, mình không thể nghĩ ra câu chuyện ngay lúc này."
 
 # --- Giao diện trang ---
-st.title("📖 Người Kể Chuyện AI")
+st.title("📖 Người Kể Chuyện")
 st.markdown("Hãy cho mình biết bạn muốn nghe câu chuyện về điều gì nhé!")
 
 if 'story_topic' not in st.session_state:
