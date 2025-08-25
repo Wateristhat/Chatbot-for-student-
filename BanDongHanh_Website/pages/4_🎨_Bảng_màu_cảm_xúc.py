@@ -1,7 +1,7 @@
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 
-st.set_page_config(page_title="Vải Bố Vui Vẻ", page_icon="🎨", layout="wide")
+st.set_page_config(page_title="Bảng màu vui vẻ", page_icon="🎨", layout="wide")
 
 st.info(
     """
@@ -9,7 +9,7 @@ st.info(
     """
 )
 
-st.title("🎨 Vải Bố Vui Vẻ")
+st.title("🎨 Bảng màu vui vẻ")
 st.markdown("""
 Đây là không gian để bạn tự do thể hiện. Không cần phải vẽ đẹp, không cần phải có ý nghĩa. 
 Hãy cứ để tay bạn di chuyển theo cảm xúc.
