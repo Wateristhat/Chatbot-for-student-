@@ -1,8 +1,8 @@
 import streamlit as st
 
-st.set_page_config(page_title="Góc Tự Chăm Sóc", page_icon="❤️", layout="centered")
+st.set_page_config(page_title="Góc nhỏ", page_icon="❤️", layout="centered")
 
-st.title("❤️ Góc Tự Chăm Sóc")
+st.title("❤️ Góc nhỏ")
 st.markdown("Chăm sóc bản thân không phải là ích kỷ, đó là điều cần thiết. Hãy bắt đầu với những hành động nhỏ mỗi ngày nhé.")
 st.write("---")
 
