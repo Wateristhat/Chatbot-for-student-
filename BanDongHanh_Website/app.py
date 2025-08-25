@@ -1,5 +1,9 @@
 import streamlit as st
 from datetime import datetime
+import database as db # Import file database của chúng ta
+
+# Lần đầu tiên chạy, file database sẽ được tạo
+db.init_db()
 
 # --- CẤU HÌNH TRANG CHÍNH ---
 st.set_page_config(
@@ -8,7 +12,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- GOOGLE FONTS VÀ CSS HIỆN ĐẠI ---
+# --- GOOGLE FONTS VÀ CSS HIỆN ĐẠI (Giữ nguyên của bạn) ---
 st.markdown("""
     <link href="https://fonts.googleapis.com/css?family=Quicksand:700,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -78,53 +82,67 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- LOGIC HIỂN THỊ ---
-
-# Khởi tạo session_state nếu chưa có
+# --- Khởi tạo session state để lưu trạng thái đăng nhập ---
+if 'user_id' not in st.session_state:
+    st.session_state.user_id = None
 if 'user_name' not in st.session_state:
     st.session_state.user_name = None
 
-# ---- GIAO DIỆN KHI CHƯA CÓ THÔNG TIN ----
-if not st.session_state.user_name:
-    st.title("👋 Chào bạn, mình là Bạn Đồng Hành 💖")
-    st.header("Trước khi bắt đầu, chúng mình làm quen nhé?")
+# --- GIAO DIỆN ---
+st.title("Chào mừng đến với Bạn Đồng Hành 💖")
 
-    with st.form(key="welcome_form", clear_on_submit=True):
-        st.markdown("<div class='welcome-form'>", unsafe_allow_html=True)
-        
-        name = st.text_input("📝 Bạn tên là gì?")
-        
-        current_year = datetime.now().year
-        birth_year = st.selectbox(
-            "🎂 Bạn sinh năm bao nhiêu?",
-            options=range(current_year - 5, current_year - 25, -1)
-        )
-        
-        school = st.text_input("🏫 Bạn đang học ở trường nào?")
-        
-        issues = st.text_area(
-            "😥 Gần đây, có điều gì khiến bạn cảm thấy khó khăn không?",
-            placeholder="Bạn có thể chia sẻ ở đây, mình luôn lắng nghe và giữ bí mật cho bạn..."
-        )
-        
-        submitted = st.form_submit_button("💖 Lưu thông tin và bắt đầu!")
-        
-        if submitted:
-            if not name:
-                st.warning("⚠️ Bạn ơi, hãy cho mình biết tên của bạn nhé!")
-            else:
-                st.session_state.user_name = name
-                st.session_state.user_info = {
-                    "year": birth_year,
-                    "school": school,
-                    "issues": issues
-                }
-                st.success("✅ Lưu thông tin thành công! Chào mừng bạn đến với Bạn Đồng Hành!")
+# Nếu người dùng chưa đăng nhập
+if not st.session_state.user_id:
+    tab1, tab2 = st.tabs(["👤 Người dùng cũ", "✨ Người dùng mới"])
+
+    with tab1:
+        st.header("Bạn đã quay trở lại!")
+        all_users = db.get_all_users()
+        if not all_users:
+            st.info("Chưa có ai đăng ký cả. Hãy là người đầu tiên ở tab 'Người dùng mới' nhé!")
+        else:
+            user_dict = {user[0]: user[1] for user in all_users}
+            selected_user_id = st.selectbox(
+                "Hãy chọn tên của bạn:",
+                options=user_dict.keys(),
+                format_func=lambda user_id: user_dict.get(user_id, "Lỗi")
+            )
+            if st.button("Vào thôi!", key="login_btn", type="primary"):
+                st.session_state.user_id = selected_user_id
+                st.session_state.user_name = user_dict[selected_user_id]
                 st.rerun()
-                
-        st.markdown("</div>", unsafe_allow_html=True)
 
-# ---- GIAO DIỆN SAU KHI ĐÃ CÓ THÔNG TIN ----
+    with tab2:
+        st.header("Chúng mình làm quen nhé?")
+        with st.form(key="signup_form"):
+            st.markdown("<div class='welcome-form'>", unsafe_allow_html=True)
+            name = st.text_input("📝 Bạn tên là gì?")
+            current_year = datetime.now().year
+            birth_year = st.selectbox(
+                "🎂 Bạn sinh năm bao nhiêu?",
+                options=range(current_year - 5, current_year - 25, -1)
+            )
+            school = st.text_input("🏫 Bạn đang học ở trường nào?")
+            issues = st.text_area(
+                "😥 Gần đây, có điều gì khiến bạn cảm thấy khó khăn không?",
+                placeholder="Bạn có thể chia sẻ ở đây, mình luôn lắng nghe và giữ bí mật cho bạn..."
+            )
+            
+            if st.form_submit_button("💖 Tạo tài khoản và bắt đầu!"):
+                if not name:
+                    st.warning("⚠️ Tên không được để trống bạn nhé!")
+                else:
+                    user_id = db.add_user(name, birth_year, school, issues)
+                    if user_id:
+                        st.session_state.user_id = user_id
+                        st.session_state.user_name = name
+                        st.success(f"Tài khoản '{name}' đã được tạo thành công! Đang tải lại...")
+                        st.rerun()
+                    else:
+                        st.error("Tên này đã có người dùng. Vui lòng chọn tên khác hoặc đăng nhập ở tab bên cạnh.")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+# Nếu người dùng đã đăng nhập thành công
 else:
     st.title(f"💖 Chào mừng {st.session_state.user_name} đến với Bạn Đồng Hành!")
     
@@ -140,7 +158,6 @@ else:
     st.markdown("---")
     st.header("✨ Khám phá các tính năng")
     
-    # Danh sách tính năng với icon FontAwesome
     features = [
         {"icon": "fa-solid fa-sun", "title": "Liều Thuốc Tinh Thần", "desc": "Nhận những thông điệp tích cực mỗi ngày."},
         {"icon": "fa-solid fa-spa", "title": "Góc An Yên", "desc": "Thực hành các bài tập hít thở để giảm căng thẳng."},
@@ -168,14 +185,7 @@ else:
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("---")
-    st.info("👈 <b>Hãy chọn một tính năng từ thanh điều hướng bên trái để bắt đầu!</b>", icon="😊")
-
-    # Hiệu ứng động chào mừng
-    st.markdown(
-        """
-        <div style="margin-top:2rem;text-align:center;">
-            <img src="https://cdn.pixabay.com/photo/2017/01/31/20/13/emoji-2027186_1280.png" width="80" style="opacity:0.85;">
-            <div style="font-size:1.08rem;color:#888;margin-top:0.3rem">Chúc bạn một ngày tuyệt vời! 💖</div>
-        </div>
-        """, unsafe_allow_html=True
-    )
+    if st.button("Đăng xuất"):
+        st.session_state.user_id = None
+        st.session_state.user_name = None
+        st.rerun()
