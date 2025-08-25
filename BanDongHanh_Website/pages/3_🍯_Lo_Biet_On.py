@@ -1,49 +1,43 @@
 import streamlit as st
-import random
+import database as db  # Import file database
 import html
+import time
 
 st.set_page_config(page_title="Lọ Biết Ơn", page_icon="🍯", layout="centered")
-
 st.title("🍯 Lọ Biết Ơn")
-st.markdown("Mỗi ngày, hãy gieo một hạt mầm biết ơn vào chiếc lọ này. Dần dần, bạn sẽ có cả một khu vườn an vui trong tâm hồn.")
-st.write("---")
 
-if 'gratitude_notes' not in st.session_state:
-    st.session_state.gratitude_notes = []
+# --- BƯỚC 1: KIỂM TRA XEM NGƯỜI DÙNG ĐÃ ĐĂNG NHẬP CHƯA ---
+if not st.session_state.get('user_id'):
+    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập hoặc tạo tài khoản mới nhé! ❤️")
+    st.stop()  # Dừng chạy code nếu chưa đăng nhập
 
-prompts = [
-    "Hôm nay, ai đã làm bạn mỉm cười?",
-    "Điều gì nhỏ bé trong ngày hôm nay khiến bạn cảm thấy vui?",
-    "Bạn biết ơn món ăn nào hôm nay?",
-    "Hãy nghĩ về một người bạn và điều bạn trân trọng ở họ.",
-    "Kể tên một bài hát khiến bạn cảm thấy yêu đời."
-]
+# --- BƯỚC 2: LẤY DỮ LIỆU CỦA ĐÚNG NGƯỜI DÙNG TỪ DATABASE ---
+user_id = st.session_state.user_id
+gratitude_notes = db.get_gratitude_notes(user_id)
 
-st.info(random.choice(prompts))
+st.markdown(f"Chào {st.session_state.user_name}, hôm nay có điều gì khiến bạn mỉm cười không?")
 
-note = st.text_area("Viết điều bạn biết ơn vào đây...", height=100, placeholder="Ví dụ: Mình biết ơn vì hôm nay trời nắng đẹp...")
+note = st.text_area("Viết điều bạn biết ơn vào đây...", height=100)
 
 if st.button("Thêm vào lọ biết ơn", type="primary"):
     if note:
-        st.session_state.gratitude_notes.append(note)
+        # --- BƯỚC 3: LƯU GHI CHÚ MỚI VÀO DATABASE ---
+        db.add_gratitude_note(user_id, note)
         st.success("Đã thêm một hạt mầm biết ơn vào lọ! 🌱")
         st.balloons()
-        time.sleep(1)
+        time.sleep(1) # Chờ 1 giây để người dùng thấy hiệu ứng
         st.rerun()
     else:
-        st.warning("Bạn ơi, hãy viết gì đó vào ô bên trên nhé!")
+        st.warning("Bạn hãy viết gì đó nhé!")
 
 st.write("---")
 
-if st.session_state.gratitude_notes:
+if gratitude_notes:
     st.subheader("Những điều bạn biết ơn:")
-    for n in reversed(st.session_state.gratitude_notes):
+    # Hiển thị các ghi chú đã lấy từ database
+    for n in gratitude_notes:
         st.markdown(
-            f"""
-            <div style="background-color: #FFF8DC; border-left: 5px solid #FFD700; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-                <p style="color: #333;">{html.escape(n)}</p>
-            </div>
-            """,
+            f'<div style="background-color: #FFF8DC; border-left: 5px solid #FFD700; padding: 10px; border-radius: 5px; margin-bottom: 10px;"><p style="color: #333;">{html.escape(n)}</p></div>',
             unsafe_allow_html=True
         )
 else:
