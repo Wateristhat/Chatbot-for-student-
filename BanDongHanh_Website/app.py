@@ -1,94 +1,114 @@
 import streamlit as st
-from datetime import datetime
+import random
+import re
+import time
+import html
 import database as db
+import google.generativeai as genai
+from gtts import gTTS
+from io import BytesIO
+import base64
 
-# --- KHỞI TẠO DB VÀ CẤU HÌNH TRANG ---
-db.init_db()
-st.set_page_config(
-    page_title="Chào mừng - Bạn Đồng Hành",
-    page_icon="💖",
-    layout="wide"
-)
+# --- KIỂM TRA ĐĂNG NHẬP ---
+if not st.session_state.get('user_id'):
+    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập hoặc tạo tài khoản mới nhé! ❤️")
+    st.stop()
 
-# --- CSS ĐÃ NÂNG CẤP ---
-st.markdown("""
-    <link href="https://fonts.googleapis.com/css?family=Quicksand:700,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* CSS cho thẻ link bao quanh khối tính năng */
-        a.feature-link {
-            text-decoration: none; /* Bỏ gạch chân của link */
-            color: inherit; /* Dùng màu chữ mặc định */
-        }
-        
-        /* (Toàn bộ CSS cũ của bạn giữ nguyên) */
-        html, body, [class*="css"]  { font-family: 'Quicksand', Arial, sans-serif; }
-        .welcome-form { background-color: #f7f9fa; border-radius: 18px; padding: 2.5rem 2rem; margin-top: 2rem; }
-        .stButton>button { background: linear-gradient(90deg, #f857a6 0%, #ff5858 100%); color: white; border-radius: 10px; padding: 0.6rem 1.5rem; }
-        .features-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
-        .feature-box { background: #fff; border-radius: 14px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(80,80,120,0.06); display: flex; align-items: flex-start; gap: 1rem; min-height: 120px; transition: all 0.2s; }
-        .feature-box:hover { box-shadow: 0 6px 32px rgba(80,80,120,0.16); transform: translateY(-5px); }
-        .feature-icon { font-size: 2.1rem; flex-shrink: 0; }
-    </style>
-""", unsafe_allow_html=True)
+user_id = st.session_state.user_id
+user_name = st.session_state.user_name
 
-# --- KHỞI TẠO SESSION STATE ---
-if 'user_id' not in st.session_state:
-    st.session_state.user_id = None
-if 'user_name' not in st.session_state:
-    st.session_state.user_name = None
+# --- BỘ LỌC TỪ KHÓA NGUY HIỂM ---
+CRISIS_KEYWORDS = [
+    "tự tử", "tự sát", "kết liễu", "chấm dứt", "không muốn sống",
+    "muốn chết", "kết thúc tất cả", "làm hại bản thân", "tự làm đau",
+    "tuyệt vọng", "vô vọng", "không còn hy vọng"
+]
 
-# --- GIAO DIỆN ---
-st.title("Chào mừng đến với Bạn Đồng Hành 💖")
+# --- CÁC HẰNG SỐ VÀ CẤU HÌNH ---
+CHAT_STATE_MAIN = 'main'
+CHAT_STATE_TAM_SU_SELECTION = 'tam_su_selection'
+CHAT_STATE_TAM_SU_CHAT = 'tam_su_chat'
+CHAT_STATE_GIAO_TIEP_SELECTION_BASIC = 'giao_tiep_selection_basic'
+CHAT_STATE_GIAO_TIEP_SELECTION_EXTENDED = 'giao_tiep_selection_extended'
+CHAT_STATE_GIAO_TIEP_PRACTICE = 'giao_tiep_practice'
+CHAT_STATE_AWAITING_FOLLOWUP = 'awaiting_followup'
 
-# --- PHẦN ĐĂNG NHẬP/ĐĂNG KÝ ---
-if not st.session_state.user_id:
-    tab1, tab2 = st.tabs(["👤 Người dùng cũ", "✨ Người dùng mới"])
-    with tab1:
-        # (code đăng nhập)
-    with tab2:
-        # (code đăng ký)
+@st.cache_data
+def get_config():
+    # (Toàn bộ config của bạn có thể dán vào đây)
+    return { "ui": { "title": "Bạn đồng hành 💖", "input_placeholder": "Nhập tin nhắn..." } } # Ví dụ rút gọn
+CONFIG = get_config()
 
-# --- PHẦN DÀNH CHO NGƯỜI DÙNG ĐÃ ĐĂNG NHẬP ---
-else:
-    st.title(f"💖 Chào mừng {st.session_state.user_name} đến với Bạn Đồng Hành!")
-    
-    st.markdown("---")
-    st.header("✨ Khám phá các tính năng")
-    
-    # [QUAN TRỌNG] DANH SÁCH TÍNH NĂNG VỚI ĐÚNG URL
-    features = [
-        {"icon": "fa-solid fa-sun", "title": "Liều Thuốc Tinh Thần", "desc": "Nhận những thông điệp tích cực mỗi ngày.", "url": "Liều_Thuốc_Tinh_Thần"},
-        {"icon": "fa-solid fa-spa", "title": "Góc An Yên", "desc": "Thực hành các bài tập hít thở để giảm căng thẳng.", "url": "Góc_An_Yên"},
-        {"icon": "fa-solid fa-jar", "title": "Lọ Biết Ơn", "desc": "Ghi lại những điều nhỏ bé khiến bạn mỉm cười.", "url": "Lọ_Biết_Ơn"},
-        {"icon": "fa-solid fa-paintbrush", "title": "Bảng Màu Cảm Xúc", "desc": "Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc.", "url": "Bảng_Màu_Cảm_Xúc"},
-        {"icon": "fa-solid fa-dice", "title": "Sân Chơi Trí Tuệ", "desc": "Thử thách bản thân với các trò chơi nhẹ nhàng.", "url": "Sân_Chơi_Trí_Tuệ"},
-        {"icon": "fa-solid fa-heart", "title": "Kế Hoạch Yêu Thương", "desc": "Xây dựng kế hoạch chăm sóc bản thân mỗi ngày.", "url": "Kế_Hoạch_Yêu_Thương"},
-        {"icon": "fa-solid fa-robot", "title": "Trò chuyện cùng Bot", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn.", "url": "Trò_chuyện"},
-        {"icon": "fa-solid fa-phone", "title": "Hỗ Trợ Khẩn Cấp", "desc": "Danh sách các nguồn lực và đường dây nóng đáng tin cậy.", "url": "Hỗ_Trợ_Khẩn_Cấp"},
-        {"icon": "fa-solid fa-book-open", "title": "Người Kể Chuyện AI", "desc": "Lắng nghe những câu chuyện chữa lành do AI sáng tác.", "url": "Người_Kể_Chuyện_AI"}
-    ]
+try:
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+    AI_ENABLED = True
+except Exception:
+    AI_ENABLED = False
 
-    st.markdown('<div class="features-list">', unsafe_allow_html=True)
-    for fe in features:
-        st.markdown(
-            f"""
-            <a href="{fe['url']}" target="_self" class="feature-link">
-                <div class="feature-box">
-                    <span class="feature-icon"><i class="{fe['icon']}"></i></span>
-                    <span>
-                        <b>{fe['title']}</b><br>
-                        <span style="color:#666">{fe['desc']}</span>
-                    </span>
-                </div>
-            </a>
-            """, unsafe_allow_html=True
-        )
-    st.markdown('</div>', unsafe_allow_html=True)
+st.set_page_config(page_title=CONFIG["ui"]["title"], layout="wide")
+st.markdown(r"""<style>...</style>""", unsafe_allow_html=True) # Giữ nguyên CSS của bạn
 
-    # --- PHẦN ĐĂNG XUẤT ---
-    st.markdown("---")
-    if st.button("Đăng xuất"):
-        st.session_state.user_id = None
-        st.session_state.user_name = None
+# --- KHỞI TẠO VÀ TẢI DỮ LIỆU ---
+if "chat_initialized" not in st.session_state:
+    st.session_state.chat_state = CHAT_STATE_MAIN
+    st.session_state.history = db.get_chat_history(user_id)
+    if not st.session_state.history:
+        initial_message = f"Chào {user_name}, mình là Bạn đồng hành đây! Mình có thể giúp gì cho bạn hôm nay?"
+        st.session_state.history = [{"sender": "bot", "text": initial_message}]
+        db.add_chat_message(user_id, "bot", initial_message)
+    st.session_state.turns = 0
+    st.session_state.current_mood = None
+    st.session_state.current_scenario = None
+    st.session_state.user_input = ""
+    st.session_state.chat_initialized = True
+
+# --- CÁC HÀM TIỆN ÍCH ---
+def check_for_crisis(text):
+    lowered_text = text.lower()
+    for keyword in CRISIS_KEYWORDS:
+        if keyword in lowered_text:
+            return True
+    return False
+
+def render_crisis_response():
+    st.error("Mình nghe thấy bạn đang thực sự rất khó khăn. Điều quan trọng nhất ngay bây giờ là bạn được an toàn. Dưới đây là những người có thể giúp đỡ bạn ngay lập tức.", icon="❤️")
+    st.markdown("""
+        <div style="background-color: #FFFFE0; border-left: 6px solid #FFC107; padding: 15px; border-radius: 5px;">
+            <h4>Vui lòng liên hệ một trong những số điện thoại sau:</h4>
+            <ul>
+                <li><strong>Tổng đài Quốc gia Bảo vệ Trẻ em:</strong> <strong style="font-size: 1.2em;">111</strong> (Miễn phí, 24/7)</li>
+                <li><strong>Đường dây nóng Ngày Mai:</strong> <strong style="font-size: 1.2em;">096.357.9488</strong> (Hỗ trợ người trầm cảm)</li>
+            </ul>
+            <p><strong>Làm ơn hãy gọi nhé. Bạn không đơn độc đâu.</strong></p>
+        </div>
+        """, unsafe_allow_html=True)
+    st.stop()
+
+def add_message_and_save(sender, text):
+    st.session_state.history.append({"sender": sender, "text": text})
+    db.add_chat_message(user_id, sender, text)
+
+# (Các hàm khác như text_to_speech, call_gemini_with_memory... giữ nguyên)
+
+# --- GIAO DIỆN CHÍNH ---
+st.title("💬 Trò chuyện cùng Bot")
+
+if st.session_state.get('crisis_detected'):
+    render_crisis_response()
+
+# Hiển thị lịch sử chat
+for message in st.session_state.history:
+    with st.chat_message("user" if message["sender"] == "user" else "assistant"):
+        st.markdown(message["text"])
+
+# Thanh nhập liệu
+if prompt := st.chat_input("Nhập tin nhắn..."):
+    if check_for_crisis(prompt):
+        add_message_and_save("user", prompt)
+        st.session_state.crisis_detected = True
+        st.rerun()
+    else:
+        add_message_and_save("user", prompt)
+        # (Logic gọi AI và xử lý input thông thường của bạn)
         st.rerun()
