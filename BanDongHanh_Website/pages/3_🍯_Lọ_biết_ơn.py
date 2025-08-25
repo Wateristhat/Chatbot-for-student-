@@ -1,7 +1,7 @@
 import streamlit as st
 import database as db
 import html
-import time  # <--- DÒNG BỊ THIẾU ĐÃ ĐƯỢC THÊM VÀO ĐÂY
+import time 
 
 st.set_page_config(page_title="Lọ Biết Ơn", page_icon="🍯", layout="centered")
 st.title("🍯 Lọ Biết Ơn")
@@ -40,3 +40,4 @@ if gratitude_notes:
         )
 else:
     st.write("Chiếc lọ của bạn đang chờ những điều biết ơn đầu tiên. ❤️")
+
