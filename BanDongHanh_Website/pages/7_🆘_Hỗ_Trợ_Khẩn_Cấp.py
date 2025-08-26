@@ -1,117 +1,83 @@
-# pages/Trò_chuyện_cùng_Bot.py
+# pages/7_🆘_Hỗ_trợ_khẩn_cấp.py
 import streamlit as st
-import database as db
-import google.generativeai as genai
-import time
 
 # --- CẤU HÌNH TRANG ---
-st.set_page_config(page_title="Trò chuyện cùng Bot", page_icon="💬", layout="centered")
+st.set_page_config(page_title="Hỗ Trợ Khẩn Cấp", page_icon="🆘", layout="centered")
 
-# --- KIỂM TRA ĐĂNG NHẬP ---
-# Yêu cầu người dùng phải đăng nhập để bảo mật cuộc trò chuyện
-if not st.session_state.get('user_id'):
-    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập và bắt đầu trò chuyện nhé! ❤️")
-    st.stop()
-
-# --- LẤY THÔNG TIN NGƯỜI DÙNG ---
-user_id = st.session_state.user_id
-user_name = st.session_state.user_name
-
-# --- BỘ LỌC TỪ KHÓA NGUY HIỂM ---
-CRISIS_KEYWORDS = [
-    "tự tử", "tự sát", "kết liễu", "chấm dứt", "không muốn sống",
-    "muốn chết", "kết thúc tất cả", "làm hại bản thân", "tự làm đau",
-    "tuyệt vọng", "vô vọng", "không còn hy vọng"
-]
-
-# --- KẾT NỐI VỚI GEMINI AI ---
-try:
-    # Lấy API key từ Streamlit secrets
-    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
-    AI_ENABLED = True
-except Exception:
-    AI_ENABLED = False
-    st.error("Không thể kết nối đến dịch vụ AI. Vui lòng kiểm tra lại API Key.")
-
-# --- CÁC HÀM HỖ TRỢ ---
-def check_for_crisis(text):
-    """Kiểm tra xem văn bản có chứa từ khóa khủng hoảng không."""
-    lowered_text = text.lower()
-    for keyword in CRISIS_KEYWORDS:
-        if keyword in lowered_text:
-            return True
-    return False
-
-def get_ai_response(user_prompt):
-    """Gọi API của Gemini để nhận phản hồi."""
-    if not AI_ENABLED:
-        return "Xin lỗi, tính năng AI hiện không khả dụng."
-
-    # Lấy 10 tin nhắn gần nhất làm ngữ cảnh
-    context_history = db.get_chat_history(user_id, limit=10)
-    
-    # Tạo định dạng lịch sử phù hợp cho Gemini
-    gemini_history = []
-    for msg in context_history:
-        role = "user" if msg["sender"] == "user" else "model"
-        gemini_history.append({"role": role, "parts": [msg["text"]]})
-
-    try:
-        # Bắt đầu cuộc trò chuyện với lịch sử
-        chat = gemini_model.start_chat(history=gemini_history)
-        
-        # Gửi tin nhắn mới của người dùng
-        response = chat.send_message(user_prompt)
-        return response.text
-    except Exception as e:
-        st.error(f"Đã xảy ra lỗi khi gọi AI: {e}")
-        return "Xin lỗi, mình đang gặp chút sự cố. Bạn thử lại sau nhé."
+# --- CSS TÙY CHỈNH ĐỂ TĂNG CỠ CHỮ VÀ TẠO SỰ CHÚ Ý ---
+st.markdown("""
+<style>
+.hotline-container {
+    background-color: #FFF0F0; /* Nền màu đỏ nhạt */
+    border-radius: 15px;
+    padding: 25px;
+    margin: 25px 0;
+    border: 2px solid #D9534F; /* Viền đỏ đậm */
+    text-align: center;
+}
+.hotline-title {
+    font-size: 1.5rem; /* Cỡ chữ lớn cho tên tổ chức */
+    font-weight: 700; /* In đậm */
+    color: #333;
+    margin-bottom: 10px;
+}
+.hotline-number {
+    font-size: 3.5rem; /* Cỡ chữ RẤT LỚN cho số điện thoại */
+    font-weight: 900; /* In rất đậm */
+    color: #D9534F; /* Màu đỏ cảnh báo */
+    letter-spacing: 3px;
+    line-height: 1.2;
+}
+.hotline-description {
+    font-size: 1.1rem;
+    margin-top: 5px;
+    color: #555;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # --- GIAO DIỆN CHÍNH ---
-st.title(f"💬 Trò chuyện cùng Bot")
-st.markdown(f"Chào **{user_name}**, bạn có điều gì muốn chia sẻ không?")
+st.title("🆘 HỖ TRỢ KHẨN CẤP")
 
-# --- KHỞI TẠO LỊCH SỬ TRÒ CHUYỆN ---
-if "messages" not in st.session_state:
-    # Tải lịch sử từ DB khi bắt đầu phiên
-    st.session_state.messages = db.get_chat_history(user_id)
-    if not st.session_state.messages:
-        # Nếu chưa có tin nhắn nào, thêm tin nhắn chào mừng
-        initial_message = {"sender": "bot", "text": f"Chào {user_name}, mình là Bạn Đồng Hành đây! Mình luôn sẵn lòng lắng nghe bạn."}
-        db.add_chat_message(user_id, initial_message["sender"], initial_message["text"])
-        st.session_state.messages.append(initial_message)
+# --- Liên kết quay về Trang chủ ---
+st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
 
-# --- HIỂN THỊ LỊCH SỬ TRÒ CHUYỆN ---
-for message in st.session_state.messages:
-    # Sử dụng st.chat_message để hiển thị tin nhắn theo vai trò (user/bot)
-    with st.chat_message("user" if message["sender"] == "user" else "assistant"):
-        st.markdown(message["text"])
+st.markdown("Khi bạn hoặc ai đó bạn biết đang gặp khủng hoảng, hãy tìm đến sự giúp đỡ ngay lập tức.")
+st.write("---")
 
-# --- KHUNG NHẬP LIỆU CỦA NGƯỜI DÙNG ---
-if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
-    # 1. Thêm tin nhắn của người dùng vào state và DB
-    st.session_state.messages.append({"sender": "user", "text": prompt})
-    db.add_chat_message(user_id, "user", prompt)
-    
-    # 2. Hiển thị tin nhắn của người dùng ngay lập tức
-    with st.chat_message("user"):
-        st.markdown(prompt)
+# --- CẢNH BÁO QUAN TRỌNG ---
+st.error(
+    """
+    **ỨNG DỤNG NÀY KHÔNG PHẢI LÀ DỊCH VỤ CẤP CỨU.**
 
-    # 3. Kiểm tra khủng hoảng trước khi xử lý
-    if check_for_crisis(prompt):
-        crisis_response = "Mình nhận thấy bạn đang gặp phải những cảm xúc rất tiêu cực. Nếu bạn cần sự giúp đỡ ngay lập tức, hãy liên hệ với các chuyên gia qua trang **Hỗ Trợ Khẩn Cấp** nhé."
-        st.session_state.messages.append({"sender": "bot", "text": crisis_response})
-        db.add_chat_message(user_id, "bot", crisis_response)
-        with st.chat_message("assistant"):
-            st.error(crisis_response) # Hiển thị dưới dạng lỗi để nổi bật
-    else:
-        # 4. Lấy phản hồi từ AI và hiển thị
-        with st.chat_message("assistant"):
-            with st.spinner("Bot đang suy nghĩ..."):
-                response = get_ai_response(prompt)
-                st.markdown(response)
-        
-        # 5. Thêm phản hồi của bot vào state và DB
-        st.session_state.messages.append({"sender": "bot", "text": response})
-        db.add_chat_message(user_id, "bot", response)
+    Nếu bạn hoặc người thân đang ở trong tình huống nguy hiểm đến tính mạng, vui lòng gọi **115** (Cấp cứu y tế) hoặc đến cơ sở y tế gần nhất.
+    """
+)
+
+st.header("Các đường dây nóng hỗ trợ sức khỏe tinh thần tại Việt Nam")
+
+# --- HIỂN THỊ CÁC ĐƯỜNG DÂY NÓNG VỚI GIAO DIỆN MỚI ---
+st.markdown("""
+<div class="hotline-container">
+    <p class="hotline-title">Tổng đài Quốc gia Bảo vệ Trẻ em</p>
+    <p class="hotline-number">111</p>
+    <p class="hotline-description">Miễn phí, hoạt động 24/7</p>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<div class="hotline-container">
+    <p class="hotline-title">Đường dây nóng Ngày Mai</p>
+    <p class="hotline-number">096 357 94 88</p>
+    <p class="hotline-description">Hỗ trợ người trầm cảm và các vấn đề sức khỏe tinh thần</p>
+</div>
+""", unsafe_allow_html=True)
+
+st.write("---")
+
+# --- THÔNG ĐIỆP ĐỘNG VIÊN ---
+st.info(
+    """
+    **Hãy nhớ rằng:** Việc tìm kiếm sự giúp đỡ là một hành động dũng cảm và mạnh mẽ. Bạn không hề đơn độc.
+    """
+)
