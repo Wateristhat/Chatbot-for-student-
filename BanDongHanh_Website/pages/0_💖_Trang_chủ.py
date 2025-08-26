@@ -61,17 +61,17 @@ if not st.session_state.get('user_id'):
                 if not name or not password_reg:
                     st.warning("⚠️ Tên và mật khẩu không được để trống bạn nhé!")
                 else:
-                    # Chỉ truyền 2 tham số như hàm trong database.py yêu cầu
                     if db.add_user(name, password_reg):
+                        # Hiển thị thông báo và tự động làm mới trang
                         st.success(f"Tài khoản '{name}' đã được tạo! Vui lòng qua tab Đăng nhập.")
-                        time.sleep(2)
+                        # Bạn có thể dùng st.rerun() ngay lập tức để làm mới trang.
+                        # Tuy nhiên, trong trường hợp này, việc để người dùng
+                        # chủ động chuyển tab sẽ tốt hơn.
                     else:
                         st.error("Tên này đã có người dùng. Vui lòng chọn tên khác.")
         st.markdown("</div>", unsafe_allow_html=True)
 
 # GIAO DIỆN KHI ĐÃ ĐĂNG NHẬP
 else:
-    # (Phần này giữ nguyên như cũ)
     st.title(f"Hôm nay bạn thế nào, {st.session_state.user_name}? ✨")
     # ... (phần hiển thị các tính năng)
-
