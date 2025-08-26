@@ -1,45 +1,44 @@
-# file: database.py
+# database.py
 import sqlite3
-from datetime import datetime
+import bcrypt
 
-DATABASE_FILE = "ban_dong_hanh_data.db"
+def connect_db():
+    """Kết nối tới cơ sở dữ liệu SQLite."""
+    return sqlite3.connect("ban_dong_hanh.db")
 
-def init_db():
-    """Khởi tạo cơ sở dữ liệu và tất cả các bảng cần thiết."""
-    conn = sqlite3.connect(DATABASE_FILE)
+def create_tables():
+    """Tạo các bảng cần thiết nếu chúng chưa tồn tại."""
+    conn = connect_db()
     cursor = conn.cursor()
     
-    # Bảng 1: Lưu thông tin người dùng
+    # Bảng người dùng với mật khẩu
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL UNIQUE,
-        birth_year INTEGER,
-        school TEXT,
-        issues TEXT,
-        created_at TEXT NOT NULL
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL
     )
     """)
     
-    # Bảng 2: Lưu các ghi chú biết ơn
+    # Bảng Lọ Biết Ơn
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS gratitude_notes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        note TEXT NOT NULL,
-        created_at TEXT NOT NULL,
+        user_id INTEGER,
+        content TEXT NOT NULL,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users (id)
     )
     """)
     
-    # Bảng 3: Lưu lịch sử trò chuyện với bot
+    # Bảng lịch sử chat
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS chat_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        sender TEXT NOT NULL, -- 'user' or 'bot'
-        message TEXT NOT NULL,
-        created_at TEXT NOT NULL,
+        user_id INTEGER,
+        sender TEXT NOT NULL,
+        text TEXT NOT NULL,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users (id)
     )
     """)
@@ -47,71 +46,77 @@ def init_db():
     conn.commit()
     conn.close()
 
-# --- Các hàm liên quan đến Người dùng ---
-def get_all_users():
-    conn = sqlite3.connect(DATABASE_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, name FROM users ORDER BY name")
-    users = cursor.fetchall()
-    conn.close()
-    return users
+# --- CÁC HÀM XỬ LÝ MẬT KHẨU AN TOÀN ---
+def hash_password(password):
+    """Mã hóa mật khẩu."""
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-def add_user(name, birth_year, school, issues):
+def check_password(password, hashed):
+    """Kiểm tra mật khẩu đã mã hóa."""
+    return bcrypt.checkpw(password.encode('utf-8'), hashed)
+
+# --- CÁC HÀM QUẢN LÝ NGƯỜI DÙNG ---
+def add_user(username, password):
+    """Thêm người dùng mới vào database."""
+    conn = connect_db()
+    cursor = conn.cursor()
     try:
-        conn = sqlite3.connect(DATABASE_FILE)
-        cursor = conn.cursor()
-        created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        cursor.execute(
-            "INSERT INTO users (name, birth_year, school, issues, created_at) VALUES (?, ?, ?, ?, ?)",
-            (name, birth_year, school, issues, created_at)
-        )
+        hashed_password = hash_password(password)
+        cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
         conn.commit()
-        user_id = cursor.lastrowid
+        return True
+    except sqlite3.IntegrityError: # Lỗi nếu tên người dùng đã tồn tại
+        return False
+    finally:
         conn.close()
-        return user_id
-    except sqlite3.IntegrityError:
-        return None # Tên đã tồn tại
 
-# --- Các hàm liên quan đến Lọ Biết Ơn ---
-def add_gratitude_note(user_id, note):
-    conn = sqlite3.connect(DATABASE_FILE)
+def check_user(username, password):
+    """Kiểm tra thông tin đăng nhập."""
+    conn = connect_db()
     cursor = conn.cursor()
-    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cursor.execute(
-        "INSERT INTO gratitude_notes (user_id, note, created_at) VALUES (?, ?, ?)",
-        (user_id, note, created_at)
-    )
-    conn.commit()
+    cursor.execute("SELECT id, username, password FROM users WHERE username = ?", (username,))
+    user = cursor.fetchone()
     conn.close()
+    
+    if user and check_password(password, user[2]):
+        return user[0], user[1] # Trả về id và username
+    return None
 
+# --- CÁC HÀM CHO LỌ BIẾT ƠN ---
 def get_gratitude_notes(user_id):
-    conn = sqlite3.connect(DATABASE_FILE)
+    conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT note FROM gratitude_notes WHERE user_id = ? ORDER BY created_at DESC", (user_id,))
-    notes = [row[0] for row in cursor.fetchall()]
+    cursor.execute("SELECT id, content FROM gratitude_notes WHERE user_id = ?", (user_id,))
+    notes = cursor.fetchall()
     conn.close()
     return notes
 
-# --- Các hàm liên quan đến Chatbot ---
-def add_chat_message(user_id, sender, message):
-    conn = sqlite3.connect(DATABASE_FILE)
+def add_gratitude_note(user_id, content):
+    conn = connect_db()
     cursor = conn.cursor()
-    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cursor.execute(
-        "INSERT INTO chat_history (user_id, sender, message, created_at) VALUES (?, ?, ?, ?)",
-        (user_id, sender, message, created_at)
-    )
+    cursor.execute("INSERT INTO gratitude_notes (user_id, content) VALUES (?, ?)", (user_id, content))
     conn.commit()
     conn.close()
 
-def get_chat_history(user_id, limit=20):
-    conn = sqlite3.connect(DATABASE_FILE)
+def delete_gratitude_note(note_id):
+    conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute(
-        "SELECT sender, message FROM chat_history WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
-        (user_id, limit)
-    )
-    # Sắp xếp lại theo thứ tự cũ -> mới
-    history = [{"sender": row[0], "text": row[1]} for row in reversed(cursor.fetchall())]
+    cursor.execute("DELETE FROM gratitude_notes WHERE id = ?", (note_id,))
+    conn.commit()
     conn.close()
-    return history
+
+# --- CÁC HÀM CHO LỊCH SỬ CHAT ---
+def get_chat_history(user_id, limit=50):
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT sender, text FROM chat_history WHERE user_id = ? ORDER BY timestamp DESC LIMIT ?", (user_id, limit))
+    history = [{"sender": row[0], "text": row[1]} for row in cursor.fetchall()]
+    conn.close()
+    return list(reversed(history))
+
+def add_chat_message(user_id, sender, text):
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO chat_history (user_id, sender, text) VALUES (?, ?, ?)", (user_id, sender, text))
+    conn.commit()
+    conn.close()
