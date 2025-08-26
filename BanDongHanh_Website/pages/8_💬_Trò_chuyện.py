@@ -43,14 +43,16 @@ def check_for_crisis(text):
 def get_ai_response(user_prompt):
     if not AI_ENABLED:
         return "Xin lỗi, tính năng AI hiện không khả dụng."
+    # Lấy lịch sử chat gần đây để tạo ngữ cảnh
     context_history = db.get_chat_history(user_id, limit=10)
+    # Chuyển đổi định dạng lịch sử cho Gemini
     gemini_history = [{"role": "user" if msg["sender"] == "user" else "model", "parts": [msg["text"]]} for msg in context_history]
     try:
         chat = gemini_model.start_chat(history=gemini_history)
         response = chat.send_message(user_prompt)
         return response.text
     except Exception as e:
-        return f"Xin lỗi, mình đang gặp chút sự cố kỹ thuật. Bạn thử lại sau nhé."
+        return "Xin lỗi, mình đang gặp chút sự cố kỹ thuật. Bạn thử lại sau nhé."
 
 def add_message(sender, text):
     st.session_state.messages.append({"sender": sender, "text": text})
@@ -58,9 +60,11 @@ def add_message(sender, text):
 
 # --- KHỞI TẠO SESSION STATE ---
 if "messages" not in st.session_state:
-    st.session_state.messages = db.get_chat_history(user_id)
+    # Đảm bảo st.session_state.messages luôn là một danh sách hợp lệ
+    chat_history = db.get_chat_history(user_id)
+    st.session_state.messages = chat_history if chat_history is not None else []
 if "chat_flow" not in st.session_state:
-    st.session_state.chat_flow = "start" 
+    st.session_state.chat_flow = "start"
 
 if not st.session_state.messages:
     welcome_message = f"Chào {user_name}, mình là Bạn Đồng Hành đây! Bạn có điều gì muốn chia sẻ không?"
@@ -126,4 +130,3 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
                 response_text = get_ai_response(prompt)
                 st.markdown(response_text)
         add_message("bot", response_text)
-
