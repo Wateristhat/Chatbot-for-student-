@@ -1,21 +1,36 @@
+# pages/Nhanh_tay_le_mat.py
 import streamlit as st
 
-# Cấu hình tiêu đề và biểu tượng của ứng dụng
-st.set_page_config(page_title="Trò chơi tránh vật cản", page_icon="🎮")
+# --- CẤU HÌNH TRANG ---
+st.set_page_config(page_title="Nhanh Tay Lẹ Mắt", page_icon="🎮", layout="centered")
 
-# Tiêu đề trang
-st.title("🎮 Trò chơi Tránh Vật Cản")
+# --- KIỂM TRA ĐĂNG NHẬP ---
+# Đảm bảo người dùng đã đăng nhập trước khi truy cập
+if not st.session_state.get('user_id'):
+    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập hoặc tạo tài khoản mới nhé! ❤️")
+    st.stop()
+
+# --- GIAO DIỆN CHÍNH ---
+st.title("🎮 Nhanh Tay Lẹ Mắt")
+
+# --- Liên kết quay về Trang chủ ---
+st.page_link("Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+
 st.markdown(
     "<div style='font-size:1.15rem'>"
-    "Hãy nhấn phím SPACE để chơi trò chơi! Tránh các vật cản để ghi điểm.<br>"
-    "<b>Chúc bạn chơi vui vẻ!</b>"
+    "Hãy nhấn phím **SPACE** để bắt đầu và giúp nhân vật nhảy qua các chướng ngại vật.<br>"
+    "<b>Chúc bạn có những giây phút thư giãn vui vẻ!</b>"
     "</div>", unsafe_allow_html=True
 )
 st.write("---")
 
-# Nhúng trò chơi HTML5
-game_url = "https://raw.githubusercontent.com/Wateristhat/Chatbot-for-student-/main/BanDongHanh_Website/game.html"  # Thay đổi URL nếu cần
+# --- NHÚNG GAME HTML5 ---
+# *** SỬA LỖI QUAN TRỌNG: URL của game ***
+# Sử dụng URL từ GitHub Pages (github.io) thay vì raw.githubusercontent.com để game hiển thị chính xác.
+game_url = "https://wateristhat.github.io/Chatbot-for-student-/BanDongHanh_Website/game.html"
 game_html = f"""
-<iframe src="{game_url}" width="480" height="400" frameborder="0"></iframe>
+<iframe src="{game_url}" width="480" height="400" frameborder="0" scrolling="no"></iframe>
 """
-st.components.v1.html(game_html, height=400)
+
+# Hiển thị game bằng st.components.v1.html
+st.components.v1.html(game_html, height=410)
