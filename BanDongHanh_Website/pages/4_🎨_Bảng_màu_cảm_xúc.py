@@ -1,4 +1,4 @@
-# pages/Bang_mau_cam_xuc.py
+# pages/4_🎨_Bảng_màu_cảm_xúc.py
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 
@@ -6,16 +6,15 @@ from streamlit_drawable_canvas import st_canvas
 st.set_page_config(page_title="Bảng màu cảm xúc", page_icon="🎨", layout="wide")
 
 # --- KIỂM TRA ĐĂNG NHẬP ---
-# Đảm bảo người dùng đã đăng nhập trước khi truy cập
 if not st.session_state.get('user_id'):
-    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập hoặc tạo tài khoản mới nhé! ❤️")
+    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
     st.stop()
 
 # --- GIAO DIỆN CHÍNH ---
 st.title("🎨 Bảng màu cảm xúc")
 
-# --- Liên kết quay về Trang chủ ---
-st.page_link("Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+# *** SỬA LẠI ĐÚNG ĐƯỜNG DẪN ***
+st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
 
 st.markdown("""
 Đây là không gian để bạn tự do thể hiện. Không cần phải vẽ đẹp, không cần phải có ý nghĩa.  
@@ -24,7 +23,6 @@ Hãy chọn một **màu sắc** thể hiện cảm xúc của bạn lúc này v
 st.write("---")
 
 # --- KHU VỰC TÙY CHỌN CÔNG CỤ VẼ ---
-# Chia cột để bố cục gọn gàng
 col1, col2 = st.columns(2)
 with col1:
     stroke_width = st.slider("Độ dày nét bút:", min_value=1, max_value=50, value=10)
@@ -38,20 +36,18 @@ with col2:
     bg_color = st.color_picker("Màu nền:", "#FFFFFF")
 
 # --- KHUNG VẼ CANVAS ---
-# Sử dụng các giá trị từ công cụ tùy chọn ở trên
 canvas_result = st_canvas(
-    fill_color="rgba(255, 165, 0, 0.3)",  # Màu tô bên trong cho các hình khối
+    fill_color="rgba(255, 165, 0, 0.3)",
     stroke_width=stroke_width,
     stroke_color=stroke_color,
     background_color=bg_color,
     height=500,
     drawing_mode=drawing_mode,
     key="canvas",
-    display_toolbar=True, # Hiển thị thanh công cụ (undo, redo, save)
+    display_toolbar=True,
 )
 
 # --- THÔNG BÁO HƯỚNG DẪN CÀI ĐẶT ---
-# Đặt ở cuối để không làm phiền người dùng đã cài đặt
 with st.expander("Gặp lỗi khi chạy trang này?"):
     st.info(
         """
