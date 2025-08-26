@@ -94,6 +94,10 @@ def get_gratitude_notes(user_id):
 
 # --- Các hàm liên quan đến Chatbot ---
 def add_chat_message(user_id, sender, message):
+    # Nếu user_id là None (anonymous user), không lưu vào database
+    if user_id is None:
+        return
+    
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
     created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -105,6 +109,10 @@ def add_chat_message(user_id, sender, message):
     conn.close()
 
 def get_chat_history(user_id, limit=20):
+    # Nếu user_id là None (anonymous user), trả về lịch sử rỗng
+    if user_id is None:
+        return []
+    
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
     cursor.execute(

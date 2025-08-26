@@ -9,13 +9,16 @@ from gtts import gTTS
 from io import BytesIO
 import base64
 
-# --- KIỂM TRA ĐĂNG NHẬP ---
-if not st.session_state.get('user_id'):
-    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập hoặc tạo tài khoản mới nhé! ❤️")
-    st.stop()
-
-user_id = st.session_state.user_id
-user_name = st.session_state.user_name
+# --- XỬ LÝ NGƯỜI DÙNG (CÓ ĐĂNG NHẬP HOẶC ANONYMOUS) ---
+# Hỗ trợ sử dụng chatbot mà không cần đăng nhập
+if st.session_state.get('user_id'):
+    # Người dùng đã đăng nhập
+    user_id = st.session_state.user_id
+    user_name = st.session_state.user_name
+else:
+    # Người dùng chưa đăng nhập - sử dụng chế độ anonymous
+    user_id = None  # Sẽ xử lý đặc biệt trong database
+    user_name = "Bạn"  # Tên mặc định cho người dùng anonymous
 
 # --- BỘ LỌC TỪ KHÓA NGUY HIỂM ---
 CRISIS_KEYWORDS = [
