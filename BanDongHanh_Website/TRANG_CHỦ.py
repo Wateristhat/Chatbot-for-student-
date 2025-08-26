@@ -1,9 +1,12 @@
+# Trang_chủ.py
 import streamlit as st
 from datetime import datetime
-import database as db
+import database as db # Đảm bảo file database.py của bạn đã đầy đủ
+import time
 
 # --- KHỞI TẠO DB VÀ CẤU HÌNH TRANG ---
-db.init_db()
+# Hàm này nên được gọi để đảm bảo các bảng đã tồn tại
+db.create_tables() 
 st.set_page_config(
     page_title="Chào mừng - Bạn Đồng Hành",
     page_icon="💖",
@@ -15,20 +18,14 @@ st.markdown("""
     <link href="https://fonts.googleapis.com/css?family=Quicksand:700,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* CSS cho thẻ link bao quanh khối tính năng */
-        a.feature-link {
-            text-decoration: none; /* Bỏ gạch chân của link */
-            color: inherit; /* Dùng màu chữ mặc định */
-        }
-        
-        /* Toàn bộ CSS giao diện của bạn */
+        a.feature-link { text-decoration: none; color: inherit; }
         html, body, [class*="css"]  { font-family: 'Quicksand', Arial, sans-serif; }
-        .welcome-form { background-color: #f7f9fa; border-radius: 18px; padding: 2.5rem 2rem; margin-top: 2rem; }
-        .stButton>button { background: linear-gradient(90deg, #f857a6 0%, #ff5858 100%); color: white; border-radius: 10px; padding: 0.6rem 1.5rem; }
-        .features-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+        .welcome-form { background-color: #f7f9fa; border-radius: 18px; padding: 2.5rem 2rem; margin-top: 1.5rem; }
+        .stButton>button { background: linear-gradient(90deg, #f857a6 0%, #ff5858 100%); color: white; border-radius: 10px; padding: 0.6rem 1.5rem; font-weight: 600; }
+        .features-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
         .feature-box { background: #fff; border-radius: 14px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(80,80,120,0.06); display: flex; align-items: flex-start; gap: 1rem; min-height: 120px; transition: all 0.2s; }
         .feature-box:hover { box-shadow: 0 6px 32px rgba(80,80,120,0.16); transform: translateY(-5px); }
-        .feature-icon { font-size: 2.1rem; flex-shrink: 0; }
+        .feature-icon { font-size: 2.1rem; flex-shrink: 0; color: #f857a6; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -45,75 +42,66 @@ st.title("Chào mừng đến với Bạn Đồng Hành 💖")
 # PHẦN 1: DÀNH CHO NGƯỜI DÙNG CHƯA ĐĂNG NHẬP
 # ===================================================================
 if not st.session_state.get('user_id'):
-    tab1, tab2 = st.tabs(["👤 Người dùng cũ", "✨ Người dùng mới"])
+    st.markdown("Một không gian an toàn để bạn kết nối và chăm sóc sức khỏe tinh thần.")
+    tab1, tab2 = st.tabs(["🔐 Đăng nhập", "📝 Đăng ký"])
 
-    # --- Tab Đăng nhập (Hoàn chỉnh) ---
+    # --- Tab Đăng nhập (An toàn và bảo mật) ---
     with tab1:
-        st.header("Bạn đã quay trở lại!")
-        all_users = db.get_all_users()
-        if not all_users:
-            st.info("Chưa có ai đăng ký cả. Hãy là người đầu tiên ở tab 'Người dùng mới' nhé!")
-        else:
-            user_dict = {user[0]: user[1] for user in all_users}
-            selected_user_id = st.selectbox(
-                "Hãy chọn tên của bạn:",
-                options=user_dict.keys(),
-                format_func=lambda user_id: user_dict.get(user_id, "Lỗi")
-            )
-            if st.button("Vào thôi!", key="login_btn", type="primary"):
-                st.session_state.user_id = selected_user_id
-                st.session_state.user_name = user_dict[selected_user_id]
-                st.rerun()
+        st.markdown("<div class='welcome-form'>", unsafe_allow_html=True)
+        with st.form("login_form"):
+            username = st.text_input("Tên đăng nhập", placeholder="Nhập tên của bạn...")
+            password = st.text_input("Mật khẩu", type="password", placeholder="Nhập mật khẩu...")
+            submitted = st.form_submit_button("Vào thôi!")
 
-    # --- Tab Đăng ký (Hoàn chỉnh) ---
+            if submitted:
+                # Hàm check_user cần được viết trong database.py để xử lý
+                user = db.check_user(username, password)
+                if user:
+                    st.session_state.user_id = user[0]
+                    st.session_state.user_name = user[1]
+                    st.rerun()
+                else:
+                    st.error("Tên đăng nhập hoặc mật khẩu không chính xác!")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # --- Tab Đăng ký (UX được cải thiện) ---
     with tab2:
-        st.header("Chúng mình làm quen nhé?")
+        st.markdown("<div class='welcome-form'>", unsafe_allow_html=True)
         with st.form(key="signup_form"):
-            st.markdown("<div class='welcome-form'>", unsafe_allow_html=True)
-            name = st.text_input("📝 Bạn tên là gì?")
-            current_year = datetime.now().year
-            birth_year = st.selectbox(
-                "🎂 Bạn sinh năm bao nhiêu?",
-                options=range(current_year - 5, current_year - 25, -1)
-            )
-            school = st.text_input("🏫 Bạn đang học ở trường nào?")
-            issues = st.text_area(
-                "😥 Gần đây, có điều gì khiến bạn cảm thấy khó khăn không?",
-                placeholder="Bạn có thể chia sẻ ở đây, mình luôn lắng nghe..."
-            )
+            name = st.text_input("📝 Bạn tên là gì?", placeholder="Tên bạn sẽ hiển thị trong ứng dụng")
+            # password_reg = st.text_input("🔑 Mật khẩu của bạn", type="password", placeholder="Chọn một mật khẩu an toàn")
             
             if st.form_submit_button("💖 Tạo tài khoản và bắt đầu!"):
-                if not name:
-                    st.warning("⚠️ Tên không được để trống bạn nhé!")
+                if not name: #or not password_reg:
+                    st.warning("⚠️ Tên và mật khẩu không được để trống bạn nhé!")
                 else:
-                    user_id = db.add_user(name, birth_year, school, issues)
-                    if user_id:
-                        st.session_state.user_id = user_id
-                        st.session_state.user_name = name
-                        st.success(f"Tài khoản '{name}' đã được tạo! Đang tải lại...")
+                    if db.add_user(name, "password_reg"): # Thay "password_reg" bằng biến mật khẩu thật
+                        st.success(f"Tài khoản '{name}' đã được tạo! Đang chuyển hướng...")
+                        time.sleep(2) # Chờ 2 giây để người dùng đọc thông báo
                         st.rerun()
                     else:
                         st.error("Tên này đã có người dùng. Vui lòng chọn tên khác.")
-            st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # =====================================================================
 # PHẦN 2: DÀNH CHO NGƯỜI DÙNG ĐÃ ĐĂNG NHẬP
 # =====================================================================
 else:
-    st.title(f"💖 Chào mừng {st.session_state.user_name}!")
+    st.title(f"Hôm nay bạn thế nào, {st.session_state.user_name}? ✨")
     st.markdown("---")
-    st.header("✨ Khám phá các tính năng")
+    st.header("Khám phá các tính năng")
     
+    # Danh sách tính năng, cần đảm bảo `url` khớp với tên file trong thư mục /pages
     features = [
-        {"icon": "fa-solid fa-sun", "title": "Liều Thuốc Tinh Thần", "desc": "Nhận những thông điệp tích cực mỗi ngày.", "url": "Liều_Thuốc_Tinh_Thần"},
-        {"icon": "fa-solid fa-spa", "title": "Góc An Yên", "desc": "Thực hành các bài tập hít thở để giảm căng thẳng.", "url": "Góc_An_Yên"},
-        {"icon": "fa-solid fa-jar", "title": "Lọ Biết Ơn", "desc": "Ghi lại những điều nhỏ bé khiến bạn mỉm cười.", "url": "Lọ_Biết_Ơn"},
-        {"icon": "fa-solid fa-paintbrush", "title": "Bảng Màu Cảm Xúc", "desc": "Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc.", "url": "Bảng_Màu_Cảm_Xúc"},
-        {"icon": "fa-solid fa-dice", "title": "Sân Chơi Trí Tuệ", "desc": "Thử thách bản thân với các trò chơi nhẹ nhàng.", "url": "Sân_Chơi_Trí_Tuệ"},
-        {"icon": "fa-solid fa-heart", "title": "Kế Hoạch Yêu Thương", "desc": "Xây dựng kế hoạch chăm sóc bản thân mỗi ngày.", "url": "Kế_Hoạch_Yêu_Thương"},
-        {"icon": "fa-solid fa-robot", "title": "Trò chuyện cùng Bot", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn.", "url": "Trò_chuyện"},
-        {"icon": "fa-solid fa-phone", "title": "Hỗ Trợ Khẩn Cấp", "desc": "Danh sách các nguồn lực và đường dây nóng đáng tin cậy.", "url": "Hỗ_Trợ_Khẩn_Cấp"},
-        {"icon": "fa-solid fa-book-open", "title": "Người Kể Chuyện AI", "desc": "Lắng nghe những câu chuyện chữa lành do AI sáng tác.", "url": "Người_Kể_Chuyện_AI"}
+         {"icon": "fa-solid fa-robot", "title": "Trò chuyện cùng Bot", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn.", "url": "Trò_chuyện_cùng_Bot"},
+         {"icon": "fa-solid fa-sun", "title": "Liều Thuốc Tinh Thần", "desc": "Nhận những thông điệp tích cực mỗi ngày.", "url": "Liều_Thuốc_Tinh_Thần"},
+         {"icon": "fa-solid fa-spa", "title": "Góc An Yên", "desc": "Thực hành các bài tập hít thở và chánh niệm.", "url": "Goc_an_yen"},
+         {"icon": "fa-solid fa-jar", "title": "Lọ Biết Ơn", "desc": "Ghi lại những điều nhỏ bé khiến bạn mỉm cười.", "url": "Lo_biet_on"},
+         {"icon": "fa-solid fa-paintbrush", "title": "Bảng Màu Cảm Xúc", "desc": "Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc.", "url": "Bang_mau_cam_xuc"},
+         {"icon": "fa-solid fa-dice", "title": "Nhanh Tay Lẹ Mắt", "desc": "Thử thách bản thân với các trò chơi nhẹ nhàng.", "url": "Nhanh_tay_le_mat"},
+         {"icon": "fa-solid fa-heart", "title": "Góc Nhỏ", "desc": "Xây dựng kế hoạch chăm sóc bản thân mỗi ngày.", "url": "Goc_nho"},
+         {"icon": "fa-solid fa-book-open", "title": "Người Kể Chuyện", "desc": "Lắng nghe những câu chuyện chữa lành ý nghĩa.", "url": "Nguoi_ke_chuyen"},
+         {"icon": "fa-solid fa-phone", "title": "Hỗ Trợ Khẩn Cấp", "desc": "Danh sách các đường dây nóng đáng tin cậy.", "url": "Ho_tro_khan_cap"}
     ]
 
     st.markdown('<div class="features-list">', unsafe_allow_html=True)
@@ -133,9 +121,10 @@ else:
         )
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- PHẦN ĐĂNG XUẤT (Hoàn chỉnh) ---
+    # --- PHẦN ĐĂNG XUẤT (An toàn) ---
     st.markdown("---")
     if st.button("Đăng xuất"):
-        st.session_state.user_id = None
-        st.session_state.user_name = None
+        # Xóa tất cả các khóa trong session state để đăng xuất an toàn
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
         st.rerun()
