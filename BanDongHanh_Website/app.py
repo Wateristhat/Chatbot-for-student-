@@ -118,9 +118,12 @@ else:
 
     st.markdown('<div class="features-list">', unsafe_allow_html=True)
     for fe in features:
+        # Thêm query parameters để duy trì session state
+        user_params = f"?user_id={st.session_state.user_id}&user_name={st.session_state.user_name}"
+        feature_url = f"{fe['url']}{user_params}"
         st.markdown(
             f"""
-            <a href="{fe['url']}" target="_self" class="feature-link">
+            <a href="{feature_url}" target="_self" class="feature-link">
                 <div class="feature-box">
                     <span class="feature-icon"><i class="{fe['icon']}"></i></span>
                     <span>

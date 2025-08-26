@@ -9,6 +9,20 @@ from gtts import gTTS
 from io import BytesIO
 import base64
 
+# --- KIỂM TRA VÀ KHÔI PHỤC SESSION STATE ---
+# Kiểm tra query parameters để khôi phục session state nếu cần
+query_params = st.query_params
+if 'user_id' in query_params and not st.session_state.get('user_id'):
+    try:
+        # Khôi phục session state từ query parameters
+        user_id = int(query_params['user_id'])
+        user_name = query_params.get('user_name', '')
+        if user_id and user_name:
+            st.session_state.user_id = user_id
+            st.session_state.user_name = user_name
+    except (ValueError, KeyError):
+        pass
+
 # --- KIỂM TRA ĐĂNG NHẬP ---
 if not st.session_state.get('user_id'):
     st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập hoặc tạo tài khoản mới nhé! ❤️")
