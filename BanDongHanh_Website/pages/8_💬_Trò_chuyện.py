@@ -1,4 +1,4 @@
-# pages/Trò_chuyện_cùng_Bot.py
+# pages/8_💬_Trò_chuyện_cùng_Bot.py
 import streamlit as st
 import database as db
 import google.generativeai as genai
@@ -28,8 +28,9 @@ try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     gemini_model = genai.GenerativeModel('gemini-1.5-flash')
     AI_ENABLED = True
-except Exception:
+except Exception as e:
     AI_ENABLED = False
+    st.error(f"Lỗi kết nối AI: {e}")
 
 # --- CÁC HÀM HỖ TRỢ ---
 def check_for_crisis(text):
@@ -52,7 +53,6 @@ def get_ai_response(user_prompt):
         return f"Xin lỗi, mình đang gặp chút sự cố kỹ thuật. Bạn thử lại sau nhé."
 
 def add_message(sender, text):
-    """Thêm tin nhắn vào state và database."""
     st.session_state.messages.append({"sender": sender, "text": text})
     db.add_chat_message(user_id, sender, text)
 
@@ -60,9 +60,8 @@ def add_message(sender, text):
 if "messages" not in st.session_state:
     st.session_state.messages = db.get_chat_history(user_id)
 if "chat_flow" not in st.session_state:
-    st.session_state.chat_flow = "start" # Các trạng thái: start, selecting_mood, free_chat
+    st.session_state.chat_flow = "start" 
 
-# Tin nhắn chào mừng nếu chưa có lịch sử
 if not st.session_state.messages:
     welcome_message = f"Chào {user_name}, mình là Bạn Đồng Hành đây! Bạn có điều gì muốn chia sẻ không?"
     add_message("bot", welcome_message)
@@ -76,20 +75,20 @@ def start_tam_su():
 def select_mood(mood, initial_response):
     add_message("user", mood)
     add_message("bot", initial_response)
-    st.session_state.chat_flow = "free_chat" # Sau khi chọn xong, chuyển sang chat tự do
+    st.session_state.chat_flow = "free_chat"
 
 # --- GIAO DIỆN CHÍNH ---
 st.title(f"💬 Trò chuyện cùng Bot")
+st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
 
 # Hiển thị lịch sử tin nhắn
 for message in st.session_state.messages:
     with st.chat_message("user" if message["sender"] == "user" else "assistant"):
         st.markdown(message["text"])
 
-# --- HIỂN THỊ CÁC NÚT ĐỊNH HƯỚNG DỰA TRÊN TRẠNG THÁI ---
+# HIỂN THỊ CÁC NÚT ĐỊNH HƯỚNG
 if st.session_state.chat_flow == "start":
     st.button("Tâm sự 💌", on_click=start_tam_su, use_container_width=True)
-    # Bạn có thể thêm nút "Luyện tập giao tiếp" ở đây nếu muốn
 
 elif st.session_state.chat_flow == "selecting_mood":
     moods = {
@@ -101,23 +100,30 @@ elif st.session_state.chat_flow == "selecting_mood":
     for i, (mood, response) in enumerate(moods.items()):
         cols[i].button(mood, on_click=select_mood, args=(mood, response), use_container_width=True)
 
-# --- KHUNG NHẬP LIỆU CHAT TỰ DO ---
+# KHUNG NHẬP LIỆU CHAT TỰ DO
 if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
-    st.session_state.chat_flow = "free_chat" # Khi người dùng gõ, chuyển sang chat tự do
+    st.session_state.chat_flow = "free_chat"
     add_message("user", prompt)
 
-    # Hiển thị tin nhắn người dùng ngay lập tức
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Xử lý phản hồi của bot
-    with st.chat_message("assistant"):
-        with st.spinner("Bot đang suy nghĩ..."):
-            if check_for_crisis(prompt):
-                response = "Mình nhận thấy bạn đang gặp phải những cảm xúc rất tiêu cực. Nếu bạn cần sự giúp đỡ ngay lập tức, hãy liên hệ với các chuyên gia qua trang **Hỗ Trợ Khẩn Cấp** nhé."
-                st.error(response)
-            else:
-                response = get_ai_response(prompt)
-                st.markdown(response)
-    
-    add_message("bot", response)
+    # *** LOGIC QUAN TRỌNG ĐƯỢC CẬP NHẬT ***
+    if check_for_crisis(prompt):
+        # 1. Thêm và hiển thị tin nhắn cảnh báo
+        crisis_response = "Mình nhận thấy bạn đang gặp khó khăn. Chuyển bạn đến trang Hỗ Trợ Khẩn Cấp ngay lập tức..."
+        add_message("bot", crisis_response)
+        with st.chat_message("assistant"):
+            st.warning(crisis_response)
+        
+        # 2. Chờ 2 giây và chuyển trang
+        time.sleep(2)
+        st.switch_page("pages/7_🆘_Hỗ_trợ_khẩn_cấp.py") # Đảm bảo tên file này chính xác
+    else:
+        # Nếu không có khủng hoảng, bot sẽ trả lời bình thường
+        with st.chat_message("assistant"):
+            with st.spinner("Bot đang suy nghĩ..."):
+                response_text = get_ai_response(prompt)
+                st.markdown(response_text)
+        add_message("bot", response_text)
+
