@@ -1,4 +1,4 @@
-# Trang_chủ.py hoặc pages/0_💖_Trang_chủ.py
+# pages/0_💖_Trang_chủ.py
 import streamlit as st
 import database as db
 import time
