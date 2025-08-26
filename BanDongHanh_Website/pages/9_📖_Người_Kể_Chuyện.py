@@ -1,4 +1,4 @@
-# pages/Nguoi_ke_chuyen.py
+# pages/9_📖_Người_Kể_Chuyện.py
 import streamlit as st
 import random
 from gtts import gTTS
@@ -14,7 +14,6 @@ if not st.session_state.get('user_id'):
     st.stop()
 
 # --- NỘI DUNG TRUYỆN ---
-# Tách nội dung ra một hàm riêng để code sạch sẽ hơn
 def load_stories():
     return {
         "Truyện truyền cảm hứng": [
@@ -54,7 +53,6 @@ STORIES = load_stories()
 # --- CÁC HÀM HỖ TRỢ ---
 @st.cache_data
 def text_to_speech(text):
-    """Chuyển văn bản thành âm thanh và cache lại."""
     try:
         audio_bytes = BytesIO()
         tts = gTTS(text=text, lang='vi', slow=False)
@@ -67,7 +65,10 @@ def text_to_speech(text):
 
 # --- GIAO DIỆN CHÍNH ---
 st.title("📖 Người Kể Chuyện")
-st.page_link("Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+
+# *** SỬA LẠI ĐÚNG ĐƯỜNG DẪN ***
+st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+
 st.markdown("Hãy chọn một thể loại và lắng nghe một câu chuyện nhỏ để xoa dịu tâm hồn nhé.")
 st.write("---")
 
@@ -87,9 +88,7 @@ if selected_category:
         with st.expander(story["title"]):
             st.write(story["content"])
             
-            # Nút nghe cho mỗi câu chuyện
             if st.button("Nghe truyện 🎧", key=f"listen_{selected_category}_{i}"):
-                # Tạo và hiển thị trình phát âm thanh
                 with st.spinner("Đang chuẩn bị âm thanh..."):
                     audio_data = text_to_speech(f"Câu chuyện {story['title']}. {story['content']}")
                     if audio_data:
