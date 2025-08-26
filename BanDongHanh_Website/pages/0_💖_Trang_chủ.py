@@ -6,7 +6,6 @@ import time
 
 # --- KHỞI TẠO DB VÀ CẤU HÌNH TRANG ---
 # Hàm này nên được gọi để đảm bảo các bảng đã tồn tại
-db.create_tables() 
 st.set_page_config(
     page_title="Chào mừng - Bạn Đồng Hành",
     page_icon="💖",
@@ -128,3 +127,4 @@ else:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
+
