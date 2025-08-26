@@ -217,7 +217,27 @@ if st.session_state.get('crisis_detected'):
     render_crisis_response()
 
 def render_chat_ui():
-    # (Toàn bộ code render_chat_ui của bạn được giữ nguyên)
-    pass
+    # Hiển thị lịch sử chat
+    if "history" in st.session_state and st.session_state.history:
+        st.subheader("Cuộc trò chuyện:")
+        for message in st.session_state.history:
+            if message["sender"] == "bot":
+                st.chat_message("assistant").write(message["text"])
+            else:
+                st.chat_message("user").write(message["text"])
+    
+    # Input cho tin nhắn mới
+    if user_input := st.chat_input("Nhập tin nhắn của bạn..."):
+        # Thêm tin nhắn của user
+        add_message_and_save("user", user_input)
+        st.chat_message("user").write(user_input)
+        
+        # Tạo phản hồi đơn giản của bot
+        bot_response = f"Cảm ơn {user_name} đã chia sẻ. Mình đã nghe bạn nói: '{user_input}'. Mình sẽ cố gắng hỗ trợ bạn tốt nhất có thể!"
+        add_message_and_save("bot", bot_response)
+        st.chat_message("assistant").write(bot_response)
+        
+        # Rerun để cập nhật giao diện
+        st.rerun()
 
 render_chat_ui()
