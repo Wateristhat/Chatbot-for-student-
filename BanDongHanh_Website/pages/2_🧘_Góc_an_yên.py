@@ -1,15 +1,20 @@
-# pages/Goc_an_yen.py
+# pages/2_🧘_Góc_An_Yên.py
 import streamlit as st
 import time
 
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Góc An Yên", page_icon="🧘", layout="centered")
 
+# --- KIỂM TRA ĐĂNG NHẬP ---
+if not st.session_state.get('user_id'):
+    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
+    st.stop()
+
 # --- GIAO DIỆN CHÍNH ---
 st.title("🧘 Góc An Yên")
 
-# *** ĐÃ THÊM: Liên kết quay về Trang chủ ***
-st.page_link("Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+# *** SỬA LẠI ĐÚNG ĐƯỜNG DẪN ***
+st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
 
 st.markdown("Dành một vài phút để kết nối lại với bản thân và tìm thấy sự tĩnh lặng.")
 st.write("---")
@@ -28,13 +33,12 @@ with tab1:
         value=60
     )
 
-    if st.button("Bắt đầu hít thở", type="primary"):
+    if st.button("Bắt đầu hít thở", type="primary", use_container_width=True):
         placeholder = st.empty()
         progress_bar = st.progress(0, text="Bắt đầu thực hành...")
         start_time = time.time()
         end_time = start_time + duration
 
-        # Vòng lặp chính điều khiển toàn bộ quá trình
         while time.time() < end_time:
             steps = ["Hít vào (4s)", "Giữ hơi (4s)", "Thở ra (4s)", "Nghỉ (4s)"]
             
@@ -42,28 +46,24 @@ with tab1:
                 if time.time() >= end_time:
                     break
                 
-                # Cập nhật giao diện cho bước hiện tại
                 with placeholder.container():
                     st.markdown(f"<h2 style='text-align: center; color: #2E8B57;'>{step}</h2>", unsafe_allow_html=True)
                     if "Hít vào" in step:
                         st.image("https://i.imgur.com/D4Jc0Vz.gif", use_column_width=True)
                     elif "Thở ra" in step:
                         st.image("https://i.imgur.com/O4g3eFz.gif", use_column_width=True)
-                    else: # Ảnh tĩnh cho "Giữ hơi" và "Nghỉ"
+                    else:
                         st.image("https://i.imgur.com/y3yL4hA.png", use_column_width=True)
                 
-                # Vòng lặp con để chạy chính xác trong 4 giây và cập nhật thanh tiến trình
                 step_start_time = time.time()
                 while time.time() < step_start_time + 4:
                     if time.time() >= end_time:
                         break
                     
-                    # Tính toán và cập nhật thanh tiến trình
                     progress_percent = (time.time() - start_time) / duration
                     progress_bar.progress(min(progress_percent, 1.0), text=f"Đang thực hành: {step}")
-                    time.sleep(0.1) # Ngủ một chút để giao diện mượt mà
+                    time.sleep(0.1)
 
-        # Hoàn thành
         placeholder.success("Hoàn thành! Bạn đã làm rất tốt. Hãy cảm nhận sự bình yên trong cơ thể nhé.")
         progress_bar.progress(100, text="Đã hoàn thành!")
 
@@ -93,11 +93,10 @@ with tab3:
     2.  Đừng cố gắng đặt tên cho những gì bạn thấy. Chỉ cần chú ý đến **màu sắc**, **hình dạng** và **sự chuyển động**.
     3.  Hãy nhìn mọi thứ như thể bạn đang thấy chúng lần đầu tiên.
     """)
-    if st.button("Bắt đầu 1 phút quan sát", type="primary", key="quan_sat"):
+    if st.button("Bắt đầu 1 phút quan sát", type="primary", key="quan_sat", use_container_width=True):
         progress_bar = st.progress(0)
         status_text = st.empty()
         
-        # Vòng lặp 60 giây, mỗi giây cập nhật một lần
         for i in range(61):
             progress_value = i / 60.0
             progress_bar.progress(min(progress_value, 1.0))
@@ -105,3 +104,4 @@ with tab3:
             time.sleep(1)
             
         status_text.success("Đã hết một phút. Cảm ơn bạn đã dành thời gian cho chính mình. ❤️")
+
