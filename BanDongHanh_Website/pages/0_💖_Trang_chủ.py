@@ -1,11 +1,9 @@
-# Trang_chủ.py
+# Trang_chủ.py hoặc pages/0_💖_Trang_chủ.py
 import streamlit as st
-from datetime import datetime
-import database as db # Đảm bảo file database.py của bạn đã đầy đủ
+import database as db
 import time
 
-# --- KHỞI TẠO DB VÀ CẤU HÌNH TRANG ---
-# Hàm này nên được gọi để đảm bảo các bảng đã tồn tại
+# --- CẤU HÌNH TRANG ---
 st.set_page_config(
     page_title="Chào mừng - Bạn Đồng Hành",
     page_icon="💖",
@@ -28,7 +26,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- KHỞI TẠO SESSION STATE AN TOÀN ---
+# --- KHỞI TẠO SESSION STATE ---
 if 'user_id' not in st.session_state:
     st.session_state.user_id = None
 if 'user_name' not in st.session_state:
@@ -37,23 +35,18 @@ if 'user_name' not in st.session_state:
 # --- GIAO DIỆN CHÍNH ---
 st.title("Chào mừng đến với Bạn Đồng Hành 💖")
 
-# ===================================================================
-# PHẦN 1: DÀNH CHO NGƯỜI DÙNG CHƯA ĐĂNG NHẬP
-# ===================================================================
+# Giao diện khi chưa đăng nhập
 if not st.session_state.get('user_id'):
     st.markdown("Một không gian an toàn để bạn kết nối và chăm sóc sức khỏe tinh thần.")
     tab1, tab2 = st.tabs(["🔐 Đăng nhập", "📝 Đăng ký"])
 
-    # --- Tab Đăng nhập (An toàn và bảo mật) ---
     with tab1:
         st.markdown("<div class='welcome-form'>", unsafe_allow_html=True)
         with st.form("login_form"):
             username = st.text_input("Tên đăng nhập", placeholder="Nhập tên của bạn...")
             password = st.text_input("Mật khẩu", type="password", placeholder="Nhập mật khẩu...")
             submitted = st.form_submit_button("Vào thôi!")
-
             if submitted:
-                # Hàm check_user cần được viết trong database.py để xử lý
                 user = db.check_user(username, password)
                 if user:
                     st.session_state.user_id = user[0]
@@ -63,34 +56,29 @@ if not st.session_state.get('user_id'):
                     st.error("Tên đăng nhập hoặc mật khẩu không chính xác!")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- Tab Đăng ký (UX được cải thiện) ---
     with tab2:
         st.markdown("<div class='welcome-form'>", unsafe_allow_html=True)
         with st.form(key="signup_form"):
             name = st.text_input("📝 Bạn tên là gì?", placeholder="Tên bạn sẽ hiển thị trong ứng dụng")
-            # password_reg = st.text_input("🔑 Mật khẩu của bạn", type="password", placeholder="Chọn một mật khẩu an toàn")
+            password_reg = st.text_input("🔑 Mật khẩu của bạn", type="password", placeholder="Chọn một mật khẩu an toàn")
             
             if st.form_submit_button("💖 Tạo tài khoản và bắt đầu!"):
-                if not name: #or not password_reg:
+                if not name or not password_reg:
                     st.warning("⚠️ Tên và mật khẩu không được để trống bạn nhé!")
                 else:
-                    if db.add_user(name, "password_reg"): # Thay "password_reg" bằng biến mật khẩu thật
-                        st.success(f"Tài khoản '{name}' đã được tạo! Đang chuyển hướng...")
-                        time.sleep(2) # Chờ 2 giây để người dùng đọc thông báo
-                        st.rerun()
+                    if db.add_user(name, password_reg):
+                        st.success(f"Tài khoản '{name}' đã được tạo! Vui lòng qua tab Đăng nhập.")
+                        time.sleep(2)
                     else:
                         st.error("Tên này đã có người dùng. Vui lòng chọn tên khác.")
         st.markdown("</div>", unsafe_allow_html=True)
 
-# =====================================================================
-# PHẦN 2: DÀNH CHO NGƯỜI DÙNG ĐÃ ĐĂNG NHẬP
-# =====================================================================
+# Giao diện khi đã đăng nhập
 else:
     st.title(f"Hôm nay bạn thế nào, {st.session_state.user_name}? ✨")
     st.markdown("---")
     st.header("Khám phá các tính năng")
     
-    # Danh sách tính năng, cần đảm bảo `url` khớp với tên file trong thư mục /pages
     features = [
          {"icon": "fa-solid fa-robot", "title": "Trò chuyện cùng Bot", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn.", "url": "Trò_chuyện_cùng_Bot"},
          {"icon": "fa-solid fa-sun", "title": "Liều Thuốc Tinh Thần", "desc": "Nhận những thông điệp tích cực mỗi ngày.", "url": "Liều_Thuốc_Tinh_Thần"},
@@ -120,11 +108,8 @@ else:
         )
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- PHẦN ĐĂNG XUẤT (An toàn) ---
     st.markdown("---")
     if st.button("Đăng xuất"):
-        # Xóa tất cả các khóa trong session state để đăng xuất an toàn
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
-
