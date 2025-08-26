@@ -1,98 +1,117 @@
 import streamlit as st
 from datetime import datetime
 
-# Cấu hình trang chính
+# ----------------- CẤU HÌNH TRANG -----------------
 st.set_page_config(
-    page_title="Chào mừng - Bạn Đồng Hành",
+    page_title="Bạn Đồng Hành",
     page_icon="💖",
     layout="wide"
 )
 
-# --- CSS TÙY CHỈNH ---
+# ----------------- CSS PHONG CÁCH THỜI TRANG -----------------
 st.markdown("""
 <style>
-    .welcome-form {
-        background-color: #F0F2F5;
-        border-radius: 10px;
-        padding: 2rem;
+    /* Toàn bộ nền trắng tinh, font sang trọng */
+    body {
+        background-color: #ffffff;
+        font-family: 'Helvetica Neue', sans-serif;
+        color: #222;
+    }
+    /* Tiêu đề lớn giống hero banner */
+    .big-title {
+        font-size: 3rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        text-align: center;
         margin-top: 2rem;
+    }
+    /* Form trong khung tối giản */
+    .form-container {
+        background-color: #f9f9f9;
+        border-radius: 15px;
+        padding: 2rem 3rem;
+        max-width: 700px;
+        margin: auto;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+    /* Nút bấm */
+    .stButton>button {
+        background-color: black;
+        color: white;
+        font-size: 1rem;
+        border-radius: 30px;
+        padding: 0.6rem 2rem;
+        letter-spacing: 1px;
+        border: none;
+        transition: all 0.3s ease-in-out;
+    }
+    .stButton>button:hover {
+        background-color: #444;
+        transform: scale(1.02);
+    }
+    /* Mục tính năng như card */
+    .feature-card {
+        background-color: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease;
+    }
+    .feature-card:hover {
+        transform: translateY(-4px);
     }
 </style>
 """, unsafe_allow_html=True)
 
-
-# --- LOGIC HIỂN THỊ ---
-
-# Khởi tạo session_state nếu chưa có
+# ----------------- LOGIC -----------------
 if 'user_name' not in st.session_state:
     st.session_state.user_name = None
 
-# ---- GIAO DIỆN KHI CHƯA CÓ THÔNG TIN ----
 if not st.session_state.user_name:
-    st.title("Chào bạn, mình là Bạn Đồng Hành 💖")
-    st.header("Trước khi bắt đầu, chúng mình làm quen nhé?")
+    st.markdown("<div class='big-title'>Chào mừng đến với Bạn Đồng Hành 💖</div>", unsafe_allow_html=True)
+    st.markdown("### Hãy để chúng mình biết một chút về bạn")
 
     with st.form(key="welcome_form", clear_on_submit=True):
-        st.markdown("<div class='welcome-form'>", unsafe_allow_html=True)
-        
-        name = st.text_input("Bạn tên là gì?")
-        
+        st.markdown("<div class='form-container'>", unsafe_allow_html=True)
+
+        name = st.text_input("👤 Tên của bạn")
         current_year = datetime.now().year
-        birth_year = st.selectbox(
-            "Bạn sinh năm bao nhiêu?",
-            options=range(current_year - 5, current_year - 25, -1)
-        )
-        
-        school = st.text_input("Bạn đang học ở trường nào?")
-        
-        issues = st.text_area(
-            "Gần đây, có điều gì khiến bạn cảm thấy khó khăn không? (trong học tập hoặc cuộc sống)",
-            placeholder="Bạn có thể chia sẻ ở đây, mình luôn lắng nghe..."
-        )
-        
-        submitted = st.form_submit_button("Lưu thông tin và bắt đầu!")
-        
-        if submitted:
-            if not name:
-                st.warning("Bạn ơi, hãy cho mình biết tên của bạn nhé!")
-            else:
-                # Lưu thông tin vào session state
-                st.session_state.user_name = name
-                st.session_state.user_info = {
-                    "year": birth_year,
-                    "school": school,
-                    "issues": issues
-                }
-                st.rerun()
-                
+        birth_year = st.selectbox("📅 Năm sinh", options=range(current_year - 5, current_year - 25, -1))
+        school = st.text_input("🏫 Trường học")
+        issues = st.text_area("💬 Chia sẻ điều khiến bạn bận tâm gần đây", placeholder="Mình luôn sẵn sàng lắng nghe...")
+
+        submitted = st.form_submit_button("Bắt đầu hành trình")
+
         st.markdown("</div>", unsafe_allow_html=True)
 
-# ---- GIAO DIỆN SAU KHI ĐÃ CÓ THÔNG TIN ----
+        if submitted:
+            if not name:
+                st.warning("Vui lòng cho mình biết tên của bạn nhé!")
+            else:
+                st.session_state.user_name = name
+                st.session_state.user_info = {"year": birth_year, "school": school, "issues": issues}
+                st.rerun()
+
 else:
-    st.title(f"Chào mừng {st.session_state.user_name} đến với Bạn Đồng Hành 💖")
-    
-    st.markdown(
-        """
-        "Bạn Đồng Hành" được tạo ra với mong muốn trở thành một người bạn thấu cảm, 
-        luôn ở bên cạnh để hỗ trợ bạn trên hành trình chăm sóc sức khỏe tinh thần.
-        """
-    )
+    st.markdown(f"<div class='big-title'>Xin chào, {st.session_state.user_name}</div>", unsafe_allow_html=True)
+    st.write("✨ **Bạn Đồng Hành** muốn mang đến trải nghiệm chăm sóc tinh thần tinh tế như cách các thương hiệu thời trang chăm chút từng chi tiết.")
 
     st.markdown("---")
-    st.header("Khám phá các tính năng")
-    st.markdown(
-        """
-        Dưới đây là các tính năng chính được thiết kế để giúp bạn cảm thấy tốt hơn mỗi ngày. 
+    st.subheader("Khám phá các tính năng")
 
-        - **✨ Liều Thuốc Tinh Thần:** Nhận những thông điệp tích cực mỗi ngày.
-        - **🧘 Góc An Yên:** Thực hành các bài tập hít thở để giảm căng thẳng.
-        - **🍯 Lọ Biết Ơn:** Ghi lại những điều nhỏ bé khiến bạn mỉm cười.
-        - **🎨 Vải Bố Vui Vẻ:** Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc.
-        - **🎲 Trò Chơi Trí Tuệ:** Thử thách bản thân với các trò chơi nhẹ nhàng.
-        - **❤️ Góc Tự Chăm Sóc:** Xây dựng kế hoạch chăm sóc bản thân mỗi ngày.
-        - **💬 Trò chuyện cùng Bot:** Một người bạn AI luôn sẵn sàng lắng nghe bạn.
-        - **🆘 Hỗ Trợ Khẩn Cấp:** Danh sách các nguồn lực và đường dây nóng đáng tin cậy.
-        """
-    )
+    cols = st.columns(4)
+    features = [
+        ("✨ Liều Thuốc Tinh Thần", "Nhận những thông điệp tích cực mỗi ngày."),
+        ("🧘 Góc An Yên", "Thư giãn và giảm căng thẳng."),
+        ("🍯 Lọ Biết Ơn", "Ghi lại điều khiến bạn mỉm cười."),
+        ("🎨 Vải Bố Vui Vẻ", "Thỏa sức sáng tạo.")
+    ]
+
+    for col, (title, desc) in zip(cols, features):
+        with col:
+            st.markdown(f"<div class='feature-card'><h3>{title}</h3><p>{desc}</p></div>", unsafe_allow_html=True)
+
     st.markdown("---")
-    st.info("👈 **Hãy chọn một tính năng từ thanh điều hướng bên trái để bắt đầu!**", icon="😊")
+    st.info("Chọn một tính năng ở thanh bên trái để bắt đầu 🌸", icon="💡")
