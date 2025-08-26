@@ -3,36 +3,29 @@ import random
 import re
 import time
 import html
-import database as db
+# import database as db  # <-- Tạm thời không cần database cho việc chat
 import google.generativeai as genai
 from gtts import gTTS
 from io import BytesIO
 import base64
 
-# --- KIỂM TRA ĐĂNG NHẬP ---
-if not st.session_state.get('user_id'):
-    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập hoặc tạo tài khoản mới nhé! ❤️")
-    st.stop()
+# --- BỎ HOÀN TOÀN KHỐI KIỂM TRA ĐĂNG NHẬP ---
+# if not st.session_state.get('user_id'):
+#     st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập hoặc tạo tài khoản mới nhé! ❤️")
+#     st.stop()
+#
+# user_id = st.session_state.user_id
+# user_name = st.session_state.user_name
 
-user_id = st.session_state.user_id
-user_name = st.session_state.user_name
-
-# --- BỘ LỌC TỪ KHÓA NGUY HIỂM ---
+# --- BỘ LỌC TỪ KHÓA NGUY HIỂM (Giữ nguyên) ---
 CRISIS_KEYWORDS = [
     "tự tử", "tự sát", "kết liễu", "chấm dứt", "không muốn sống",
     "muốn chết", "kết thúc tất cả", "làm hại bản thân", "tự làm đau",
     "tuyệt vọng", "vô vọng", "không còn hy vọng"
 ]
 
-# --- CÁC HẰNG SỐ VÀ CẤU HÌNH ---
-CHAT_STATE_MAIN = 'main'
-CHAT_STATE_TAM_SU_SELECTION = 'tam_su_selection'
-CHAT_STATE_TAM_SU_CHAT = 'tam_su_chat'
-CHAT_STATE_GIAO_TIEP_SELECTION_BASIC = 'giao_tiep_selection_basic'
-CHAT_STATE_GIAO_TIEP_SELECTION_EXTENDED = 'giao_tiep_selection_extended'
-CHAT_STATE_GIAO_TIEP_PRACTICE = 'giao_tiep_practice'
-CHAT_STATE_AWAITING_FOLLOWUP = 'awaiting_followup'
-
+# --- CÁC HẰNG SỐ VÀ CẤU HÌNH (Giữ nguyên) ---
+# ... (Toàn bộ phần config và hằng số của bạn)
 @st.cache_data
 def get_config():
     # (Toàn bộ config của bạn được giữ nguyên)
@@ -92,16 +85,15 @@ except Exception:
     AI_ENABLED = False
 
 st.set_page_config(page_title=CONFIG["ui"]["title"], layout="wide")
-st.markdown(r"""<style>...</style>""", unsafe_allow_html=True) # Giữ nguyên CSS của bạn
+st.markdown(r"""<style>...</style>""", unsafe_allow_html=True)
 
 # --- KHỞI TẠO VÀ TẢI DỮ LIỆU ---
 if "chat_initialized" not in st.session_state:
     st.session_state.chat_state = CHAT_STATE_MAIN
-    st.session_state.history = db.get_chat_history(user_id)
-    if not st.session_state.history:
-        initial_message = f"Chào {user_name}, mình là Bạn đồng hành đây! Mình có thể giúp gì cho bạn hôm nay?"
-        st.session_state.history = [{"sender": "bot", "text": initial_message}]
-        db.add_chat_message(user_id, "bot", initial_message)
+    # **Xóa logic tải lịch sử từ DB, khởi tạo lịch sử trống**
+    initial_message = "Chào bạn, mình là Bạn đồng hành đây! Mình có thể giúp gì cho bạn hôm nay?"
+    st.session_state.history = [{"sender": "bot", "text": initial_message}]
+    
     st.session_state.turns = 0
     st.session_state.current_mood = None
     st.session_state.current_scenario = None
@@ -117,14 +109,15 @@ def check_for_crisis(text):
     return False
 
 def render_crisis_response():
-    st.error("...") # Giữ nguyên nội dung thông báo khẩn cấp của bạn
+    st.error("...") 
     st.stop()
 
 def add_message_and_save(sender, text):
     st.session_state.history.append({"sender": sender, "text": text})
-    db.add_chat_message(user_id, sender, text)
+    # **Xóa dòng lưu tin nhắn vào DB**
+    # db.add_chat_message(user_id, sender, text)
 
-# (Các hàm tiện ích cũ của bạn được giữ nguyên)
+# ... (Các hàm tiện ích khác giữ nguyên)
 @st.cache_data
 def text_to_speech(text):
     try:
@@ -142,16 +135,26 @@ def set_chat_state(state, **kwargs):
 def detect_mood_from_text(text):
     # (Logic phát hiện cảm xúc của bạn giữ nguyên)
     return None
+
 def call_gemini_with_memory(user_prompt):
     if not AI_ENABLED: return "Xin lỗi, tính năng AI hiện không khả dụng."
-    context_history = db.get_chat_history(user_id, limit=10)
-    system_prompt = f"Bạn là Chip, một AI thân thiện. Bạn đang nói chuyện với {user_name}. Hãy trả lời ngắn gọn."
+    
+    # **Lấy lịch sử chat từ session_state thay vì DB**
+    context_history = st.session_state.history[-10:] # Lấy 10 tin nhắn gần nhất
+    
+    # **Xóa tên người dùng cụ thể, dùng một lời chào chung**
+    system_prompt = f"Bạn là Chip, một AI thân thiện. Hãy trả lời ngắn gọn và gần gũi."
+    
     try:
         gemini_history = [{"role": "user" if msg["sender"] == "user" else "model", "parts": [msg["text"]]} for msg in context_history]
-        chat = gemini_model.start_chat(history=gemini_history); response = chat.send_message(system_prompt + "\nCâu hỏi: " + user_prompt); return response.text
-    except Exception as e: return f"Lỗi AI: {e}"
+        chat = gemini_model.start_chat(history=gemini_history)
+        response = chat.send_message(system_prompt + "\nCâu hỏi: " + user_prompt)
+        return response.text
+    except Exception as e:
+        return f"Lỗi AI: {e}"
 
-# --- CÁC HÀM CALLBACK ĐÃ SỬA LỖI ---
+# --- CÁC HÀM CALLBACK (Không cần thay đổi nhiều) ---
+# ... (Toàn bộ các hàm callback của bạn được giữ nguyên)
 def main_chat_button_callback(action):
     add_message_and_save("user", action)
     if action == "Tâm sự":
@@ -206,6 +209,7 @@ def user_input_callback():
     add_message_and_save("user", user_text)
     st.session_state.turns += 1
     # ... (logic còn lại của hàm user_input_callback)
+
 
 # --- GIAO DIỆN CHÍNH ---
 st.title("💬 Trò chuyện cùng Bot")
