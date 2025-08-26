@@ -1,6 +1,5 @@
 import sqlite3
 
-# Tên file cơ sở dữ liệu
 DATABASE_NAME = "app_data.db"
 
 def connect_db():
@@ -10,7 +9,7 @@ def connect_db():
 
 def create_tables():
     """Tạo bảng chat_history nếu chưa tồn tại.
-    Bỏ hoàn toàn bảng users và các bảng liên quan đến người dùng."""
+    Không có bảng users nữa vì không cần đăng nhập."""
     conn = connect_db()
     cursor = conn.cursor()
     
