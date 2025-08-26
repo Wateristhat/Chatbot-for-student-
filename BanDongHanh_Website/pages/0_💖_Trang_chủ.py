@@ -45,7 +45,6 @@ st.markdown("""
         margin: 1rem auto 0 auto;
         line-height: 1.6;
     }
-
     /* Form khởi tạo */
     .form-container {
         background-color: var(--card);
@@ -67,11 +66,7 @@ st.markdown("""
         transition: transform 0.2s ease, opacity 0.2s ease;
     }
     .stButton>button:hover { transform: translateY(-1px); opacity: 0.92; }
-
-    /* Grid tính năng */
-    .features {
-        margin: 2rem 0 0 0;
-    }
+    /* Card tính năng */
     .feature-card {
         background-color: #fff;
         border-radius: 14px;
@@ -80,7 +75,6 @@ st.markdown("""
         box-shadow: 0 4px 16px rgba(0,0,0,0.06);
         border: 1px solid #eee;
         transition: transform 0.18s ease, box-shadow 0.18s ease;
-        cursor: pointer;
         min-height: 140px;
     }
     .feature-card:hover {
@@ -99,31 +93,10 @@ st.markdown("""
         line-height: 1.5;
         margin: 0;
     }
-
-    /* Section nội dung */
-    .section {
-        scroll-margin-top: 90px; /* để cuộn dừng đẹp dưới hero */
-        padding: 2rem 0;
-        border-top: 1px solid #efefef;
-    }
-    .section h3 {
-        font-size: 1.4rem;
-        margin-bottom: 0.75rem;
-        text-transform: none;
-        letter-spacing: 0.3px;
-    }
-    .muted { color: var(--muted); }
-
-    /* Thanh phân cách */
-    .divider { height: 1px; background: #eee; margin: 1.5rem 0; }
 </style>
 """, unsafe_allow_html=True)
 
-# ----------------- STATE -----------------
-if 'user_name' not in st.session_state:
-    st.session_state.user_name = None
 
-# ----------------- HERO -----------------
 def hero(title: str, sub: str):
     st.markdown(f"""
     <section class="hero">
@@ -132,17 +105,11 @@ def hero(title: str, sub: str):
     </section>
     """, unsafe_allow_html=True)
 
-# ----------------- DANH SÁCH TÍNH NĂNG -----------------
-features = [
-    {"id": "lieu-thuoc", "icon": "✨", "title": "Liều Thuốc Tinh Thần", "desc": "Thông điệp tích cực mỗi ngày."},
-    {"id": "goc-an-yen", "icon": "🧘", "title": "Góc An Yên", "desc": "Bài tập thở giúp thư giãn nhanh."},
-    {"id": "lo-biet-on", "icon": "🍯", "title": "Lọ Biết Ơn", "desc": "Ghi lại điều nhỏ bé khiến bạn mỉm cười."},
-    {"id": "vai-bo-vui-ve", "icon": "🎨", "title": "Vải Bố Vui Vẻ", "desc": "Vẽ và sáng tạo để giải tỏa cảm xúc."},
-    {"id": "tro-choi-tri-tue", "icon": "🎲", "title": "Trò Chơi Trí Tuệ", "desc": "Thử thách nhẹ nhàng cho trí não."},
-    {"id": "goc-tu-cham-soc", "icon": "❤️", "title": "Góc Tự Chăm Sóc", "desc": "Lập kế hoạch chăm sóc bản thân."},
-    {"id": "tro-chuyen-bot", "icon": "💬", "title": "Trò chuyện cùng Bot", "desc": "Một người bạn AI luôn lắng nghe."},
-    {"id": "ho-tro-khan-cap", "icon": "🆘", "title": "Hỗ Trợ Khẩn Cấp", "desc": "Nguồn lực và đường dây nóng đáng tin cậy."},
-]
+
+# ----------------- STATE -----------------
+if 'user_name' not in st.session_state:
+    st.session_state.user_name = None
+
 
 # ----------------- GIAO DIỆN -----------------
 if not st.session_state.user_name:
@@ -168,68 +135,69 @@ if not st.session_state.user_name:
 else:
     hero(f"Xin chào, {st.session_state.user_name}", "Chọn một tính năng bên dưới — mình sẽ đưa bạn tới đúng nơi.")
 
-    # --------- MỤC LỤC Ở SIDEBAR (tùy chọn) ----------
-    with st.sidebar:
-        st.markdown("#### Mục lục")
-        # Cho phép chuyển phần bằng sidebar
-        selected = st.radio(
-            label="Đi tới",
-            options=[f["icon"] + " " + f["title"] for f in features],
-            label_visibility="collapsed",
-            key="toc_radio"
-        )
-        # Lưu 'section' tương ứng vào state
-        for f in features:
-            if selected.endswith(f["title"]):
-                st.session_state["section"] = f["id"]
+    # ---- DANH SÁCH TÍNH NĂNG ----
+    features = [
+        {
+            "icon": "✨",
+            "title": "Liều Thuốc Tinh Thần",
+            "desc": "Nhận thông điệp tích cực mỗi ngày.",
+            "page": "pages/1_✨_Liều_thuốc_tinh_thần.py"
+        },
+        {
+            "icon": "🧘",
+            "title": "Góc An Yên",
+            "desc": "Bài tập thở giúp thư giãn.",
+            "page": "pages/2_🧘_Góc_An_Yên.py"
+        },
+        {
+            "icon": "🍯",
+            "title": "Lọ Biết Ơn",
+            "desc": "Ghi lại điều khiến bạn mỉm cười.",
+            "page": "pages/3_🍯_Lọ_Biết_Ơn.py"
+        },
+        {
+            "icon": "🎨",
+            "title": "Vải Bố Vui Vẻ",
+            "desc": "Vẽ và sáng tạo để giải tỏa cảm xúc.",
+            "page": "pages/4_🎨_Vải_Bố_Vui_Vẻ.py"
+        },
+        {
+            "icon": "🎲",
+            "title": "Trò Chơi Trí Tuệ",
+            "desc": "Thử thách trí não nhẹ nhàng.",
+            "page": "pages/5_🎲_Trò_Chơi_Trí_Tuệ.py"
+        },
+        {
+            "icon": "❤️",
+            "title": "Góc Tự Chăm Sóc",
+            "desc": "Lập kế hoạch chăm sóc bản thân.",
+            "page": "pages/6_❤️_Góc_Tự_Chăm_Sóc.py"
+        },
+        {
+            "icon": "💬",
+            "title": "Trò chuyện cùng Bot",
+            "desc": "Một người bạn AI luôn lắng nghe.",
+            "page": "pages/7_💬_Trò_Chuyện_Cùng_Bot.py"
+        },
+        {
+            "icon": "🆘",
+            "title": "Hỗ Trợ Khẩn Cấp",
+            "desc": "Nguồn lực và đường dây nóng đáng tin cậy.",
+            "page": "pages/8_🆘_Hỗ_Trợ_Khẩn_Cấp.py"
+        }
+    ]
 
-    # --------- GRID CÁC THẺ TÍNH NĂNG ----------
-    st.markdown('<div class="features">', unsafe_allow_html=True)
+    # ---- HIỂN THỊ CARD ----
     cols = st.columns(4)
-    for i, f in enumerate(features):
-        col = cols[i % 4]
+    for col, feature in zip(cols * (len(features) // len(cols) + 1), features):
         with col:
-            st.markdown(
-                f"""
-                <div class="feature-card" onclick="document.getElementById('{f['id']}').scrollIntoView({{behavior:'smooth'}});">
-                    <div class="feature-title">{f['icon']} {f['title']}</div>
-                    <p class="feature-desc">{f['desc']}</p>
+            st.page_link(
+                feature["page"],
+                label=f"""
+                <div class="feature-card">
+                    <div class="feature-title">{feature['icon']} {feature['title']}</div>
+                    <p class="feature-desc">{feature['desc']}</p>
                 </div>
                 """,
-                unsafe_allow_html=True
+                use_container_width=True
             )
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
-
-    # --------- SECTION NỘI DUNG CHI TIẾT ----------
-    # Tip: nếu bạn đã có các trang riêng trong thư mục pages/,
-    # thay phần nội dung bên dưới bằng mô tả ngắn + nút chuyển trang.
-    for f in features:
-        st.markdown(f"<section id='{f['id']}' class='section'></section>", unsafe_allow_html=True)
-        st.subheader(f"{f['icon']} {f['title']}")
-        st.markdown(f"<p class='muted'>{f['desc']}</p>", unsafe_allow_html=True)
-
-        # Nút chuyển hướng theo 2 cách:
-        # 1) Cùng trang: đặt biến mục lục -> cuộn (fallback khi JS không chạy)
-        if st.button(f"Đi tới {f['title']}", key=f"btn_{f['id']}"):
-            st.session_state["section"] = f["id"]
-            # Gợi ý cuộn mượt khi không dùng JS: hiển thị anchor mục tiêu đầu trang
-            st.markdown(
-                f"<script>document.getElementById('{f['id']}').scrollIntoView({{behavior:'smooth'}});</script>",
-                unsafe_allow_html=True
-            )
-
-        # 2) Nếu bạn có page riêng: dùng st.page_link (Streamlit mới) hoặc st.sidebar radio chuyển trang
-        # Ví dụ (bật khi có file phù hợp trong pages/):
-        # st.page_link("pages/01_✨_Lieu_Thuoc_Tinh_Than.py", label="Mở trang tính năng")
-
-        st.markdown("")  # spacing
-
-    # Nếu có 'section' từ sidebar hoặc button: tự cuộn tới đó
-    target = st.session_state.get("section", None)
-    if target:
-        st.markdown(
-            f"<script>document.getElementById('{target}').scrollIntoView({{behavior:'smooth'}});</script>",
-            unsafe_allow_html=True
-        )
