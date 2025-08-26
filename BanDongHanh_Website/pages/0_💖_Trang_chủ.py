@@ -1,4 +1,3 @@
-# 0_💖_Trang_chủ.py
 import streamlit as st
 from datetime import datetime
 
@@ -76,27 +75,20 @@ else:
 
     features = [
         {"icon": "💖", "title": "Trang chủ", "desc": "Về màn hình chính", "page": "0_💖_Trang_chủ.py"},
-        {"icon": "✨", "title": "Liều thuốc tinh thần", "desc": "Thông điệp tích cực mỗi ngày", "page": "1_✨_Liều_Thuốc_Tinh_Thần.py"},
-        {"icon": "🛋️", "title": "Góc an yên", "desc": "Nơi thư giãn tâm trí", "page": "2_🛋️_Góc_an_yên.py"},
-        {"icon": "🏺", "title": "Lọ biết ơn", "desc": "Ghi lại điều khiến bạn mỉm cười", "page": "3_🏺_Lọ_biết_ơn.py"},
+        {"icon": "✨", "title": "Liều thuốc tinh thần", "desc": "Thông điệp tích cực mỗi ngày", "page": "1_✨_Liều_thuốc_tinh_thần.py"},
+        {"icon": "🧘", "title": "Góc an yên", "desc": "Nơi thư giãn tâm trí", "page": "2_🧘_Góc_an_yên.py"},
+        {"icon": "🍯", "title": "Lọ biết ơn", "desc": "Ghi lại điều khiến bạn mỉm cười", "page": "3_🍯_Lọ_biết_ơn.py"},
         {"icon": "🎨", "title": "Bảng màu cảm xúc", "desc": "Tô màu cảm xúc của bạn", "page": "4_🎨_Bảng_màu_cảm_xúc.py"},
-        {"icon": "🕹️", "title": "Nhanh tay lẹ mắt", "desc": "Trò chơi phản xạ vui nhộn", "page": "5_🕹️_Nhanh_tay_lẹ_mắt.py"},
-        {"icon": "💓", "title": "Góc nhỏ", "desc": "Chăm chút bản thân", "page": "6_💓_Góc_nhỏ.py"},
+        {"icon": "🎮", "title": "Nhanh tay lẹ mắt", "desc": "Trò chơi phản xạ vui nhộn", "page": "5_🎲_Nhanh_tay_lẹ_mắt.py"},
+        {"icon": "❤️", "title": "Góc nhỏ", "desc": "Chăm chút bản thân", "page": "6_❤️_Góc_nhỏ.py"},
         {"icon": "🆘", "title": "Hỗ Trợ Khẩn Cấp", "desc": "Nguồn lực và liên hệ khẩn", "page": "7_🆘_Hỗ_Trợ_Khẩn_Cấp.py"},
         {"icon": "💬", "title": "Trò chuyện", "desc": "Nói chuyện với AI", "page": "8_💬_Trò_chuyện.py"},
         {"icon": "📖", "title": "Người Kể Chuyện", "desc": "Câu chuyện & trải nghiệm", "page": "9_📖_Người_Kể_Chuyện.py"}
     ]
 
     cols = st.columns(4)
-    for col, f in zip(cols * ((len(features) // len(cols)) + 1), features):
-        with col:
-            st.page_link(
-                f["page"],
-                label=f"""
-                <div class="feature-card">
-                    <div class="feature-title">{f['icon']} {f['title']}</div>
-                    <p class="feature-desc">{f['desc']}</p>
-                </div>
-                """,
-                use_container_width=True
-            )
+    for idx, f in enumerate(features):
+        with cols[idx % 4]:
+            if st.button(f"{f['icon']} {f['title']}", use_container_width=True):
+                st.switch_page(f"pages/{f['page']}")
+            st.caption(f['desc'])
