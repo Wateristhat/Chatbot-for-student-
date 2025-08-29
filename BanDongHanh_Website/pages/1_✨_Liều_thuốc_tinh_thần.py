@@ -1,4 +1,3 @@
-# pages/1_✨_Liều_Thuốc_Tinh_Thần.py
 import streamlit as st
 import random
 
@@ -8,11 +7,6 @@ st.set_page_config(
     page_icon="✨",
     layout="centered"
 )
-
-# --- LOGIN CHECK ---
-if not st.session_state.get('user_id'):
-    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
-    st.stop()
 
 # --- CSS CHUNG + NÚT BACK ---
 st.markdown("""
