@@ -145,11 +145,12 @@ else:
         {"icon": "fa-solid fa-sun", "title": "Liều Thuốc Tinh Thần", "desc": "Nhận những thông điệp tích cực mỗi ngày."},
         {"icon": "fa-solid fa-spa", "title": "Góc An Yên", "desc": "Thực hành các bài tập hít thở để giảm căng thẳng."},
         {"icon": "fa-solid fa-jar", "title": "Lọ Biết Ơn", "desc": "Ghi lại những điều nhỏ bé khiến bạn mỉm cười."},
-        {"icon": "fa-solid fa-paintbrush", "title": "Vải Bố Vui Vẻ", "desc": "Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc."},
+        {"icon": "fa-solid fa-paintbrush", "title": "Bảng Màu Cảm Xúc", "desc": "Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc."},
         {"icon": "fa-solid fa-dice", "title": "Trò Chơi Trí Tuệ", "desc": "Thử thách bản thân với các trò chơi nhẹ nhàng."},
-        {"icon": "fa-solid fa-heart", "title": "Góc Tự Chăm Sóc", "desc": "Xây dựng kế hoạch chăm sóc bản thân mỗi ngày."},
-        {"icon": "fa-solid fa-robot", "title": "Trò chuyện cùng Bot", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn."},
+        {"icon": "fa-solid fa-heart", "title": "Góc Nhỏ", "desc": "Xây dựng kế hoạch chăm sóc bản thân mỗi ngày."},
         {"icon": "fa-solid fa-phone", "title": "Hỗ Trợ Khẩn Cấp", "desc": "Danh sách các nguồn lực và đường dây nóng đáng tin cậy."},
+        {"icon": "fa-solid fa-robot", "title": "Trò Chuyện", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn."},
+        {"icon": "fa-solid fa-book", "title": "Người Kể Chuyện", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn."},
     ]
 
     st.markdown('<div class="features-list">', unsafe_allow_html=True)
@@ -179,3 +180,4 @@ else:
         </div>
         """, unsafe_allow_html=True
     )
+
