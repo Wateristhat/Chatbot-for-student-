@@ -9,10 +9,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- LOGIN CHECK ---
-if not st.session_state.get('user_id'):
-    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
-    st.stop()
+# --- Không cần đăng nhập nữa ---
 
 # --- CSS CHUNG + NÚT BACK ---
 st.markdown("""

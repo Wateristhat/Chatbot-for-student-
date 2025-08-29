@@ -4,10 +4,7 @@ import streamlit as st
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Nhanh Tay Lẹ Mắt", page_icon="🎮", layout="centered")
 
-# --- KIỂM TRA ĐĂNG NHẬP ---
-if not st.session_state.get('user_id'):
-    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
-    st.stop()
+# --- Không cần đăng nhập nữa ---
 
 # --- GIAO DIỆN CHÍNH ---
 st.title("🎮 Nhanh Tay Lẹ Mắt")
