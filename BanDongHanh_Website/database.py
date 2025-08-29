@@ -8,7 +8,7 @@ def connect_db():
     return conn
 
 def create_tables():
-    """Tạo bảng chat_history nếu chưa tồn tại.
+    """Tạo bảng chat_history và gratitude_notes nếu chưa tồn tại.
     Không có bảng users nữa vì không cần đăng nhập."""
     conn = connect_db()
     cursor = conn.cursor()
@@ -19,6 +19,15 @@ def create_tables():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         sender TEXT NOT NULL,
         text TEXT NOT NULL,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    
+    # Bảng ghi chú biết ơn - không cần user_id
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS gratitude_notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        content TEXT NOT NULL,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )
     """)
@@ -49,6 +58,31 @@ def get_chat_history(limit=None):
     conn.close()
     
     return history[::-1] if limit else history
+
+def add_gratitude_note(content):
+    """Thêm một ghi chú biết ơn mới - không cần user_id."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO gratitude_notes (content) VALUES (?)", (content,))
+    conn.commit()
+    conn.close()
+
+def get_gratitude_notes():
+    """Lấy tất cả ghi chú biết ơn."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, content FROM gratitude_notes ORDER BY timestamp ASC")
+    notes = cursor.fetchall()
+    conn.close()
+    return notes
+
+def delete_gratitude_note(note_id):
+    """Xóa một ghi chú biết ơn."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM gratitude_notes WHERE id = ?", (note_id,))
+    conn.commit()
+    conn.close()
 
 # --- KHỞI TẠO BAN ĐẦU ---
 create_tables()

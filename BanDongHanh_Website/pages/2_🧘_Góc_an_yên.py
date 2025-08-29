@@ -5,10 +5,7 @@ import time
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Góc An Yên", page_icon="🧘", layout="centered")
 
-# --- KIỂM TRA ĐĂNG NHẬP ---
-if not st.session_state.get('user_id'):
-    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
-    st.stop()
+# --- LOGIN CHECK REMOVED - All features now accessible without login ---
 
 # --- GIAO DIỆN CHÍNH ---
 st.title("🧘 Góc An Yên")

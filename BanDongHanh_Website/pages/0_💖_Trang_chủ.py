@@ -181,130 +181,66 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- LOGIC HIỂN THỊ ---
-
-if 'user_name' not in st.session_state:
-    st.session_state.user_name = None
-
-# ---- FORM LÀM QUEN ----
-if not st.session_state.user_name:
-    st.markdown(f"""
-    <div class="brand-minimal-box">
-        <div class="brand-minimal-header">
-            <span class="brand-minimal-icon"><i class="fa-solid fa-heart"></i></span>
-            <span class="text-main">Chào mừng bạn đến với</span>
-            <span class="text-brand">Bạn Đồng Hành!</span>
-        </div>
-        <div class="brand-minimal-desc">
-            <i class="fa-solid fa-heart"></i>
-            <span><b>“Bạn Đồng Hành”</b> – Người bạn thấu cảm, luôn bên cạnh trên hành trình chăm sóc sức khỏe tinh thần.</span>
-        </div>
-        <div class="brand-minimal-highlight">
-            Cùng truyền cảm hứng và lan tỏa yêu thương mỗi ngày. Được thiết kế để giúp bạn vượt qua thử thách trong học tập, cuộc sống, và nuôi dưỡng sự cân bằng cảm xúc.<br>
-            <span class="highlight-action">Hãy bắt đầu khám phá nhé!</span>
-        </div>
+# --- WELCOME INTERFACE - ALWAYS VISIBLE ---
+st.markdown("""
+<div class="brand-minimal-box">
+    <div class="brand-minimal-header">
+        <span class="brand-minimal-icon"><i class="fa-solid fa-heart"></i></span>
+        <span class="text-main">Chào mừng bạn đến với</span>
+        <span class="text-brand">Bạn Đồng Hành!</span>
     </div>
-    """, unsafe_allow_html=True)
-
-    st.title("👋 Chào bạn, mình là Bạn Đồng Hành 💖")
-    st.header("Trước khi bắt đầu, chúng mình làm quen nhé?")
-
-    with st.form(key="welcome_form", clear_on_submit=True):
-        st.markdown("<div class='welcome-form'>", unsafe_allow_html=True)
-        
-        name = st.text_input("📝 Bạn tên là gì?")
-        
-        current_year = datetime.now().year
-        birth_year = st.selectbox(
-            "🎂 Bạn sinh năm bao nhiêu?",
-            options=range(current_year - 5, current_year - 25, -1)
-        )
-        
-        school = st.text_input("🏫 Bạn đang học ở trường nào?")
-        
-        issues = st.text_area(
-            "😥 Gần đây, có điều gì khiến bạn cảm thấy khó khăn không?",
-            placeholder="Bạn có thể chia sẻ ở đây, mình luôn lắng nghe và giữ bí mật cho bạn..."
-        )
-        
-        submitted = st.form_submit_button("💖 Lưu thông tin và bắt đầu!")
-        
-        if submitted:
-            if not name:
-                st.warning("⚠️ Bạn ơi, hãy cho mình biết tên của bạn nhé!")
-            else:
-                st.session_state.user_name = name
-                st.session_state.user_info = {
-                    "year": birth_year,
-                    "school": school,
-                    "issues": issues
-                }
-                st.success("✅ Lưu thông tin thành công! Chào mừng bạn đến với Bạn Đồng Hành!")
-                st.rerun()
-                
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# ---- GIAO DIỆN SAU KHI ĐÃ CÓ THÔNG TIN ----
-else:
-    st.markdown(f"""
-    <div class="brand-minimal-box">
-        <div class="brand-minimal-header">
-            <span class="brand-minimal-icon"><i class="fa-solid fa-heart"></i></span>
-            <span class="text-main">Chào mừng {st.session_state.user_name} đến với</span>
-            <span class="text-brand">Bạn Đồng Hành!</span>
-        </div>
-        <div class="brand-minimal-desc">
-            <i class="fa-solid fa-heart"></i>
-            <span><b>“Bạn Đồng Hành”</b> – Người bạn thấu cảm, luôn bên cạnh trên hành trình chăm sóc sức khỏe tinh thần.</span>
-        </div>
-        <div class="brand-minimal-highlight">
-            Cùng truyền cảm hứng và lan tỏa yêu thương mỗi ngày. Được thiết kế để giúp bạn vượt qua thử thách trong học tập, cuộc sống, và nuôi dưỡng sự cân bằng cảm xúc.<br>
-            <span class="highlight-action">Hãy bắt đầu khám phá nhé!</span>
-        </div>
+    <div class="brand-minimal-desc">
+        <i class="fa-solid fa-heart"></i>
+        <span><b>"Bạn Đồng Hành"</b> – Người bạn thấu cảm, luôn bên cạnh trên hành trình chăm sóc sức khỏe tinh thần.</span>
     </div>
-    """, unsafe_allow_html=True)
+    <div class="brand-minimal-highlight">
+        Cùng truyền cảm hứng và lan tỏa yêu thương mỗi ngày. Được thiết kế để giúp bạn vượt qua thử thách trong học tập, cuộc sống, và nuôi dưỡng sự cân bằng cảm xúc.<br>
+        <span class="highlight-action">Hãy bắt đầu khám phá nhé!</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.markdown("""<div class="brand-title" style="font-size:1.7rem; margin-bottom:0.3rem; text-align:left;">
-    <span>✨</span> Khám phá các tính năng
-    </div>""", unsafe_allow_html=True)
-    
-    # Danh sách tính năng với icon FontAwesome và màu nổi bật cho từng tính năng
-    features = [
-        {"icon": "fa-solid fa-sun", "color": "#FFB300", "title": "Liều Thuốc Tinh Thần", "desc": "Nhận những thông điệp tích cực mỗi ngày."},
-        {"icon": "fa-solid fa-spa", "color": "#4CAF50", "title": "Góc An Yên", "desc": "Thực hành các bài tập hít thở để giảm căng thẳng."},
-        {"icon": "fa-solid fa-jar", "color": "#F48FB1", "title": "Lọ Biết Ơn", "desc": "Ghi lại những điều nhỏ bé khiến bạn mỉm cười."},
-        {"icon": "fa-solid fa-paintbrush", "color": "#2196F3", "title": "Bảng Màu Cảm Xúc", "desc": "Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc."},
-        {"icon": "fa-solid fa-dice", "color": "#AB47BC", "title": "Trò Chơi Trí Tuệ", "desc": "Thử thách bản thân với các trò chơi nhẹ nhàng."},
-        {"icon": "fa-solid fa-heart", "color": "#D50000", "title": "Góc Nhỏ", "desc": "Xây dựng kế hoạch chăm sóc bản thân mỗi ngày."},
-        {"icon": "fa-solid fa-phone", "color": "#0288D1", "title": "Hỗ Trợ Khẩn Cấp", "desc": "Danh sách các nguồn lực và đường dây nóng đáng tin cậy."},
-        {"icon": "fa-solid fa-robot", "color": "#757575", "title": "Trò Chuyện", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn."},
-        {"icon": "fa-solid fa-book", "color": "#F57C00", "title": "Người Kể Chuyện", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn."},
-    ]
-    st.markdown('<div class="features-list">', unsafe_allow_html=True)
-    for fe in features:
-        st.markdown(
-            f"""
-            <div class="feature-box">
-                <span class="feature-icon" style="color:{fe['color']}"><i class="{fe['icon']}"></i></span>
-                <span>
-                    <span class="feature-title">{fe['title']}</span><br>
-                    <span class="feature-desc">{fe['desc']}</span>
-                </span>
-            </div>
-            """, unsafe_allow_html=True
-        )
-    st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("---")
+st.markdown("""<div class="brand-title" style="font-size:1.7rem; margin-bottom:0.3rem; text-align:left;">
+<span>✨</span> Khám phá các tính năng
+</div>""", unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.info("👈 <b>Hãy chọn một tính năng từ thanh điều hướng bên trái để bắt đầu!</b>", icon="😊")
-
-    # Banner mini động chào mừng cuối trang
+# Danh sách tính năng với icon FontAwesome và màu nổi bật cho từng tính năng
+features = [
+    {"icon": "fa-solid fa-sun", "color": "#FFB300", "title": "Liều Thuốc Tinh Thần", "desc": "Nhận những thông điệp tích cực mỗi ngày."},
+    {"icon": "fa-solid fa-spa", "color": "#4CAF50", "title": "Góc An Yên", "desc": "Thực hành các bài tập hít thở để giảm căng thẳng."},
+    {"icon": "fa-solid fa-jar", "color": "#F48FB1", "title": "Lọ Biết Ơn", "desc": "Ghi lại những điều nhỏ bé khiến bạn mỉm cười."},
+    {"icon": "fa-solid fa-paintbrush", "color": "#2196F3", "title": "Bảng Màu Cảm Xúc", "desc": "Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc."},
+    {"icon": "fa-solid fa-dice", "color": "#AB47BC", "title": "Trò Chơi Trí Tuệ", "desc": "Thử thách bản thân với các trò chơi nhẹ nhàng."},
+    {"icon": "fa-solid fa-heart", "color": "#D50000", "title": "Góc Nhỏ", "desc": "Xây dựng kế hoạch chăm sóc bản thân mỗi ngày."},
+    {"icon": "fa-solid fa-phone", "color": "#0288D1", "title": "Hỗ Trợ Khẩn Cấp", "desc": "Danh sách các nguồn lực và đường dây nóng đáng tin cậy."},
+    {"icon": "fa-solid fa-robot", "color": "#757575", "title": "Trò Chuyện", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn."},
+    {"icon": "fa-solid fa-book", "color": "#F57C00", "title": "Người Kể Chuyện", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn."},
+]
+st.markdown('<div class="features-list">', unsafe_allow_html=True)
+for fe in features:
     st.markdown(
-        """
-        <div style="margin-top:2rem;text-align:center;">
-            <img src="https://cdn.pixabay.com/photo/2017/01/31/20/13/emoji-2027186_1280.png" width="80" style="opacity:0.85;">
-            <div style="font-size:1.08rem;color:#888;margin-top:0.3rem">Chúc bạn một ngày tuyệt vời! 💖</div>
+        f"""
+        <div class="feature-box">
+            <span class="feature-icon" style="color:{fe['color']}"><i class="{fe['icon']}"></i></span>
+            <span>
+                <span class="feature-title">{fe['title']}</span><br>
+                <span class="feature-desc">{fe['desc']}</span>
+            </span>
         </div>
         """, unsafe_allow_html=True
     )
+st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown("---")
+st.info("👈 <b>Hãy chọn một tính năng từ thanh điều hướng bên trái để bắt đầu!</b>", icon="😊")
+
+# Banner mini động chào mừng cuối trang
+st.markdown(
+    """
+    <div style="margin-top:2rem;text-align:center;">
+        <img src="https://cdn.pixabay.com/photo/2017/01/31/20/13/emoji-2027186_1280.png" width="80" style="opacity:0.85;">
+        <div style="font-size:1.08rem;color:#888;margin-top:0.3rem">Chúc bạn một ngày tuyệt vời! 💖</div>
+    </div>
+    """, unsafe_allow_html=True
+)
