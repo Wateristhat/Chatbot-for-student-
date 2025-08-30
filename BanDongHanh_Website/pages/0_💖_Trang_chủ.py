@@ -7,7 +7,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- GOOGLE FONTS + CSS TỐI GIẢN SANG TRỌNG + CARD MENU ---
+# --- GOOGLE FONTS + CSS TỐI GIẢN SANG TRỌNG ---
 st.markdown("""
 <link href="https://fonts.googleapis.com/css?family=Quicksand:700,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -97,6 +97,7 @@ st.markdown("""
         .brand-minimal-desc { font-size: 0.99rem;}
         .brand-minimal-highlight { font-size: 0.98rem; padding: 0.7rem 0.6rem;}
     }
+    /* Các phần còn lại giữ nguyên */
     .menu-list {
         display: flex;
         flex-direction: column;
@@ -118,7 +119,6 @@ st.markdown("""
         padding: 1.20rem 1.2rem 1.1rem 1.2rem;
         position: relative;
         text-decoration: none;
-        margin-bottom: 0.3rem;
     }
     .menu-card:hover {
         box-shadow: 0 8px 32px rgba(255,88,88,0.15);
@@ -143,12 +143,6 @@ st.markdown("""
         font-weight:500;
         margin-top:0.15rem;
     }
-    .menu-btn-wrapper {
-        position: absolute;
-        right: 1.3rem;
-        top: 50%;
-        transform: translateY(-50%);
-    }
     @media (max-width: 700px) {
         .menu-card { min-height: 66px; padding:0.8rem 0.4rem;}
         .menu-icon { font-size: 1.5rem;}
@@ -159,6 +153,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- LOGIC HIỂN THỊ ---
+
 if 'user_name' not in st.session_state:
     st.session_state.user_name = None
 
@@ -244,7 +239,7 @@ else:
     st.markdown("""<div class="brand-title" style="font-size:1.7rem; margin-bottom:0.3rem; text-align:left;">
     <span>✨</span> Khám phá các tính năng
     </div>""", unsafe_allow_html=True)
-
+    
     # ----------- MENU ICON CHUYỂN TRANG NHƯ HÌNH -----------
     MENU_ITEMS = [
         {
@@ -315,17 +310,16 @@ else:
     for item in MENU_ITEMS:
         st.markdown(
             f"""
-            <div class="menu-card">
+            <a href="/{item['page']}" class="menu-card" target="_self">
                 <span class="menu-icon" style="color:{item['color']}"><i class="{item['icon']}"></i></span>
                 <span>
                     <span class="menu-title">{item['title']}</span><br>
                     <span class="menu-desc">{item['desc']}</span>
                 </span>
-                <div class="menu-btn-wrapper">
-            """, unsafe_allow_html=True
+            </a>
+            """,
+            unsafe_allow_html=True
         )
-        st.page_link(f"pages/{item['page']}", label=f"Vào trang", icon="")
-        st.markdown("</div></div>", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     # ----------- END MENU -----------
 
