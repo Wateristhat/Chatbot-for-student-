@@ -7,7 +7,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- GOOGLE FONTS + CSS TỐI GIẢN SANG TRỌNG ---
+# --- GOOGLE FONTS + CSS TỐI GIẢN SANG TRỌNG + CARD MENU ---
 st.markdown("""
 <link href="https://fonts.googleapis.com/css?family=Quicksand:700,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -97,7 +97,6 @@ st.markdown("""
         .brand-minimal-desc { font-size: 0.99rem;}
         .brand-minimal-highlight { font-size: 0.98rem; padding: 0.7rem 0.6rem;}
     }
-    /* Các phần còn lại giữ nguyên */
     .menu-list {
         display: flex;
         flex-direction: column;
@@ -119,12 +118,16 @@ st.markdown("""
         padding: 1.20rem 1.2rem 1.1rem 1.2rem;
         position: relative;
         text-decoration: none;
+        margin-bottom: 0.3rem;
     }
     .menu-card:hover {
         box-shadow: 0 8px 32px rgba(255,88,88,0.15);
         transform: translateY(-2px) scale(1.03);
         border: 2.2px solid #f857a6;
         background: linear-gradient(90deg,#fff6f6 60%,#f7f8fa 100%);
+    }
+    .menu-card, .menu-card * {
+        text-decoration: none !important;
     }
     .menu-icon {
         font-size: 2.3rem;
@@ -136,12 +139,14 @@ st.markdown("""
         font-size:1.18rem;
         margin-bottom:0.13rem;
         color: #222;
+        text-decoration: none !important;
     }
     .menu-desc {
         color:#444;
         font-size:1.01rem;
         font-weight:500;
         margin-top:0.15rem;
+        text-decoration: none !important;
     }
     @media (max-width: 700px) {
         .menu-card { min-height: 66px; padding:0.8rem 0.4rem;}
@@ -152,12 +157,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- LOGIC HIỂN THỊ ---
-
 if 'user_name' not in st.session_state:
     st.session_state.user_name = None
 
-# ---- FORM LÀM QUEN ----
 if not st.session_state.user_name:
     st.markdown(f"""
     <div class="brand-minimal-box">
@@ -182,24 +184,18 @@ if not st.session_state.user_name:
 
     with st.form(key="welcome_form", clear_on_submit=True):
         st.markdown("<div class='welcome-form'>", unsafe_allow_html=True)
-        
         name = st.text_input("📝 Bạn tên là gì?")
-        
         current_year = datetime.now().year
         birth_year = st.selectbox(
             "🎂 Bạn sinh năm bao nhiêu?",
             options=range(current_year - 5, current_year - 25, -1)
         )
-        
         school = st.text_input("🏫 Bạn đang học ở trường nào?")
-        
         issues = st.text_area(
             "😥 Gần đây, có điều gì khiến bạn cảm thấy khó khăn không?",
             placeholder="Bạn có thể chia sẻ ở đây, mình luôn lắng nghe và giữ bí mật cho bạn..."
         )
-        
         submitted = st.form_submit_button("💖 Lưu thông tin và bắt đầu!")
-        
         if submitted:
             if not name:
                 st.warning("⚠️ Bạn ơi, hãy cho mình biết tên của bạn nhé!")
@@ -212,10 +208,7 @@ if not st.session_state.user_name:
                 }
                 st.success("✅ Lưu thông tin thành công! Chào mừng bạn đến với Bạn Đồng Hành!")
                 st.rerun()
-                
         st.markdown("</div>", unsafe_allow_html=True)
-
-# ---- GIAO DIỆN SAU KHI ĐÃ CÓ THÔNG TIN ----
 else:
     st.markdown(f"""
     <div class="brand-minimal-box">
