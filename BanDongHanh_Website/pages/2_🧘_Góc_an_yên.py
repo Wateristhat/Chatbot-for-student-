@@ -1,14 +1,8 @@
-# pages/2_🧘_Góc_An_Yên.py
 import streamlit as st
 import time
 
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Góc An Yên", page_icon="🧘", layout="centered")
-
-# --- KIỂM TRA ĐĂNG NHẬP ---
-if not st.session_state.get('user_id'):
-    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
-    st.stop()
 
 # --- GIAO DIỆN CHÍNH ---
 st.title("🧘 Góc An Yên")
@@ -104,4 +98,3 @@ with tab3:
             time.sleep(1)
             
         status_text.success("Đã hết một phút. Cảm ơn bạn đã dành thời gian cho chính mình. ❤️")
-
