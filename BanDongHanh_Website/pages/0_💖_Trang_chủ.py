@@ -252,63 +252,72 @@ else:
             "color": "#FFB300",
             "title": "Liều Thuốc Tinh Thần",
             "desc": "Nhận những thông điệp tích cực mỗi ngày.",
-            "page": "1_✨_Liều_Thuốc_Tinh_Thần.py"
+            "page": "1_✨_Liều_Thuốc_Tinh_Thần.py",
+            "emoji": "🌞"
         },
         {
             "icon": "fa-solid fa-spa",
             "color": "#4CAF50",
             "title": "Góc An Yên",
             "desc": "Thực hành các bài tập hít thở để giảm căng thẳng.",
-            "page": "2_🧘_Góc_An_Yên.py"
+            "page": "2_🧘_Góc_An_Yên.py",
+            "emoji": "🧘"
         },
         {
             "icon": "fa-solid fa-jar",
             "color": "#F48FB1",
             "title": "Lọ Biết Ơn",
             "desc": "Ghi lại những điều nhỏ bé khiến bạn mỉm cười.",
-            "page": "3_🍯_Lọ_biết_ơn.py"
+            "page": "3_🍯_Lọ_biết_ơn.py",
+            "emoji": "🍯"
         },
         {
             "icon": "fa-solid fa-paintbrush",
             "color": "#2196F3",
             "title": "Bảng Màu Cảm Xúc",
             "desc": "Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc.",
-            "page": "4_🎨_Bảng_màu_cảm_xúc.py"
+            "page": "4_🎨_Bảng_màu_cảm_xúc.py",
+            "emoji": "🎨"
         },
         {
             "icon": "fa-solid fa-dice",
             "color": "#AB47BC",
             "title": "Trò Chơi Trí Tuệ",
             "desc": "Thử thách bản thân với các trò chơi nhẹ nhàng.",
-            "page": "5_🎮_Nhanh_tay_le_mat.py"
+            "page": "5_🎮_Nhanh_tay_le_mat.py",
+            "emoji": "🎲"
         },
         {
             "icon": "fa-solid fa-heart",
             "color": "#D50000",
             "title": "Góc Nhỏ",
             "desc": "Xây dựng kế hoạch chăm sóc bản thân mỗi ngày.",
-            "page": "6_❤️_Góc_nhỏ.py"
+            "page": "6_❤️_Góc_nhỏ.py",
+            "emoji": "❤️"
         },
         {
             "icon": "fa-solid fa-phone",
             "color": "#0288D1",
             "title": "Hỗ Trợ Khẩn Cấp",
             "desc": "Danh sách các nguồn lực và đường dây nóng đáng tin cậy.",
-            "page": "7_📞_Ho_tro_khan_cap.py"
+            "page": "7_📞_Ho_tro_khan_cap.py",
+            "emoji": "📞"
         },
         {
             "icon": "fa-solid fa-robot",
             "color": "#757575",
             "title": "Trò Chuyện",
             "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn.",
-            "page": "8_🤖_Tro_chuyen.py"
+            "page": "8_🤖_Tro_chuyen.py",
+            "emoji": "🤖"
         },
         {
             "icon": "fa-solid fa-book",
             "color": "#F57C00",
             "title": "Người Kể Chuyện",
             "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn.",
-            "page": "9_📖_Nguoi_ke_chuyen.py"
+            "page": "9_📖_Nguoi_ke_chuyen.py",
+            "emoji": "📖"
         },
     ]
     st.markdown('<div class="menu-list">', unsafe_allow_html=True)
@@ -322,9 +331,10 @@ else:
                     <span class="menu-desc">{item['desc']}</span>
                 </span>
                 <div class="menu-btn-wrapper">
-            """, unsafe_allow_html=True
+            """,
+            unsafe_allow_html=True
         )
-        st.page_link(f"pages/{item['page']}", label=f"Vào trang", icon="")
+        st.page_link(f"pages/{item['page']}", label=f"Vào trang", icon=item["emoji"])
         st.markdown("</div></div>", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     # ----------- END MENU -----------
