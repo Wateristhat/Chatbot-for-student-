@@ -1,112 +1,4 @@
 import streamlit as st
-
-st.markdown("""
-<link href="https://fonts.googleapis.com/css?family=Quicksand:700,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-.brand-minimal-box {
-    background: linear-gradient(110deg, #ff82ac 3%, #fd5e7c 97%);
-    border-radius: 38px;
-    padding: 2.3rem 2.4rem 2.1rem 2.4rem;
-    margin: 0 auto 2rem auto;
-    max-width: 700px;
-    box-shadow: 0 8px 32px rgba(255,88,88,0.08);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-.brand-minimal-header {
-    font-family: 'Quicksand', Arial, sans-serif;
-    font-size: 2.2rem;
-    font-weight: 800;
-    letter-spacing: -1px;
-    color: #fff;
-    margin-bottom: 0.7rem;
-    margin-left: 0.2rem;
-    line-height: 1.22;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1.1rem 1.5rem;
-}
-.brand-minimal-header .text-main {
-    color: #fff;
-    background: none;
-    font-size: 2.2rem;
-    font-weight: 800;
-}
-.brand-minimal-header .text-brand {
-    color: #fff;
-    font-size: 2.2rem;
-    font-weight: 800;
-    background: none;
-}
-.brand-minimal-icon {
-    font-size: 2.3rem;
-    color: #f9c6d3;
-    margin-right: 0.3rem;
-}
-.brand-minimal-desc {
-    color: #fff;
-    font-size: 1.13rem;
-    font-weight: 500;
-    margin-bottom: 1.4rem;
-    margin-left: 0.2rem;
-    line-height: 1.65;
-}
-.brand-minimal-desc .fa-heart {
-    color: #ffb2be;
-    font-size: 1.1rem;
-    margin-right: 0.3rem;
-}
-.brand-minimal-highlight {
-    background: rgba(255,255,255,0.78);
-    border-radius: 22px;
-    font-size: 1.12rem;
-    color: #444;
-    max-width: 580px;
-    padding: 1.1rem 1.3rem 0.9rem 1.3rem;
-    font-weight: 500;
-    line-height: 1.65;
-    margin-left: 0.1rem;
-    margin-top: 0.1rem;
-    box-shadow: 0 2px 16px rgba(255,88,88,0.07);
-    text-align: left;
-}
-.brand-minimal-highlight .highlight-action {
-    color: #fd5e7c;
-    font-weight: 700;
-    font-size: 1.09rem;
-}
-@media (max-width: 650px) {
-    .brand-minimal-box { padding: 1.2rem 0.5rem 1.5rem 0.5rem; }
-    .brand-minimal-header { font-size: 1.3rem; gap: 0.8rem 1.1rem;}
-    .brand-minimal-header .text-main,
-    .brand-minimal-header .text-brand { font-size: 1.3rem;}
-    .brand-minimal-desc { font-size: 0.99rem;}
-    .brand-minimal-highlight { font-size: 0.98rem; padding: 0.7rem 0.6rem;}
-}
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<div class="brand-minimal-box">
-    <div class="brand-minimal-header">
-        <span class="brand-minimal-icon"><i class="fa-solid fa-heart"></i></span>
-        <span class="text-main">Chào mừng a đến với</span>
-        <span class="text-brand">Bạn Đồng Hành!</span>
-    </div>
-    <div class="brand-minimal-desc">
-        <i class="fa-solid fa-heart"></i>
-        <span><b>“Bạn Đồng Hành”</b> – Người bạn thấu cảm, luôn bên cạnh trên hành trình chăm sóc sức khỏe tinh thần.</span>
-    </div>
-    <div class="brand-minimal-highlight">
-        Cùng truyền cảm hứng và lan tỏa yêu thương mỗi ngày. Được thiết kế để giúp bạn vượt qua thử thách trong học tập, cuộc sống, và nuôi dưỡng sự cân bằng cảm xúc.<br>
-        <span class="highlight-action">Hãy bắt đầu khám phá nhé!</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-import streamlit as st
 from datetime import datetime
 
 st.set_page_config(
@@ -115,164 +7,177 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- GOOGLE FONTS + CSS THƯƠNG HIỆU, CARD, BANNER ---
+# --- GOOGLE FONTS + CSS TỐI GIẢN SANG TRỌNG + CARD MENU ---
 st.markdown("""
 <link href="https://fonts.googleapis.com/css?family=Quicksand:700,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
     html, body, [class*="css"]  { font-family: 'Quicksand', Arial, sans-serif; }
-    .brand-banner {
-        background: linear-gradient(120deg, #f857a6 0%, #ff5858 100%);
-        border-radius: 22px;
-        padding: 2.2rem 3vw 2.8rem 3vw;
-        margin: 0 auto 2.4rem auto;
-        box-shadow: 0 8px 32px rgba(255,88,88,0.09);
-        position: relative;
-        animation: fadeIn 1.2s;
+    .brand-minimal-box {
+        background: linear-gradient(110deg, #ff82ac 3%, #fd5e7c 97%);
+        border-radius: 38px;
+        padding: 2.3rem 2.4rem 2.1rem 2.4rem;
+        margin: 0 auto 2.5rem auto;
+        max-width: 700px;
+        box-shadow: 0 8px 32px rgba(255,88,88,0.08);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
     }
-    .brand-title {
-        font-size: 2.6rem;
+    .brand-minimal-header {
+        font-family: 'Quicksand', Arial, sans-serif;
+        font-size: 2.3rem;
         font-weight: 800;
         letter-spacing: -1px;
-        margin-bottom: 0.3rem;
-        background: linear-gradient(90deg,#ffb6b9 13%,#f5f7fa 79%);
-        background-clip: text;
-        -webkit-background-clip: text;
-        color: transparent;
-        -webkit-text-fill-color: transparent;
-        text-align: center;
+        color: #fff;
+        margin-bottom: 0.8rem;
+        margin-left: 0.2rem;
+        line-height: 1.22;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 1.1rem 1.5rem;
+    }
+    .brand-minimal-header .text-main {
+        color: #fff;
+        background: none;
+        font-size: 2.3rem;
+        font-weight: 800;
+    }
+    .brand-minimal-header .text-brand {
+        color: #fff;
+        font-size: 2.3rem;
+        font-weight: 800;
+        background: none;
+    }
+    .brand-minimal-icon {
+        font-size: 2.3rem;
+        color: #f9c6d3;
+        margin-right: 0.3rem;
+    }
+    .brand-minimal-desc {
+        color: #fff;
+        font-size: 1.17rem;
+        font-weight: 500;
+        margin-bottom: 1.3rem;
+        margin-left: 0.2rem;
+        line-height: 1.65;
+        text-align: left;
+        width: 100%;
+    }
+    .brand-minimal-desc .fa-heart {
+        color: #ffb2be;
+        font-size: 1.1rem;
+        margin-right: 0.3rem;
+    }
+    .brand-minimal-highlight {
+        background: rgba(255,255,255,0.87);
+        border-radius: 22px;
+        font-size: 1.14rem;
+        color: #444;
+        max-width: 580px;
+        padding: 1.1rem 1.3rem 0.9rem 1.3rem;
+        font-weight: 500;
+        line-height: 1.65;
+        margin-left: 0.1rem;
+        margin-top: 0.1rem;
+        box-shadow: 0 2px 16px rgba(255,88,88,0.07);
+        text-align: left;
+    }
+    .brand-minimal-highlight .highlight-action {
+        color: #fd5e7c;
+        font-weight: 700;
+        font-size: 1.09rem;
+    }
+    @media (max-width: 700px) {
+        .brand-minimal-box { padding: 1.2rem 0.5rem 1.2rem 0.5rem;}
+        .brand-minimal-header { font-size: 1.3rem; gap: 0.8rem 1.1rem;}
+        .brand-minimal-header .text-main,
+        .brand-minimal-header .text-brand { font-size: 1.3rem;}
+        .brand-minimal-desc { font-size: 0.99rem;}
+        .brand-minimal-highlight { font-size: 0.98rem; padding: 0.7rem 0.6rem;}
+    }
+    .menu-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        margin-top: 1.5rem;
+        margin-bottom: 2.2rem;
+    }
+    .menu-card {
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 2px 10px rgba(80,80,120,0.10);
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 1rem;
-    }
-    .brand-subtext {
-        font-size: 1.22rem;
-        color: #fff;
-        text-align: center;
-        padding: 0.5rem 0 0.2rem 0;
-        font-weight: 500;
-        text-shadow: 0 2px 16px rgba(80,80,120,0.13);
-        margin-bottom: 0.8rem;
-    }
-    .brand-desc {
-        background: rgba(255,255,255,0.7);
-        border-radius: 15px;
-        font-size: 1.13rem;
-        color: #333;
-        max-width: 570px;
-        margin: 0.4rem auto 0 auto;
-        padding: 1rem 2vw;
-        box-shadow: 0 2px 16px rgba(255,88,88,0.07);
-        font-weight: 500;
-        text-align: center;
-    }
-    .features-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 1.5rem;
-        margin-top: 1.5rem;
-        margin-bottom: 2.4rem;
-        animation: fadeIn 1.2s;
-    }
-    .feature-box {
-        background: #fff;
-        border-radius: 16px;
-        padding: 1.5rem 1rem 1.1rem 1rem;
-        box-shadow: 0 2px 10px rgba(80,80,120,0.09);
-        display: flex;
-        align-items: flex-start;
-        gap: 1rem;
-        min-height: 120px;
-        transition: box-shadow 0.22s, transform 0.17s, border 0.18s;
-        border: 2.2px solid #f7f8fa;
+        gap: 1.3rem;
+        min-height: 86px;
+        transition: box-shadow 0.19s, transform 0.12s;
+        border: none;
         cursor: pointer;
+        padding: 1.20rem 1.2rem 1.1rem 1.2rem;
         position: relative;
+        text-decoration: none;
+        margin-bottom: 0.3rem;
     }
-    .feature-box:hover {
-        box-shadow: 0 8px 32px rgba(255,88,88,0.16);
-        transform: translateY(-4px) scale(1.04);
+    .menu-card:hover {
+        box-shadow: 0 8px 32px rgba(255,88,88,0.15);
+        transform: translateY(-2px) scale(1.03);
         border: 2.2px solid #f857a6;
         background: linear-gradient(90deg,#fff6f6 60%,#f7f8fa 100%);
     }
-    .feature-icon {
-        font-size: 2.35rem;
+    .menu-icon {
+        font-size: 2.3rem;
         flex-shrink: 0;
-        margin-top: 0.2rem;
-        margin-right: 0.2rem;
-        transition: color 0.18s;
+        margin-right: 0.1rem;
     }
-    .feature-title {
+    .menu-title {
         font-weight:700;
-        font-size:1.12rem;
-        margin-bottom:0.15rem;
+        font-size:1.18rem;
+        margin-bottom:0.13rem;
+        color: #222;
     }
-    .feature-desc {
-        color:#666;
-        font-size:1rem;
+    .menu-desc {
+        color:#444;
+        font-size:1.01rem;
         font-weight:500;
+        margin-top:0.15rem;
     }
-    .welcome-form {
-        background-color: #f7f9fa;
-        border-radius: 18px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.07);
-        padding: 2.5rem 2rem;
-        margin-top: 2rem;
-        transition: box-shadow 0.3s;
-        max-width: 500px;
-        margin-left: auto;
-        margin-right: auto;
+    .menu-btn-wrapper {
+        position: absolute;
+        right: 1.3rem;
+        top: 50%;
+        transform: translateY(-50%);
     }
-    .welcome-form:hover {
-        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-    }
-    .stButton>button {
-        background: linear-gradient(90deg, #f857a6 0%, #ff5858 100%);
-        color: white;
-        font-weight: 700;
-        border-radius: 10px;
-        transition: background 0.2s, transform 0.15s;
-        padding: 0.6rem 1.5rem;
-    }
-    .stButton>button:hover {
-        background: linear-gradient(90deg, #43cea2 0%, #185a9d 100%);
-        transform: scale(1.04);
-    }
-    .stTextInput>div>div>input, .stTextArea textarea, .stSelectbox>div>div {
-        border-radius: 6px;
-        border: 1px solid #e3e7ea;
-    }
-    @media (max-width: 800px) {
-        .brand-banner { padding:1.2rem 1vw 1.5rem 1vw;}
-        .brand-title { font-size:2rem;}
-        .brand-desc { font-size:1.01rem;}
-        .features-list { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
-        .feature-box { min-height: 90px; }
-        .welcome-form { padding: 1.2rem 0.5rem;}
+    @media (max-width: 700px) {
+        .menu-card { min-height: 66px; padding:0.8rem 0.4rem;}
+        .menu-icon { font-size: 1.5rem;}
+        .menu-title { font-size:1.03rem;}
+        .menu-desc { font-size:0.94rem;}
     }
 </style>
 """, unsafe_allow_html=True)
 
 # --- LOGIC HIỂN THỊ ---
-
 if 'user_name' not in st.session_state:
     st.session_state.user_name = None
 
 # ---- FORM LÀM QUEN ----
 if not st.session_state.user_name:
     st.markdown(f"""
-    <div class="brand-banner">
-        <div class="brand-title">
-            <span>💖</span>
-            Chào mừng đến với <span style="font-weight:900">Bạn Đồng Hành!</span>
+    <div class="brand-minimal-box">
+        <div class="brand-minimal-header">
+            <span class="brand-minimal-icon"><i class="fa-solid fa-heart"></i></span>
+            <span class="text-main">Chào mừng bạn đến với</span>
+            <span class="text-brand">Bạn Đồng Hành!</span>
         </div>
-        <div class="brand-subtext">
-            <i class="fa-solid fa-heart" style="color:#ff6a00;margin-right:7px;"></i>
-            <b>“Bạn Đồng Hành”</b> – Người bạn thấu cảm, luôn bên cạnh trên hành trình chăm sóc sức khỏe tinh thần.
+        <div class="brand-minimal-desc">
+            <i class="fa-solid fa-heart"></i>
+            <span><b>“Bạn Đồng Hành”</b> – Người bạn thấu cảm, luôn bên cạnh trên hành trình chăm sóc sức khỏe tinh thần.</span>
         </div>
-        <div class="brand-desc">
-            Cùng truyền cảm hứng và lan tỏa yêu thương mỗi ngày.<br>
-            <span style="color:#ff5858;font-weight:700;">Bạn hãy giới thiệu về mình nhé!</span>
+        <div class="brand-minimal-highlight">
+            Cùng truyền cảm hứng và lan tỏa yêu thương mỗi ngày. Được thiết kế để giúp bạn vượt qua thử thách trong học tập, cuộc sống, và nuôi dưỡng sự cân bằng cảm xúc.<br>
+            <span class="highlight-action">Hãy bắt đầu khám phá nhé!</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -318,18 +223,19 @@ if not st.session_state.user_name:
 # ---- GIAO DIỆN SAU KHI ĐÃ CÓ THÔNG TIN ----
 else:
     st.markdown(f"""
-    <div class="brand-banner">
-        <div class="brand-title">
-            <span>💖</span>
-            Chào mừng {st.session_state.user_name} đến với <span style="font-weight:900">Bạn Đồng Hành!</span>
+    <div class="brand-minimal-box">
+        <div class="brand-minimal-header">
+            <span class="brand-minimal-icon"><i class="fa-solid fa-heart"></i></span>
+            <span class="text-main">Chào mừng {st.session_state.user_name} đến với</span>
+            <span class="text-brand">Bạn Đồng Hành!</span>
         </div>
-        <div class="brand-subtext">
-            <i class="fa-solid fa-heart" style="color:#ff6a00;margin-right:7px;"></i>
-            <b>“Bạn Đồng Hành”</b> – Người bạn thấu cảm, luôn bên cạnh trên hành trình chăm sóc sức khỏe tinh thần.
+        <div class="brand-minimal-desc">
+            <i class="fa-solid fa-heart"></i>
+            <span><b>“Bạn Đồng Hành”</b> – Người bạn thấu cảm, luôn bên cạnh trên hành trình chăm sóc sức khỏe tinh thần.</span>
         </div>
-        <div class="brand-desc">
+        <div class="brand-minimal-highlight">
             Cùng truyền cảm hứng và lan tỏa yêu thương mỗi ngày. Được thiết kế để giúp bạn vượt qua thử thách trong học tập, cuộc sống, và nuôi dưỡng sự cân bằng cảm xúc.<br>
-            <span style="color:#ff5858;font-weight:700;">Hãy bắt đầu khám phá nhé!</span>
+            <span class="highlight-action">Hãy bắt đầu khám phá nhé!</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -338,36 +244,103 @@ else:
     st.markdown("""<div class="brand-title" style="font-size:1.7rem; margin-bottom:0.3rem; text-align:left;">
     <span>✨</span> Khám phá các tính năng
     </div>""", unsafe_allow_html=True)
-    
-    # Danh sách tính năng với icon FontAwesome và màu nổi bật cho từng tính năng
-    features = [
-        {"icon": "fa-solid fa-sun", "color": "#FFB300", "title": "Liều Thuốc Tinh Thần", "desc": "Nhận những thông điệp tích cực mỗi ngày."},
-        {"icon": "fa-solid fa-spa", "color": "#4CAF50", "title": "Góc An Yên", "desc": "Thực hành các bài tập hít thở để giảm căng thẳng."},
-        {"icon": "fa-solid fa-jar", "color": "#F48FB1", "title": "Lọ Biết Ơn", "desc": "Ghi lại những điều nhỏ bé khiến bạn mỉm cười."},
-        {"icon": "fa-solid fa-paintbrush", "color": "#2196F3", "title": "Bảng Màu Cảm Xúc", "desc": "Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc."},
-        {"icon": "fa-solid fa-dice", "color": "#AB47BC", "title": "Trò Chơi Trí Tuệ", "desc": "Thử thách bản thân với các trò chơi nhẹ nhàng."},
-        {"icon": "fa-solid fa-heart", "color": "#D50000", "title": "Góc Nhỏ", "desc": "Xây dựng kế hoạch chăm sóc bản thân mỗi ngày."},
-        {"icon": "fa-solid fa-phone", "color": "#0288D1", "title": "Hỗ Trợ Khẩn Cấp", "desc": "Danh sách các nguồn lực và đường dây nóng đáng tin cậy."},
-        {"icon": "fa-solid fa-robot", "color": "#757575", "title": "Trò Chuyện", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn."},
-        {"icon": "fa-solid fa-book", "color": "#F57C00", "title": "Người Kể Chuyện", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn."},
+
+    # ----------- MENU ICON CHUYỂN TRANG NHƯ HÌNH -----------
+    MENU_ITEMS = [
+        {
+            "icon": "fa-solid fa-sun",
+            "color": "#FFB300",
+            "title": "Liều Thuốc Tinh Thần",
+            "desc": "Nhận những thông điệp tích cực mỗi ngày.",
+            "page": "1_✨_Liều_Thuốc_Tinh_Thần.py",
+            "emoji": "🌞"
+        },
+        {
+            "icon": "fa-solid fa-spa",
+            "color": "#4CAF50",
+            "title": "Góc An Yên",
+            "desc": "Thực hành các bài tập hít thở để giảm căng thẳng.",
+            "page": "2_🧘_Góc_An_Yên.py",
+            "emoji": "🧘"
+        },
+        {
+            "icon": "fa-solid fa-jar",
+            "color": "#F48FB1",
+            "title": "Lọ Biết Ơn",
+            "desc": "Ghi lại những điều nhỏ bé khiến bạn mỉm cười.",
+            "page": "3_🍯_Lọ_biết_ơn.py",
+            "emoji": "🍯"
+        },
+        {
+            "icon": "fa-solid fa-paintbrush",
+            "color": "#2196F3",
+            "title": "Bảng Màu Cảm Xúc",
+            "desc": "Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc.",
+            "page": "4_🎨_Bảng_màu_cảm_xúc.py",
+            "emoji": "🎨"
+        },
+        {
+            "icon": "fa-solid fa-dice",
+            "color": "#AB47BC",
+            "title": "Trò Chơi Trí Tuệ",
+            "desc": "Thử thách bản thân với các trò chơi nhẹ nhàng.",
+            "page": "5_🎮_Nhanh_tay_le_mat.py",
+            "emoji": "🎲"
+        },
+        {
+            "icon": "fa-solid fa-heart",
+            "color": "#D50000",
+            "title": "Góc Nhỏ",
+            "desc": "Xây dựng kế hoạch chăm sóc bản thân mỗi ngày.",
+            "page": "6_❤️_Góc_nhỏ.py",
+            "emoji": "❤️"
+        },
+        {
+            "icon": "fa-solid fa-phone",
+            "color": "#0288D1",
+            "title": "Hỗ Trợ Khẩn Cấp",
+            "desc": "Danh sách các nguồn lực và đường dây nóng đáng tin cậy.",
+            "page": "7_📞_Ho_tro_khan_cap.py",
+            "emoji": "📞"
+        },
+        {
+            "icon": "fa-solid fa-robot",
+            "color": "#757575",
+            "title": "Trò Chuyện",
+            "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn.",
+            "page": "8_🤖_Tro_chuyen.py",
+            "emoji": "🤖"
+        },
+        {
+            "icon": "fa-solid fa-book",
+            "color": "#F57C00",
+            "title": "Người Kể Chuyện",
+            "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn.",
+            "page": "9_📖_Nguoi_ke_chuyen.py",
+            "emoji": "📖"
+        },
     ]
-    st.markdown('<div class="features-list">', unsafe_allow_html=True)
-    for fe in features:
+    st.markdown('<div class="menu-list">', unsafe_allow_html=True)
+    for item in MENU_ITEMS:
         st.markdown(
             f"""
-            <div class="feature-box">
-                <span class="feature-icon" style="color:{fe['color']}"><i class="{fe['icon']}"></i></span>
+            <div class="menu-card">
+                <span class="menu-icon" style="color:{item['color']}"><i class="{item['icon']}"></i></span>
                 <span>
-                    <span class="feature-title">{fe['title']}</span><br>
-                    <span class="feature-desc">{fe['desc']}</span>
+                    <span class="menu-title">{item['title']}</span><br>
+                    <span class="menu-desc">{item['desc']}</span>
                 </span>
-            </div>
-            """, unsafe_allow_html=True
+                <div class="menu-btn-wrapper">
+            """,
+            unsafe_allow_html=True
         )
+        st.page_link(f"pages/{item['page']}", label=f"Vào trang", icon=item["emoji"])
+        st.markdown("</div></div>", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
+    # ----------- END MENU -----------
 
     st.markdown("---")
-    st.info("👈 <b>Hãy chọn một tính năng từ thanh điều hướng bên trái để bắt đầu!</b>", icon="😊")
+    st.info("👈 <b>Hãy chọn một tính năng từ mục lục để bắt đầu!</b>", icon="😊")
 
     # Banner mini động chào mừng cuối trang
     st.markdown(
