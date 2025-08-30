@@ -1,4 +1,3 @@
-# pages/3_🍯_Lọ_Biết_Ơn.py
 import streamlit as st
 import database as db
 import html
@@ -7,22 +6,13 @@ import time
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Lọ Biết Ơn", page_icon="🍯", layout="centered")
 
-# --- KIỂM TRA ĐĂNG NHẬP ---
-if not st.session_state.get('user_id'):
-    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
-    st.stop()
-
-# --- LẤY DỮ LIỆU TỪ SESSION STATE ---
-user_id = st.session_state.user_id
-user_name = st.session_state.user_name
-
 # --- GIAO DIỆN CHÍNH ---
 st.title("🍯 Lọ Biết Ơn")
 
 # *** SỬA LẠI ĐÚNG ĐƯỜNG DẪN ***
 st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
 
-st.markdown(f"Chào **{user_name}**, hôm nay có điều gì khiến bạn mỉm cười không?")
+st.markdown("Hôm nay có điều gì khiến bạn mỉm cười không?")
 
 # Khu vực nhập liệu
 note_text = st.text_area(
@@ -34,7 +24,7 @@ note_text = st.text_area(
 
 if st.button("Thêm vào lọ biết ơn", type="primary", use_container_width=True):
     if note_text:
-        db.add_gratitude_note(user_id, note_text)
+        db.add_gratitude_note(note_text)  # Không dùng user_id nữa
         st.success("Đã thêm một hạt mầm biết ơn vào lọ! 🌱")
         st.balloons()
         time.sleep(1)
@@ -45,7 +35,7 @@ if st.button("Thêm vào lọ biết ơn", type="primary", use_container_width=T
 st.write("---")
 
 # --- HIỂN THỊ CÁC GHI CHÚ ĐÃ CÓ ---
-gratitude_notes = db.get_gratitude_notes(user_id)
+gratitude_notes = db.get_gratitude_notes()  # Không truyền user_id
 
 if gratitude_notes:
     st.subheader("Những điều bạn biết ơn:")
