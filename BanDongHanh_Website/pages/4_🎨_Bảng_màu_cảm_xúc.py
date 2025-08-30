@@ -1,14 +1,8 @@
-# pages/4_🎨_Bảng_màu_cảm_xúc.py
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Bảng màu cảm xúc", page_icon="🎨", layout="wide")
-
-# --- KIỂM TRA ĐĂNG NHẬP ---
-if not st.session_state.get('user_id'):
-    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
-    st.stop()
 
 # --- GIAO DIỆN CHÍNH ---
 st.title("🎨 Bảng màu cảm xúc")
