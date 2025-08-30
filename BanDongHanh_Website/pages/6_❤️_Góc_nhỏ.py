@@ -1,13 +1,7 @@
-# pages/6_❤️_Góc_nhỏ.py
 import streamlit as st
 
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Góc nhỏ", page_icon="❤️", layout="centered")
-
-# --- KIỂM TRA ĐĂNG NHẬP ---
-if not st.session_state.get('user_id'):
-    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
-    st.stop()
 
 # --- GIAO DIỆN CHÍNH ---
 st.title("❤️ Góc nhỏ của bạn")
