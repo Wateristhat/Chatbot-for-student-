@@ -1,5 +1,8 @@
 import streamlit as st
 import random
+import pandas as pd
+from datetime import datetime
+import os
 
 # --- PAGE CONFIG ---
 st.set_page_config(
@@ -50,6 +53,40 @@ st.markdown("""
         0% { opacity:0; transform:scale(0.8);}
         100% { opacity:1; transform:scale(1);}
     }
+    .journal-buttons {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+    .journal-btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .journal-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .journal-btn-secondary {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .journal-btn-secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -91,6 +128,8 @@ if 'message_category' not in st.session_state:
     st.session_state.message_category = None
 if 'current_message' not in st.session_state:
     st.session_state.current_message = ""
+if 'show_journal' not in st.session_state:
+    st.session_state.show_journal = False
 
 # --- HÀM XỬ LÝ ---
 def select_category(category_key):
@@ -105,6 +144,112 @@ def get_new_message():
         st.session_state.current_message = random.choice(
             MESSAGE_CATEGORIES[category_key]["messages"]
         )
+
+# --- HÀM XỬ LÝ NHẬT KÝ CẢM XÚC ---
+def get_csv_path():
+    """Trả về đường dẫn đến file mood_journal.csv"""
+    return os.path.join(os.path.dirname(__file__), "..", "mood_journal.csv")
+
+def ensure_csv_exists():
+    """Đảm bảo file CSV tồn tại với header phù hợp"""
+    csv_path = get_csv_path()
+    if not os.path.exists(csv_path):
+        # Tạo DataFrame với header theo yêu cầu
+        df = pd.DataFrame(columns=["Ngày giờ", "Loại", "Nội dung"])
+        df.to_csv(csv_path, index=False, encoding='utf-8')
+    else:
+        # Kiểm tra và cập nhật header nếu cần
+        try:
+            df = pd.read_csv(csv_path, encoding='utf-8')
+            if list(df.columns) != ["Ngày giờ", "Loại", "Nội dung"]:
+                # Backup dữ liệu cũ nếu có
+                if not df.empty:
+                    backup_path = csv_path.replace('.csv', '_backup.csv')
+                    df.to_csv(backup_path, index=False, encoding='utf-8')
+                # Tạo mới với header đúng
+                df = pd.DataFrame(columns=["Ngày giờ", "Loại", "Nội dung"])
+                df.to_csv(csv_path, index=False, encoding='utf-8')
+        except Exception:
+            # Nếu có lỗi, tạo file mới
+            df = pd.DataFrame(columns=["Ngày giờ", "Loại", "Nội dung"])
+            df.to_csv(csv_path, index=False, encoding='utf-8')
+
+def save_message_to_journal():
+    """Lưu thông điệp hiện tại vào nhật ký cảm xúc"""
+    try:
+        ensure_csv_exists()
+        csv_path = get_csv_path()
+        
+        # Lấy thông tin hiện tại
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        message_type = "Liều thuốc tinh thần"
+        content = st.session_state.current_message
+        
+        # Đọc file CSV hiện tại
+        df = pd.read_csv(csv_path, encoding='utf-8')
+        
+        # Thêm dòng mới
+        new_row = pd.DataFrame({
+            "Ngày giờ": [current_time],
+            "Loại": [message_type], 
+            "Nội dung": [content]
+        })
+        
+        df = pd.concat([df, new_row], ignore_index=True)
+        
+        # Lưu lại file
+        df.to_csv(csv_path, index=False, encoding='utf-8')
+        
+        st.success("✅ Đã lưu thông điệp vào nhật ký cảm xúc!")
+        st.balloons()
+        
+    except Exception as e:
+        st.error(f"❌ Có lỗi khi lưu thông điệp: {str(e)}")
+
+def show_journal_history():
+    """Hiển thị lịch sử nhật ký liều thuốc tinh thần"""
+    try:
+        ensure_csv_exists()
+        csv_path = get_csv_path()
+        
+        df = pd.read_csv(csv_path, encoding='utf-8')
+        
+        # Lọc theo loại "Liều thuốc tinh thần"
+        filtered_df = df[df["Loại"] == "Liều thuốc tinh thần"]
+        
+        if filtered_df.empty:
+            st.info("📝 Chưa có thông điệp nào được lưu trong nhật ký.")
+        else:
+            st.subheader("📖 Nhật Ký Liều Thuốc Tinh Thần")
+            
+            # Sắp xếp theo thời gian mới nhất
+            filtered_df = filtered_df.sort_values("Ngày giờ", ascending=False)
+            
+            # Hiển thị bảng
+            st.dataframe(
+                filtered_df,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Ngày giờ": st.column_config.DatetimeColumn(
+                        "Ngày giờ",
+                        format="DD/MM/YYYY HH:mm:ss"
+                    ),
+                    "Loại": st.column_config.TextColumn(
+                        "Loại",
+                        width="medium"
+                    ),
+                    "Nội dung": st.column_config.TextColumn(
+                        "Nội dung",
+                        width="large"
+                    )
+                }
+            )
+            
+            st.info(f"📊 Tổng cộng: {len(filtered_df)} thông điệp đã lưu")
+            
+    except Exception as e:
+        st.error(f"❌ Có lỗi khi đọc nhật ký: {str(e)}")
 
 # --- GIAO DIỆN CHÍNH ---
 st.markdown("<div class='page-title'>✨ Liều Thuốc Tinh Thần Cho Bạn</div>", unsafe_allow_html=True)
@@ -149,6 +294,37 @@ if st.session_state.current_message and st.session_state.message_category:
         key="btn_next_message",
         use_container_width=True
     )
+    
+    # --- NÚT NHẬT KÝ CẢM XÚC ---
+    st.write("")  # Khoảng cách
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button(
+            "💾 Lưu thông điệp này vào nhật ký cảm xúc",
+            key="btn_save_journal",
+            use_container_width=True
+        ):
+            save_message_to_journal()
+    
+    with col2:
+        if st.button(
+            "📖 Xem nhật ký liều thuốc tinh thần", 
+            key="btn_view_journal",
+            use_container_width=True
+        ):
+            st.session_state.show_journal = not st.session_state.show_journal
 
     if random.random() < 0.2:
         st.balloons()
+
+# --- HIỂN THỊ NHẬT KÝ NẾU ĐƯỢC YÊU CẦU ---
+if st.session_state.show_journal:
+    st.write("---")
+    show_journal_history()
+    
+    # Nút đóng nhật ký
+    if st.button("❌ Đóng nhật ký", key="btn_close_journal"):
+        st.session_state.show_journal = False
+        st.rerun()
