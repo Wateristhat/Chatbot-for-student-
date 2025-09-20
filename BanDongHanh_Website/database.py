@@ -30,6 +30,18 @@ def create_tables():
     )
     """)
     
+    # Bảng lưu trữ tranh vẽ cảm xúc
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS emotion_artworks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        emotion_emoji TEXT NOT NULL,
+        canvas_data TEXT NOT NULL,
+        title TEXT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        date_only DATE DEFAULT (DATE('now'))
+    )
+    """)
+    
     conn.commit()
     conn.close()
 
@@ -78,6 +90,74 @@ def delete_gratitude_note(note_id):
     cursor.execute("DELETE FROM gratitude_notes WHERE id = ?", (note_id,))
     conn.commit()
     conn.close()
+
+# ====== BỔ SUNG CHO BẢNG MÀU CẢM XÚC ======
+def add_artwork(emotion_emoji, canvas_data, title=None):
+    """Thêm một tác phẩm nghệ thuật mới với cảm xúc."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO emotion_artworks (emotion_emoji, canvas_data, title) VALUES (?, ?, ?)", 
+        (emotion_emoji, canvas_data, title)
+    )
+    conn.commit()
+    conn.close()
+
+def get_artworks_by_emotion(emotion_emoji=None):
+    """Lấy tác phẩm theo cảm xúc, hoặc tất cả nếu không chỉ định."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    if emotion_emoji:
+        cursor.execute(
+            "SELECT id, emotion_emoji, title, timestamp, date_only FROM emotion_artworks WHERE emotion_emoji = ? ORDER BY timestamp DESC", 
+            (emotion_emoji,)
+        )
+    else:
+        cursor.execute(
+            "SELECT id, emotion_emoji, title, timestamp, date_only FROM emotion_artworks ORDER BY timestamp DESC"
+        )
+    
+    artworks = cursor.fetchall()
+    conn.close()
+    return artworks
+
+def get_artwork_data(artwork_id):
+    """Lấy dữ liệu canvas của một tác phẩm."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT canvas_data FROM emotion_artworks WHERE id = ?", (artwork_id,))
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None
+
+def get_artworks_by_date():
+    """Lấy tác phẩm được nhóm theo ngày."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        """SELECT date_only, emotion_emoji, title, id, timestamp 
+           FROM emotion_artworks 
+           ORDER BY date_only DESC, timestamp DESC"""
+    )
+    
+    artworks = cursor.fetchall()
+    conn.close()
+    
+    # Nhóm theo ngày
+    grouped = {}
+    for artwork in artworks:
+        date_only = artwork[0]
+        if date_only not in grouped:
+            grouped[date_only] = []
+        grouped[date_only].append({
+            'id': artwork[3],
+            'emotion_emoji': artwork[1],
+            'title': artwork[2],
+            'timestamp': artwork[4]
+        })
+    
+    return grouped
 
 # ====== BỔ SUNG CHO NHẬT KÝ CẢM XÚC (MOOD JOURNAL) ======
 import csv
