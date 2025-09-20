@@ -1,5 +1,10 @@
 import streamlit as st
 import time
+import pandas as pd
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from database import add_mood_entry, get_mood_entries
 
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Góc An Yên", page_icon="🧘", layout="centered")
@@ -7,8 +12,8 @@ st.set_page_config(page_title="Góc An Yên", page_icon="🧘", layout="centered
 # --- GIAO DIỆN CHÍNH ---
 st.title("🧘 Góc An Yên")
 
-# *** SỬA LẠI ĐÚNG ĐƯỜNG DẪN ***
-st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+# *** NAVIGATION LINK ***
+st.markdown("⬅️ [Quay về Trang chủ](../0_💖_Trang_chủ.py)")
 
 st.markdown("Dành một vài phút để kết nối lại với bản thân và tìm thấy sự tĩnh lặng.")
 st.write("---")
@@ -60,6 +65,39 @@ with tab1:
 
         placeholder.success("Hoàn thành! Bạn đã làm rất tốt. Hãy cảm nhận sự bình yên trong cơ thể nhé.")
         progress_bar.progress(100, text="Đã hoàn thành!")
+        
+        # Thêm nút chia sẻ cảm nhận sau khi hoàn thành
+        st.write("---")
+        if st.button("💬 Chia sẻ cảm nhận", key="share_breathing", use_container_width=True):
+            st.session_state.show_breathing_sharing = True
+            st.rerun()
+
+    # Hiển thị form chia sẻ cảm nhận nếu được kích hoạt
+    if st.session_state.get("show_breathing_sharing", False):
+        st.markdown("#### 💭 Hãy chia sẻ cảm nhận của bạn về bài tập hít thở:")
+        feeling_content = st.text_area(
+            "Cảm nhận của bạn:",
+            placeholder="Ví dụ: Sau khi thực hành, tôi cảm thấy bình tĩnh hơn và dễ tập trung hơn...",
+            key="breathing_feeling",
+            help="Hãy mô tả những gì bạn cảm nhận được sau khi thực hành bài tập hít thở"
+        )
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("💾 Lưu vào nhật ký cảm xúc", key="save_breathing", use_container_width=True):
+                if feeling_content.strip():
+                    add_mood_entry("Hơi Thở Nhiệm Màu", feeling_content.strip())
+                    st.success("✅ Đã lưu cảm nhận vào nhật ký cảm xúc!")
+                    st.session_state.show_breathing_sharing = False
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    st.warning("Vui lòng nhập cảm nhận của bạn trước khi lưu!")
+        
+        with col2:
+            if st.button("❌ Hủy", key="cancel_breathing", use_container_width=True):
+                st.session_state.show_breathing_sharing = False
+                st.rerun()
 
 # --- TAB 2: BÀI TẬP 5-4-3-2-1 ---
 with tab2:
@@ -76,6 +114,38 @@ with tab2:
     st.info("**Bước 5: 1 thứ bạn có thể NẾM** 👅")
     st.write("Ví dụ: vị ngọt của trà, vị thanh của nước lọc.")
     st.success("Tuyệt vời! Bạn đã kết nối thành công với hiện tại.")
+    
+    # Thêm nút chia sẻ cảm nhận cho bài tập 5-4-3-2-1
+    if st.button("💬 Chia sẻ cảm nhận", key="share_543", use_container_width=True):
+        st.session_state.show_543_sharing = True
+        st.rerun()
+
+    # Hiển thị form chia sẻ cảm nhận nếu được kích hoạt
+    if st.session_state.get("show_543_sharing", False):
+        st.markdown("#### 💭 Hãy chia sẻ cảm nhận của bạn về bài tập 5-4-3-2-1:")
+        feeling_content = st.text_area(
+            "Cảm nhận của bạn:",
+            placeholder="Ví dụ: Bài tập giúp tôi tập trung vào hiện tại và quên đi những lo lắng...",
+            key="543_feeling",
+            help="Hãy mô tả những gì bạn cảm nhận được khi thực hành bài tập 5-4-3-2-1"
+        )
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("💾 Lưu vào nhật ký cảm xúc", key="save_543", use_container_width=True):
+                if feeling_content.strip():
+                    add_mood_entry("Chạm Vào Hiện Tại (5-4-3-2-1)", feeling_content.strip())
+                    st.success("✅ Đã lưu cảm nhận vào nhật ký cảm xúc!")
+                    st.session_state.show_543_sharing = False
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    st.warning("Vui lòng nhập cảm nhận của bạn trước khi lưu!")
+        
+        with col2:
+            if st.button("❌ Hủy", key="cancel_543", use_container_width=True):
+                st.session_state.show_543_sharing = False
+                st.rerun()
 
 # --- TAB 3: BÀI TẬP QUAN SÁT ---
 with tab3:
@@ -98,3 +168,89 @@ with tab3:
             time.sleep(1)
             
         status_text.success("Đã hết một phút. Cảm ơn bạn đã dành thời gian cho chính mình. ❤️")
+        
+        # Thêm nút chia sẻ cảm nhận sau khi hoàn thành quan sát
+        st.write("---")
+        if st.button("💬 Chia sẻ cảm nhận", key="share_observation", use_container_width=True):
+            st.session_state.show_observation_sharing = True
+            st.rerun()
+
+    # Hiển thị form chia sẻ cảm nhận nếu được kích hoạt
+    if st.session_state.get("show_observation_sharing", False):
+        st.markdown("#### 💭 Hãy chia sẻ cảm nhận của bạn về bài tập quan sát:")
+        feeling_content = st.text_area(
+            "Cảm nhận của bạn:",
+            placeholder="Ví dụ: Khi quan sát không phán xét, tôi cảm thấy thư giãn và nhận ra nhiều điều mới...",
+            key="observation_feeling",
+            help="Hãy mô tả những gì bạn cảm nhận được khi thực hành bài tập quan sát"
+        )
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("💾 Lưu vào nhật ký cảm xúc", key="save_observation", use_container_width=True):
+                if feeling_content.strip():
+                    add_mood_entry("Ô Cửa Sổ Thần Kỳ", feeling_content.strip())
+                    st.success("✅ Đã lưu cảm nhận vào nhật ký cảm xúc!")
+                    st.session_state.show_observation_sharing = False
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    st.warning("Vui lòng nhập cảm nhận của bạn trước khi lưu!")
+        
+        with col2:
+            if st.button("❌ Hủy", key="cancel_observation", use_container_width=True):
+                st.session_state.show_observation_sharing = False
+                st.rerun()
+
+# --- PHẦN XEM LỊCH SỬ GÓCA AN YÊN ---
+st.write("---")
+st.header("📖 Lịch Sử Góc An Yên")
+
+if st.button("📖 Xem lịch sử Góc An Yên", use_container_width=True):
+    st.session_state.show_history = not st.session_state.get("show_history", False)
+
+if st.session_state.get("show_history", False):
+    st.markdown("### 💭 Các cảm nhận đã lưu từ Góc An Yên:")
+    
+    # Lấy tất cả entries từ Góc An Yên (tất cả 3 loại bài tập)
+    all_entries = get_mood_entries()
+    goc_an_yen_exercises = ["Hơi Thở Nhiệm Màu", "Chạm Vào Hiện Tại (5-4-3-2-1)", "Ô Cửa Sổ Thần Kỳ"]
+    
+    # Lọc entries từ Góc An Yên
+    goc_an_yen_entries = [entry for entry in all_entries if entry["exercise_type"] in goc_an_yen_exercises]
+    
+    if goc_an_yen_entries:
+        # Sắp xếp theo thời gian mới nhất trước
+        goc_an_yen_entries.sort(key=lambda x: x["timestamp"], reverse=True)
+        
+        for entry in goc_an_yen_entries:
+            with st.container():
+                col1, col2 = st.columns([3, 1])
+                
+                with col1:
+                    # Chọn emoji theo loại bài tập
+                    if entry["exercise_type"] == "Hơi Thở Nhiệm Màu":
+                        icon = "🌬️"
+                    elif entry["exercise_type"] == "Chạm Vào Hiện Tại (5-4-3-2-1)":
+                        icon = "🖐️"
+                    else:
+                        icon = "🖼️"
+                    
+                    st.markdown(f"""
+                    <div style="background-color: #f0f8ff; border-left: 4px solid #4682b4; 
+                                padding: 1rem; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">
+                            {icon} <strong>{entry["exercise_type"]}</strong> • {entry["timestamp"]}
+                        </div>
+                        <div style="color: #333; line-height: 1.4;">
+                            {entry["content"]}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                st.write("")  # Add spacing between entries
+    else:
+        st.info("💡 Chưa có cảm nhận nào được lưu từ Góc An Yên. Hãy thực hành một bài tập và chia sẻ cảm nhận của bạn!")
+
+    if st.button("🔄 Làm mới lịch sử", key="refresh_history"):
+        st.rerun()
