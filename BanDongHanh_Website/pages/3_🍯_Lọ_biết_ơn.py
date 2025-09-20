@@ -16,12 +16,6 @@ import tempfile
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Lọ Biết Ơn", page_icon="🍯", layout="centered")
 
-# --- KHỞI TẠO SESSION STATE ---
-if 'selected_emotion' not in st.session_state:
-    st.session_state.selected_emotion = None
-if 'suggestion_index' not in st.session_state:
-    st.session_state.suggestion_index = random.randint(0, 4)
-
 # --- DANH SÁCH GỢI Ý BIẾT ƠN LUÂN PHIÊN ---
 GRATITUDE_SUGGESTIONS = [
     "Hôm nay bạn đã nụ cười với ai? Điều gì khiến bạn cảm thấy vui vẻ?",
@@ -42,6 +36,43 @@ ASSISTANT_MESSAGES = [
     "Bạn làm rất tốt khi ghi lại những khoảnh khắc đẹp! 🌟",
     "Cảm ơn bạn đã tin tương và chia sẻ với mình! 🤗"
 ]
+
+# Thêm thông điệp đặc biệt khi người dùng gửi lời biết ơn
+GRATITUDE_RESPONSES = [
+    "Thật tuyệt vời! Lời biết ơn của bạn đã được thêm vào lọ! 🌟",
+    "Cảm ơn bạn đã chia sẻ! Điều này sẽ làm sáng cả ngày của bạn! ✨", 
+    "Tuyệt quá! Bạn vừa tạo ra một kỷ niệm đẹp! 💝",
+    "Mình cảm thấy ấm lòng khi đọc lời biết ơn của bạn! 🤗",
+    "Bạn đã làm cho thế giới này tích cực hơn một chút! 🦋"
+]
+
+# Danh sách avatar để người dùng lựa chọn
+AVATAR_OPTIONS = ["🐝", "🦋", "🌟", "💫", "🌸", "🦄", "🧚‍♀️", "🌻"]
+AVATAR_NAMES = ["Ong Bee", "Bướm xinh", "Sao sáng", "Ánh sáng", "Hoa đào", "Kỳ lân", "Tiên nhỏ", "Hoa hướng dương"]
+
+# --- TEXT-TO-SPEECH FUNCTION ---
+def create_audio_file(text):
+    """Tạo file audio từ text sử dụng gTTS"""
+    try:
+        tts = gTTS(text=text, lang='vi', slow=False)
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
+            tts.save(tmp_file.name)
+            return tmp_file.name
+    except Exception as e:
+        st.error(f"Lỗi tạo file âm thanh: {e}")
+        return None
+
+# --- KHỞI TẠO SESSION STATE ---
+if 'selected_emotion' not in st.session_state:
+    st.session_state.selected_emotion = None
+if 'suggestion_index' not in st.session_state:
+    st.session_state.suggestion_index = random.randint(0, 4)
+if 'selected_avatar' not in st.session_state:
+    st.session_state.selected_avatar = "🐝"  # Avatar mặc định
+if 'current_assistant_message' not in st.session_state:
+    st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
+if 'show_gratitude_response' not in st.session_state:
+    st.session_state.show_gratitude_response = False
 
 # --- CSS STYLING CHO GIAO DIỆN DỄ NHÌN ---
 st.markdown("""
@@ -217,13 +248,35 @@ st.markdown('<h1 class="main-title">🍯 Lọ Biết Ơn Của Bạn</h1>', unsa
 st.markdown("⬅️ [Quay về Trang chủ](../0_💖_Trang_chủ.py)")
 
 # --- VIRTUAL ASSISTANT ---
-current_message = random.choice(ASSISTANT_MESSAGES)
+# Lựa chọn avatar
+st.markdown("### 🎭 Chọn trợ lý của bạn:")
+avatar_cols = st.columns(len(AVATAR_OPTIONS))
+for i, (avatar, name) in enumerate(zip(AVATAR_OPTIONS, AVATAR_NAMES)):
+    with avatar_cols[i]:
+        if st.button(avatar, key=f"avatar_{i}", help=name):
+            st.session_state.selected_avatar = avatar
+            st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
+            st.rerun()
+
+# Hiển thị thông điệp của trợ lý
+message_to_show = st.session_state.current_assistant_message
+if st.session_state.show_gratitude_response:
+    message_to_show = random.choice(GRATITUDE_RESPONSES)
+
 st.markdown(f"""
 <div class="assistant-box">
-    <div class="assistant-avatar">🐝</div>
-    <div class="assistant-message">{current_message}</div>
+    <div class="assistant-avatar">{st.session_state.selected_avatar}</div>
+    <div class="assistant-message">{message_to_show}</div>
 </div>
 """, unsafe_allow_html=True)
+
+# Nút để thay đổi thông điệp
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    if st.button("💬 Thông điệp mới", use_container_width=True):
+        st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
+        st.session_state.show_gratitude_response = False
+        st.rerun()
 
 # --- CHỌN CẢM XÚC BẰNG EMOJI ---
 st.markdown("### 💝 Hôm nay bạn cảm thấy thế nào?")
@@ -251,8 +304,20 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Nút để lấy gợi ý mới
+# Nút để lấy gợi ý mới và đọc to
 col1, col2, col3 = st.columns([1, 2, 1])
+with col1:
+    if st.button("🔊 Đọc to", key="read_suggestion", help="Đọc to gợi ý này"):
+        with st.spinner("Đang chuẩn bị âm thanh..."):
+            audio_file = create_audio_file(f"Gợi ý cho bạn: {current_suggestion}")
+            if audio_file:
+                try:
+                    with open(audio_file, 'rb') as f:
+                        audio_bytes = f.read()
+                    st.audio(audio_bytes, format='audio/mp3', autoplay=True)
+                    os.unlink(audio_file)  # Xóa file tạm
+                except Exception as e:
+                    st.error(f"Không thể phát âm thanh: {e}")
 with col2:
     if st.button("🔄 Gợi ý khác", use_container_width=True):
         st.session_state.suggestion_index = (st.session_state.suggestion_index + 1) % len(GRATITUDE_SUGGESTIONS)
@@ -260,6 +325,29 @@ with col2:
 
 # --- KHU VỰC NHẬP LIỆU ---
 st.markdown("### ✍️ Viết điều bạn biết ơn:")
+
+# Thêm hướng dẫn với nút đọc to
+col1, col2 = st.columns([3, 1])
+with col1:
+    instructions_text = """
+    Hãy viết về điều làm bạn cảm thấy biết ơn hôm nay. Có thể là một nụ cười, 
+    một món ăn ngon, hay chỉ đơn giản là cảm giác bình yên. Mỗi từ đều có ý nghĩa! 💕
+    """
+    st.markdown(f"<div style='font-family: Comic Neue; font-size: 1rem; color: #666; margin-bottom: 1rem; padding: 1rem; background: #f8f9ff; border-radius: 10px;'>{instructions_text}</div>", unsafe_allow_html=True)
+
+with col2:
+    if st.button("🔊 Đọc hướng dẫn", key="read_instructions", help="Nghe hướng dẫn"):
+        with st.spinner("Đang chuẩn bị âm thanh..."):
+            audio_file = create_audio_file(instructions_text)
+            if audio_file:
+                try:
+                    with open(audio_file, 'rb') as f:
+                        audio_bytes = f.read()
+                    st.audio(audio_bytes, format='audio/mp3', autoplay=True)
+                    os.unlink(audio_file)  # Xóa file tạm
+                except Exception as e:
+                    st.error(f"Không thể phát âm thanh: {e}")
+
 note_text = st.text_area(
     "",
     height=120,
@@ -272,6 +360,9 @@ note_text = st.text_area(
 if st.button("🌟 Thêm vào lọ biết ơn", type="primary", use_container_width=True):
     if note_text:
         db.add_gratitude_note(note_text)
+        
+        # Kích hoạt phản hồi đặc biệt từ trợ lý
+        st.session_state.show_gratitude_response = True
         
         # Hiển thị sticker động thành công
         success_stickers = ["🎉", "⭐", "🌟", "✨", "💫", "🎊", "🦋", "🌈", "🎁", "💝"]
@@ -289,18 +380,6 @@ if st.button("🌟 Thêm vào lọ biết ơn", type="primary", use_container_wi
         st.rerun()
     else:
         st.warning("💛 Bạn hãy viết gì đó để chia sẻ nhé! Mình đang chờ đây!")
-
-# --- TEXT-TO-SPEECH FUNCTION ---
-def create_audio_file(text):
-    """Tạo file audio từ text sử dụng gTTS"""
-    try:
-        tts = gTTS(text=text, lang='vi', slow=False)
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
-            tts.save(tmp_file.name)
-            return tmp_file.name
-    except Exception as e:
-        st.error(f"Lỗi tạo file âm thanh: {e}")
-        return None
 
 st.write("---")
 
