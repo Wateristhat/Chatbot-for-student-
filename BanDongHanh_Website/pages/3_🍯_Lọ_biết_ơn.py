@@ -86,10 +86,11 @@ st.set_page_config(page_title="Lọ Biết Ơn", page_icon="🍯", layout="cente
 # --- CSS STYLING ---
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Arial:wght@400;700&display=swap');
 .main-title {
-    font-family: 'Comic Neue', cursive;
+    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
     font-size: 3rem;
+    font-weight: 700;
     text-align: center;
     background: linear-gradient(45deg, #FFD700, #FFA500, #FF69B4);
     -webkit-background-clip: text;
@@ -122,12 +123,12 @@ st.markdown("""
     60% { transform: translateY(-5px); }
 }
 .assistant-message {
-    font-family: 'Comic Neue', cursive;
-    font-size: 1.3rem;
+    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
     text-align: center;
     color: #4169E1;
-    font-weight: 600;
-    line-height: 1.4;
+    line-height: 1.5;
 }
 .emotion-button {
     font-size: 3rem !important;
@@ -159,15 +160,18 @@ st.markdown("""
     border-radius: 15px;
     padding: 1.5rem;
     margin: 1rem 0;
-    font-family: 'Comic Neue', cursive;
-    font-size: 1.2rem;
+    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
     color: #4B0082;
     text-align: center;
     box-shadow: 0 3px 10px rgba(147, 112, 219, 0.2);
+    line-height: 1.6;
 }
 .gratitude-input {
-    font-family: 'Comic Neue', cursive;
-    font-size: 1.1rem;
+    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
     border: 3px solid #DDA0DD;
     border-radius: 15px;
     padding: 1rem;
@@ -186,16 +190,18 @@ st.markdown("""
     box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
 }
 .timeline-content {
-    font-family: 'Comic Neue', cursive;
-    font-size: 1.2rem;
+    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
     color: #8B4513;
     margin-bottom: 0.8rem;
-    line-height: 1.5;
+    line-height: 1.6;
 }
 .timeline-date {
-    font-size: 1rem;
+    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
     color: #CD853F;
-    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -213,8 +219,8 @@ st.markdown("""
     100% { background: #ff0080; }
 }
 .stButton > button {
-    font-family: 'Comic Neue', cursive;
-    font-size: 1.2rem;
+    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
+    font-size: 1.3rem;
     font-weight: 700;
     border-radius: 25px;
     border: 3px solid #32CD32;
@@ -235,6 +241,70 @@ button:focus {
 .timeline-item:focus-within {
     outline: 2px solid #FFD700;
     outline-offset: 2px;
+}
+/* Enhanced styling for guidance sections */
+.guidance-section {
+    background: linear-gradient(135deg, #F0F8FF, #E6E6FA);
+    border: 2px solid #9370DB;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    box-shadow: 0 3px 10px rgba(147, 112, 219, 0.2);
+}
+.guidance-section h4 {
+    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #4B0082;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+.guidance-section p {
+    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #4B0082;
+    line-height: 1.6;
+    margin-bottom: 0.8rem;
+}
+/* Enhanced footer styling */
+.footer-message {
+    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #8B4513;
+    line-height: 1.6;
+}
+/* Enhanced empty state message */
+.empty-state-message {
+    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #9370DB;
+    line-height: 1.6;
+}
+.empty-state-subtitle {
+    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #DDA0DD;
+    line-height: 1.5;
+}
+/* Enhanced emotion selection text */
+.emotion-selection {
+    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #FF69B4;
+    line-height: 1.5;
+}
+/* Enhanced timeline count */
+.timeline-count {
+    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #8B4513;
+    line-height: 1.5;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -296,7 +366,7 @@ for i, (col, emotion, name) in enumerate(zip(emotion_cols, emotions, emotion_nam
             st.rerun()
 
 if st.session_state.selected_emotion:
-    st.markdown(f"<div style='text-align: center; font-size: 1.3rem; color: #FF69B4; font-family: Comic Neue; margin: 1rem 0;'>Bạn đang cảm thấy {st.session_state.selected_emotion} - Thật tuyệt vời!</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='emotion-selection' style='text-align: center; margin: 1rem 0;'>Bạn đang cảm thấy {st.session_state.selected_emotion} - Thật tuyệt vời!</div>", unsafe_allow_html=True)
 
 st.write("---")
 
@@ -400,7 +470,7 @@ st.markdown("### 📖 Timeline - Những Kỷ Niệm Biết Ơn")
 gratitude_notes = db.get_gratitude_notes()
 
 if gratitude_notes:
-    st.markdown(f"<div style='text-align: center; font-family: Comic Neue; font-size: 1.1rem; color: #8B4513; margin-bottom: 1.5rem;'>Bạn đã có <strong>{len(gratitude_notes)}</strong> kỷ niệm đẹp! 💎</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='timeline-count' style='text-align: center; margin-bottom: 1.5rem;'>Bạn đã có <strong>{len(gratitude_notes)}</strong> kỷ niệm đẹp! 💎</div>", unsafe_allow_html=True)
     for note_id, note_content, timestamp in gratitude_notes:
         try:
             dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
@@ -439,17 +509,17 @@ if gratitude_notes:
                     st.rerun()
 else:
     st.markdown("""
-    <div style="text-align: center; padding: 3rem; font-family: Comic Neue; font-size: 1.3rem; color: #9370DB;">
+    <div style="text-align: center; padding: 3rem;">
         <div style="font-size: 4rem; margin-bottom: 1rem;">🍯</div>
-        <div>Chiếc lọ biết ơn của bạn đang chờ những điều tuyệt vời đầu tiên!</div>
-        <div style="font-size: 1rem; margin-top: 1rem; color: #DDA0DD;">Hãy bắt đầu bằng việc chia sẻ một điều nhỏ nhất mà bạn biết ơn hôm nay ❤️</div>
+        <div class="empty-state-message">Chiếc lọ biết ơn của bạn đang chờ những điều tuyệt vời đầu tiên!</div>
+        <div class="empty-state-subtitle" style="margin-top: 1rem;">Hãy bắt đầu bằng việc chia sẻ một điều nhỏ nhất mà bạn biết ơn hôm nay ❤️</div>
     </div>
     """, unsafe_allow_html=True)
 
 # --- FOOTER KHUYẾN KHÍCH ---
 st.markdown("---")
 st.markdown("""
-<div style="text-align: center; font-family: Comic Neue; font-size: 1.1rem; color: #8B4513; padding: 1rem;">
+<div class="footer-message" style="text-align: center; padding: 1rem;">
     <strong>💫 Lời nhắn từ Bee:</strong><br>
     "Mỗi ngày là một món quà, mỗi khoảnh khắc biết ơn là một viên ngọc quý. 
     Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
