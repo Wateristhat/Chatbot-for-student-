@@ -5,3 +5,4 @@ import database as db
 db.create_tables() # <-- Đặt ở đây
 
 st.switch_page("pages/0_💖_Trang_chủ.py")
+streamlit run BanDongHanh_Website
