@@ -63,10 +63,10 @@ def add_gratitude_note(content):
     conn.close()
 
 def get_gratitude_notes():
-    """Lấy toàn bộ ghi chú biết ơn."""
+    """Lấy toàn bộ ghi chú biết ơn kèm thời gian."""
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, content FROM gratitude_notes ORDER BY timestamp ASC")
+    cursor.execute("SELECT id, content, timestamp FROM gratitude_notes ORDER BY timestamp ASC")
     notes = cursor.fetchall()
     conn.close()
     return notes
