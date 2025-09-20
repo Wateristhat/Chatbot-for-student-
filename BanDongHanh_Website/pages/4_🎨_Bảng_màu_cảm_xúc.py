@@ -16,6 +16,12 @@ from database import add_artwork, get_artworks_by_date, get_artwork_data
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Bảng màu cảm xúc", page_icon="🎨", layout="wide")
 
+# --- KHỞI TẠO SESSION STATE ---
+if 'selected_emotion' not in st.session_state:
+    st.session_state.selected_emotion = ""
+if 'emotion_description' not in st.session_state:
+    st.session_state.emotion_description = ""
+
 # --- CSS TÙY CHỈNH CHO GIAO DIỆN THÂN THIỆN ---
 st.markdown("""
 <style>
@@ -199,9 +205,11 @@ for i, (emoji, description) in enumerate(EMOTIONS.items()):
             st.session_state.emotion_description = description
 
 # Hiển thị cảm xúc đã chọn
-if 'selected_emotion' in st.session_state:
-    st.success(f"Cảm xúc đã chọn: {st.session_state.selected_emotion} {st.session_state.emotion_description}")
-    selected_emotion = st.session_state.selected_emotion
+selected_emotion = st.session_state.get("selected_emotion", "")
+emotion_description = st.session_state.get("emotion_description", "")
+
+if selected_emotion:
+    st.success(f"Cảm xúc đã chọn: {selected_emotion} {emotion_description}")
 else:
     st.info("Hãy chọn một cảm xúc phù hợp với tâm trạng của bạn!")
 
@@ -251,8 +259,9 @@ if selected_emotion:
         }
         
         suggested_color = emotion_colors.get(selected_emotion, "#FF5733")
+        emotion_desc = st.session_state.get("emotion_description", "")
         stroke_color = st.color_picker("Màu bút:", suggested_color, 
-                                     help=f"Màu gợi ý cho cảm xúc {st.session_state.emotion_description}")
+                                     help=f"Màu gợi ý cho cảm xúc {emotion_desc}")
         
         # Màu nền dịu mắt
         bg_colors = {
@@ -287,8 +296,9 @@ if selected_emotion:
     save_col1, save_col2 = st.columns([2, 1])
     
     with save_col1:
+        emotion_desc = st.session_state.get("emotion_description", "")
         artwork_title = st.text_input("Đặt tên cho tác phẩm của bạn (tùy chọn):", 
-                                    placeholder=f"Tranh {st.session_state.emotion_description} của tôi")
+                                    placeholder=f"Tranh {emotion_desc} của tôi" if emotion_desc else "Tác phẩm của tôi")
     
     with save_col2:
         if st.button("💾 Lưu tác phẩm", type="primary", use_container_width=True):
@@ -296,7 +306,8 @@ if selected_emotion:
                 try:
                     # Lưu dữ liệu canvas dưới dạng JSON string
                     canvas_data = json.dumps(canvas_result.json_data)
-                    title = artwork_title if artwork_title else f"Tranh {st.session_state.emotion_description}"
+                    emotion_desc = st.session_state.get("emotion_description", "")
+                    title = artwork_title if artwork_title else f"Tranh {emotion_desc}" if emotion_desc else "Tác phẩm nghệ thuật"
                     
                     add_artwork(selected_emotion, canvas_data, title)
                     
@@ -307,8 +318,11 @@ if selected_emotion:
                     st.balloons()
                     
                     # Thông điệp khuyến khích
-                    celebration_msg = f"Bạn đã hoàn thành một tác phẩm tuyệt vời thể hiện cảm xúc {st.session_state.emotion_description}! "
-                    celebration_msg += "Mỗi nét vẽ đều có ý nghĩa và giá trị riêng. Hãy tiếp tục sáng tạo nhé! 🎨✨"
+                    emotion_desc = st.session_state.get("emotion_description", "")
+                    celebration_msg = f"Bạn đã hoàn thành một tác phẩm tuyệt vời"
+                    if emotion_desc:
+                        celebration_msg += f" thể hiện cảm xúc {emotion_desc}"
+                    celebration_msg += "! Mỗi nét vẽ đều có ý nghĩa và giá trị riêng. Hãy tiếp tục sáng tạo nhé! 🎨✨"
                     
                     st.info(celebration_msg)
                     
