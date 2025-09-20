@@ -46,10 +46,10 @@ ASSISTANT_MESSAGES = [
 # --- CSS STYLING CHO GIAO DIỆN DỄ NHÌN ---
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
 
 .main-title {
-    font-family: 'Comic Neue', cursive;
+    font-family: 'Quicksand', Arial, sans-serif;
     font-size: 3rem;
     text-align: center;
     background: linear-gradient(45deg, #FFD700, #FFA500, #FF69B4);
@@ -88,7 +88,7 @@ st.markdown("""
 }
 
 .assistant-message {
-    font-family: 'Comic Neue', cursive;
+    font-family: 'Quicksand', Arial, sans-serif;
     font-size: 1.3rem;
     text-align: center;
     color: #4169E1;
@@ -129,7 +129,7 @@ st.markdown("""
     border-radius: 15px;
     padding: 1.5rem;
     margin: 1rem 0;
-    font-family: 'Comic Neue', cursive;
+    font-family: 'Quicksand', Arial, sans-serif;
     font-size: 1.2rem;
     color: #4B0082;
     text-align: center;
@@ -137,7 +137,7 @@ st.markdown("""
 }
 
 .gratitude-input {
-    font-family: 'Comic Neue', cursive;
+    font-family: 'Quicksand', Arial, sans-serif;
     font-size: 1.1rem;
     border: 3px solid #DDA0DD;
     border-radius: 15px;
@@ -160,7 +160,7 @@ st.markdown("""
 }
 
 .timeline-content {
-    font-family: 'Comic Neue', cursive;
+    font-family: 'Quicksand', Arial, sans-serif;
     font-size: 1.2rem;
     color: #8B4513;
     margin-bottom: 0.8rem;
@@ -191,7 +191,7 @@ st.markdown("""
 }
 
 .stButton > button {
-    font-family: 'Comic Neue', cursive;
+    font-family: 'Quicksand', Arial, sans-serif;
     font-size: 1.2rem;
     font-weight: 700;
     border-radius: 25px;
@@ -238,7 +238,7 @@ for i, (col, emotion, name) in enumerate(zip(emotion_cols, emotions, emotion_nam
             st.rerun()
 
 if st.session_state.selected_emotion:
-    st.markdown(f"<div style='text-align: center; font-size: 1.3rem; color: #FF69B4; font-family: Comic Neue; margin: 1rem 0;'>Bạn đang cảm thấy {st.session_state.selected_emotion} - Thật tuyệt vời!</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='text-align: center; font-size: 1.3rem; color: #FF69B4; font-family: Quicksand; margin: 1rem 0;'>Bạn đang cảm thấy {st.session_state.selected_emotion} - Thật tuyệt vời!</div>", unsafe_allow_html=True)
 
 st.write("---")
 
@@ -309,7 +309,7 @@ st.markdown("### 📖 Timeline - Những Kỷ Niệm Biết Ơn")
 gratitude_notes = db.get_gratitude_notes()
 
 if gratitude_notes:
-    st.markdown(f"<div style='text-align: center; font-family: Comic Neue; font-size: 1.1rem; color: #8B4513; margin-bottom: 1.5rem;'>Bạn đã có <strong>{len(gratitude_notes)}</strong> kỷ niệm đẹp! 💎</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='text-align: center; font-family: Quicksand; font-size: 1.1rem; color: #8B4513; margin-bottom: 1.5rem;'>Bạn đã có <strong>{len(gratitude_notes)}</strong> kỷ niệm đẹp! 💎</div>", unsafe_allow_html=True)
     
     # Hiển thị từ cũ đến mới (đã sắp xếp ASC trong database)
     for note_id, note_content, timestamp in gratitude_notes:
@@ -362,7 +362,7 @@ if gratitude_notes:
 
 else:
     st.markdown("""
-    <div style="text-align: center; padding: 3rem; font-family: Comic Neue; font-size: 1.3rem; color: #9370DB;">
+    <div style="text-align: center; padding: 3rem; font-family: Quicksand; font-size: 1.3rem; color: #9370DB;">
         <div style="font-size: 4rem; margin-bottom: 1rem;">🍯</div>
         <div>Chiếc lọ biết ơn của bạn đang chờ những điều tuyệt vời đầu tiên!</div>
         <div style="font-size: 1rem; margin-top: 1rem; color: #DDA0DD;">Hãy bắt đầu bằng việc chia sẻ một điều nhỏ nhất mà bạn biết ơn hôm nay ❤️</div>
@@ -372,7 +372,7 @@ else:
 # --- FOOTER KHUYẾN KHÍCH ---
 st.markdown("---")
 st.markdown("""
-<div style="text-align: center; font-family: Comic Neue; font-size: 1.1rem; color: #8B4513; padding: 1rem;">
+<div style="text-align: center; font-family: Quicksand; font-size: 1.1rem; color: #8B4513; padding: 1rem;">
     <strong>💫 Lời nhắn từ Bee:</strong><br>
     "Mỗi ngày là một món quà, mỗi khoảnh khắc biết ơn là một viên ngọc quý. 
     Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
