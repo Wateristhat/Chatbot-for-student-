@@ -1,4 +1,8 @@
 import streamlit as st
+import sys
+import os
+# Add parent directory to path to find database module
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import database as db
 import html
 import time
@@ -8,7 +12,6 @@ import io
 from datetime import datetime
 from gtts import gTTS
 import tempfile
-import os
 
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Lọ Biết Ơn", page_icon="🍯", layout="centered")
@@ -211,7 +214,7 @@ st.markdown("""
 st.markdown('<h1 class="main-title">🍯 Lọ Biết Ơn Của Bạn</h1>', unsafe_allow_html=True)
 
 # *** NAVIGATION LINK ***
-st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+st.markdown("⬅️ [Quay về Trang chủ](../0_💖_Trang_chủ.py)")
 
 # --- VIRTUAL ASSISTANT ---
 current_message = random.choice(ASSISTANT_MESSAGES)
