@@ -59,11 +59,31 @@ st.markdown("""
     .assistant-card {
         background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
         border-radius: 20px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        border: 2px solid #e1bee7;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        padding: 2rem;
+        margin: 1.5rem 0;
+        border: 3px solid #e1bee7;
+        box-shadow: 0 6px 20px rgba(156,39,176,0.3);
         animation: gentleGlow 3s ease-in-out infinite alternate;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .assistant-card::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(45deg, #9c27b0, #e91e63, #2196f3, #4caf50);
+        border-radius: 22px;
+        z-index: -1;
+        animation: borderGlow 4s linear infinite;
+    }
+    
+    @keyframes borderGlow {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
     
     @keyframes gentleGlow {
@@ -72,11 +92,12 @@ st.markdown("""
     }
     
     .assistant-avatar {
-        font-size: 3rem;
+        font-size: 4rem;
         display: block;
         text-align: center;
         margin-bottom: 1rem;
         animation: bounce 2s infinite;
+        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     }
     
     @keyframes bounce {
@@ -87,11 +108,12 @@ st.markdown("""
     
     .assistant-message {
         text-align: center;
-        font-size: 1.2rem;
-        font-weight: 600;
+        font-size: 1.3rem;
+        font-weight: 700;
         color: #4a148c;
-        margin-bottom: 1rem;
-        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        line-height: 1.8;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
     }
     
     .exercise-card {
@@ -175,6 +197,11 @@ st.title("🫧 Góc An Yên - Dành cho học sinh hòa nhập")
 # Nút quay về trang chủ
 st.markdown("⬅️ [Quay về Trang chủ](../0_💖_Trang_chủ.py)")
 
+# Hiển thị trợ lý ảo ngay sau tiêu đề để nổi bật hơn
+show_virtual_assistant()
+
+st.write("---")
+
 # Mô tả thân thiện
 description_text = """
 Chào mừng đến với Góc An Yên đặc biệt dành cho các bạn học sinh! 
@@ -184,11 +211,6 @@ Chúng mình sẽ cùng nhau thực hành những bài tập đơn giản và hi
 
 st.markdown(f'<div class="inclusive-instruction">{description_text}</div>', unsafe_allow_html=True)
 create_tts_button(description_text, "main_desc", "🔊 Nghe mô tả")
-
-st.write("---")
-
-# Hiển thị trợ lý ảo
-show_virtual_assistant()
 
 st.write("---")
 
