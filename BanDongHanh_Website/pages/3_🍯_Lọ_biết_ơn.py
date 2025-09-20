@@ -7,20 +7,12 @@ from datetime import datetime
 import tempfile
 from gtts import gTTS
 from io import BytesIO
-# Add parent directory to path to find database module
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import database as db
 import html
 import time
 import random
 
-# --- KHỞI TẠO SESSION STATE ---
-if 'selected_emotion' not in st.session_state:
-    st.session_state.selected_emotion = None
-if 'suggestion_index' not in st.session_state:
-    st.session_state.suggestion_index = random.randint(0, 4)
-
-# --- DANH SÁCH GỢI Ý BIẾT ƠN LUÂN PHIÊN ---
 GRATITUDE_SUGGESTIONS = [
     "Hôm nay bạn đã nụ cười với ai? Điều gì khiến bạn cảm thấy vui vẻ?",
     "Có món ăn nào ngon khiến bạn nhớ mãi không? Kể cho mình nghe nhé!",
@@ -32,7 +24,6 @@ GRATITUDE_SUGGESTIONS = [
     "Điều gì trong ngôi nhà của bạn khiến bạn cảm thấy ấm áp và an toàn?"
 ]
 
-# --- VIRTUAL ASSISTANT MESSAGES ---
 ASSISTANT_MESSAGES = [
     "Chào bạn! Mình là Bee - bạn đồng hành nhỏ của bạn! 🐝✨",
     "Hôm nay bạn có muốn chia sẻ điều gì đặc biệt không? 💫",
@@ -41,62 +32,79 @@ ASSISTANT_MESSAGES = [
     "Cảm ơn bạn đã tin tương và chia sẻ với mình! 🤗"
 ]
 
+GRATITUDE_RESPONSES = [
+    "Thật tuyệt vời! Lời biết ơn của bạn đã được thêm vào lọ! 🌟",
+    "Cảm ơn bạn đã chia sẻ! Điều này sẽ làm sáng cả ngày của bạn! ✨", 
+    "Tuyệt quá! Bạn vừa tạo ra một kỷ niệm đẹp! 💝",
+    "Mình cảm thấy ấm lòng khi đọc lời biết ơn của bạn! 🤗",
+    "Bạn đã làm cho thế giới này tích cực hơn một chút! 🦋"
+]
+
+AVATAR_OPTIONS = ["🐝", "🦋", "🌟", "💫", "🌸", "🦄", "🧚‍♀️", "🌻"]
+AVATAR_NAMES = ["Ong Bee", "Bướm xinh", "Sao sáng", "Ánh sáng", "Hoa đào", "Kỳ lân", "Tiên nhỏ", "Hoa hướng dương"]
+
 ENCOURAGING_MESSAGES = [
-    {
-        "avatar": "🌸",
-        "message": "Thật tuyệt vời khi bạn dành thời gian để cảm ơn! Mỗi lời biết ơn là một hạt giống hạnh phúc được gieo vào trái tim bạn."
-    },
-    {
-        "avatar": "🌟", 
-        "message": "Hãy nhớ rằng, những điều nhỏ bé nhất cũng có thể mang lại niềm vui lớn. Bạn đã làm rất tốt rồi!"
-    },
-    {
-        "avatar": "💖",
-        "message": "Mỗi khi bạn viết lời biết ơn, bạn đang nuôi dưỡng một tâm hồn tích cực. Điều này thật đáng quý!"
-    },
-    {
-        "avatar": "🦋",
-        "message": "Biết ơn giống như ánh nắng ấm áp, nó không chỉ sưởi ấm trái tim bạn mà còn lan tỏa đến những người xung quanh."
-    },
-    {
-        "avatar": "🌈",
-        "message": "Bạn có biết không? Khi chúng ta biết ơn, não bộ sẽ tiết ra những hormone hạnh phúc. Bạn đang chăm sóc bản thân thật tốt!"
-    },
-    {
-        "avatar": "🌺",
-        "message": "Mỗi lời cảm ơn bạn viết ra đều là một món quà bạn tặng cho chính mình. Hãy tiếp tục nuôi dưỡng lòng biết ơn nhé!"
-    },
-    {
-        "avatar": "✨",
-        "message": "Đôi khi những điều đơn giản nhất lại mang đến hạnh phúc lớn nhất. Bạn đã nhận ra điều này rồi đấy!"
-    },
-    {
-        "avatar": "🍀",
-        "message": "Lòng biết ơn là chìa khóa mở ra cánh cửa hạnh phúc. Bạn đang trên đúng con đường rồi!"
-    }
+    {"avatar": "🌸", "message": "Thật tuyệt vời khi bạn dành thời gian để cảm ơn! Mỗi lời biết ơn là một hạt giống hạnh phúc được gieo vào trái tim bạn."},
+    {"avatar": "🌟", "message": "Hãy nhớ rằng, những điều nhỏ bé nhất cũng có thể mang lại niềm vui lớn. Bạn đã làm rất tốt rồi!"},
+    {"avatar": "💖","message": "Mỗi khi bạn viết lời biết ơn, bạn đang nuôi dưỡng một tâm hồn tích cực. Điều này thật đáng quý!"},
+    {"avatar": "🦋","message": "Biết ơn giống như ánh nắng ấm áp, nó không chỉ sưởi ấm trái tim bạn mà còn lan tỏa đến những người xung quanh."},
+    {"avatar": "🌈","message": "Bạn có biết không? Khi chúng ta biết ơn, não bộ sẽ tiết ra những hormone hạnh phúc. Bạn đang chăm sóc bản thân thật tốt!"},
+    {"avatar": "🌺","message": "Mỗi lời cảm ơn bạn viết ra đều là một món quà bạn tặng cho chính mình. Hãy tiếp tục nuôi dưỡng lòng biết ơn nhé!"},
+    {"avatar": "✨","message": "Đôi khi những điều đơn giản nhất lại mang đến hạnh phúc lớn nhất. Bạn đã nhận ra điều này rồi đấy!"},
+    {"avatar": "🍀","message": "Lòng biết ơn là chìa khóa mở ra cánh cửa hạnh phúc. Bạn đang trên đúng con đường rồi!"}
 ]
 
 def get_random_encouragement():
-    """Lấy một thông điệp động viên ngẫu nhiên"""
     return random.choice(ENCOURAGING_MESSAGES)
 
-# --- CẤU HÌNH TRANG ---
-st.set_page_config(page_title="Lọ Biết Ơn", page_icon="🍯", layout="centered")
+def create_audio_file(text):
+    try:
+        tts = gTTS(text=text, lang='vi', slow=False)
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
+            tts.save(tmp_file.name)
+            return tmp_file.name
+    except Exception as e:
+        st.error(f"Lỗi tạo file âm thanh: {e}")
+        return None
 
-# --- CSS STYLING ---
+if 'selected_emotion' not in st.session_state:
+    st.session_state.selected_emotion = None
+if 'suggestion_index' not in st.session_state:
+    st.session_state.suggestion_index = random.randint(0, 4)
+if 'selected_avatar' not in st.session_state:
+    st.session_state.selected_avatar = "🐝"
+if 'current_assistant_message' not in st.session_state:
+    st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
+if 'show_gratitude_response' not in st.session_state:
+    st.session_state.show_gratitude_response = False
+
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Arial:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+.main-title,
+.assistant-message,
+.suggestion-box,
+.gratitude-input,
+.timeline-content,
+.timeline-date,
+.footer-message,
+.empty-state-message,
+.empty-state-subtitle,
+.emotion-selection,
+.timeline-count,
+.guidance-section h4,
+.guidance-section p {
+    font-family: 'Comic Neue', Arial, sans-serif !important;
+}
 .main-title {
-    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
     font-size: 3rem;
-    font-weight: 700;
     text-align: center;
     background: linear-gradient(45deg, #FFD700, #FFA500, #FF69B4);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 1rem;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    font-weight: 700;
 }
 .assistant-box {
     background: linear-gradient(135deg, #FFE4E1, #F0F8FF);
@@ -123,55 +131,26 @@ st.markdown("""
     60% { transform: translateY(-5px); }
 }
 .assistant-message {
-    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
     font-size: 1.4rem;
     font-weight: 700;
     text-align: center;
     color: #4169E1;
     line-height: 1.5;
 }
-.emotion-button {
-    font-size: 3rem !important;
-    background: linear-gradient(45deg, #FFE4E1, #F0F8FF) !important;
-    border: 3px solid #DDA0DD !important;
-    border-radius: 50% !important;
-    width: 80px !important;
-    height: 80px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin: 0.5rem !important;
-    transition: all 0.3s ease !important;
-    cursor: pointer !important;
-}
-.emotion-button:hover {
-    transform: scale(1.1) !important;
-    box-shadow: 0 4px 20px rgba(221, 160, 221, 0.4) !important;
-}
-.emotion-selected {
-    border: 4px solid #FF1493 !important;
-    background: linear-gradient(45deg, #FFB6C1, #FFC0CB) !important;
-    transform: scale(1.1) !important;
-    box-shadow: 0 4px 20px rgba(255, 20, 147, 0.5) !important;
-}
 .suggestion-box {
+    font-size: 1.2rem;
+    color: #4B0082;
     background: linear-gradient(135deg, #E6E6FA, #F5F5DC);
     border: 2px solid #9370DB;
     border-radius: 15px;
     padding: 1.5rem;
     margin: 1rem 0;
-    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #4B0082;
     text-align: center;
     box-shadow: 0 3px 10px rgba(147, 112, 219, 0.2);
     line-height: 1.6;
 }
 .gratitude-input {
-    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: 1.1rem;
     border: 3px solid #DDA0DD;
     border-radius: 15px;
     padding: 1rem;
@@ -190,15 +169,12 @@ st.markdown("""
     box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
 }
 .timeline-content {
-    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
-    font-size: 1.3rem;
-    font-weight: 700;
+    font-size: 1.2rem;
     color: #8B4513;
     margin-bottom: 0.8rem;
     line-height: 1.6;
 }
 .timeline-date {
-    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
     font-size: 1.1rem;
     font-weight: 700;
     color: #CD853F;
@@ -219,8 +195,7 @@ st.markdown("""
     100% { background: #ff0080; }
 }
 .stButton > button {
-    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 700;
     border-radius: 25px;
     border: 3px solid #32CD32;
@@ -228,6 +203,7 @@ st.markdown("""
     color: #006400;
     padding: 0.8rem 2rem;
     transition: all 0.3s ease;
+    font-family: 'Comic Neue', Arial, sans-serif !important;
 }
 .stButton > button:hover {
     background: linear-gradient(45deg, #90EE90, #7FFFD4);
@@ -242,7 +218,6 @@ button:focus {
     outline: 2px solid #FFD700;
     outline-offset: 2px;
 }
-/* Enhanced styling for guidance sections */
 .guidance-section {
     background: linear-gradient(135deg, #F0F8FF, #E6E6FA);
     border: 2px solid #9370DB;
@@ -252,7 +227,6 @@ button:focus {
     box-shadow: 0 3px 10px rgba(147, 112, 219, 0.2);
 }
 .guidance-section h4 {
-    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
     font-size: 1.4rem;
     font-weight: 700;
     color: #4B0082;
@@ -260,47 +234,37 @@ button:focus {
     text-align: center;
 }
 .guidance-section p {
-    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
     font-size: 1.2rem;
     font-weight: 600;
     color: #4B0082;
     line-height: 1.6;
     margin-bottom: 0.8rem;
 }
-/* Enhanced footer styling */
 .footer-message {
-    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
     font-size: 1.2rem;
     font-weight: 700;
     color: #8B4513;
     line-height: 1.6;
 }
-/* Enhanced empty state message */
 .empty-state-message {
-    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
     font-size: 1.4rem;
     font-weight: 700;
     color: #9370DB;
     line-height: 1.6;
 }
 .empty-state-subtitle {
-    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
     font-size: 1.1rem;
     font-weight: 600;
     color: #DDA0DD;
     line-height: 1.5;
 }
-/* Enhanced emotion selection text */
 .emotion-selection {
-    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
     font-size: 1.4rem;
     font-weight: 700;
     color: #FF69B4;
     line-height: 1.5;
 }
-/* Enhanced timeline count */
 .timeline-count {
-    font-family: 'Comic Neue', 'Arial', cursive, sans-serif;
     font-size: 1.2rem;
     font-weight: 700;
     color: #8B4513;
@@ -309,51 +273,12 @@ button:focus {
 </style>
 """, unsafe_allow_html=True)
 
-# --- TTS FUNCTIONALITY ---
-@st.cache_data
-def text_to_speech(text):
-    """Tạo file âm thanh từ văn bản"""
-    try:
-        audio_bytes = BytesIO()
-        tts = gTTS(text=text, lang='vi', slow=False)
-        tts.write_to_fp(audio_bytes)
-        audio_bytes.seek(0)
-        return audio_bytes.read()
-    except Exception as e:
-        # More user-friendly error handling
-        if "Failed to connect" in str(e) or "Unknown" in str(e):
-            st.info("🌐 Hiện tại không thể kết nối để tạo âm thanh. Vui lòng kiểm tra kết nối mạng và thử lại sau nhé!")
-        else:
-            st.warning(f"Không thể tạo âm thanh: {e}")
-        return None
-
-def create_audio_file(text):
-    """Tạo file audio từ text sử dụng gTTS"""
-    try:
-        tts = gTTS(text=text, lang='vi', slow=False)
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
-            tts.save(tmp_file.name)
-            return tmp_file.name
-    except Exception as e:
-        st.error(f"Lỗi tạo file âm thanh: {e}")
-        return None
-
-# --- GIAO DIỆN CHÍNH ---
 st.markdown('<h1 class="main-title">🍯 Lọ Biết Ơn Của Bạn</h1>', unsafe_allow_html=True)
-
-# *** NAVIGATION LINK ***
 st.markdown("⬅️ [Quay về Trang chủ](../0_💖_Trang_chủ.py)")
 
-# --- VIRTUAL ASSISTANT ---
 current_message = random.choice(ASSISTANT_MESSAGES)
-st.markdown(f"""
-<div class="assistant-box">
-    <div class="assistant-avatar">🐝</div>
-    <div class="assistant-message">{current_message}</div>
-</div>
-""", unsafe_allow_html=True)
+st.markdown(f"""<div class="assistant-box"><div class="assistant-avatar">🐝</div><div class="assistant-message">{current_message}</div></div>""", unsafe_allow_html=True)
 
-# --- CHỌN CẢM XÚC BẰNG EMOJI ---
 st.markdown("### 💝 Hôm nay bạn cảm thấy thế nào?")
 emotion_cols = st.columns(5)
 emotions = ["😊", "😃", "🥰", "😌", "🤗"]
@@ -370,16 +295,10 @@ if st.session_state.selected_emotion:
 
 st.write("---")
 
-# --- VIRTUAL ASSISTANT SECTION ---
 if 'current_encouragement' not in st.session_state:
     st.session_state.current_encouragement = get_random_encouragement()
 encouragement = st.session_state.current_encouragement
-st.markdown(f"""
-<div class="assistant-box">
-    <div class="assistant-avatar">{encouragement['avatar']}</div>
-    <div class="assistant-message">{encouragement['message']}</div>
-</div>
-""", unsafe_allow_html=True)
+st.markdown(f"""<div class="assistant-box"><div class="assistant-avatar">{encouragement['avatar']}</div><div class="assistant-message">{encouragement['message']}</div></div>""", unsafe_allow_html=True)
 
 col1, col2 = st.columns([3, 1])
 with col1:
@@ -389,11 +308,16 @@ with col1:
 with col2:
     if st.button("🔊 Đọc to", help="Nghe lời động viên"):
         with st.spinner("Đang tạo âm thanh..."):
-            audio_data = text_to_speech(encouragement['message'])
-            if audio_data:
-                st.audio(audio_data, format="audio/mp3")
+            audio_file = create_audio_file(encouragement['message'])
+            if audio_file:
+                try:
+                    with open(audio_file, 'rb') as f:
+                        audio_bytes = f.read()
+                    st.audio(audio_bytes, format='audio/mp3', autoplay=True)
+                    os.unlink(audio_file)
+                except Exception as e:
+                    st.error(f"Không thể phát âm thanh: {e}")
 
-# --- GUIDANCE SECTION ---
 st.markdown("""
 <div class="suggestion-box">
     <strong>💡 Gợi ý cho bạn:</strong><br>
@@ -417,18 +341,18 @@ with col_guide2:
                         "Có thể là nụ cười của bạn bè, bữa ăn ngon, hay cảm giác được yêu thương. "
                         "Không cần hoàn hảo, chỉ cần chân thành từ trái tim.")
         with st.spinner("Đang tạo âm thanh..."):
-            audio_data = text_to_speech(guidance_text)
-            if audio_data:
-                st.audio(audio_data, format="audio/mp3")
+            audio_file = create_audio_file(guidance_text)
+            if audio_file:
+                try:
+                    with open(audio_file, 'rb') as f:
+                        audio_bytes = f.read()
+                    st.audio(audio_bytes, format='audio/mp3', autoplay=True)
+                    os.unlink(audio_file)
+                except Exception as e:
+                    st.error(f"Không thể phát âm thanh: {e}")
 
-# --- GỢI Ý BIẾT ƠN LUÂN PHIÊN ---
 current_suggestion = GRATITUDE_SUGGESTIONS[st.session_state.suggestion_index]
-st.markdown(f"""
-<div class="suggestion-box">
-    <strong>💡 Gợi ý cho bạn:</strong><br>
-    {current_suggestion}
-</div>
-""", unsafe_allow_html=True)
+st.markdown(f"""<div class="suggestion-box"><strong>💡 Gợi ý cho bạn:</strong><br>{current_suggestion}</div>""", unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
@@ -436,7 +360,6 @@ with col2:
         st.session_state.suggestion_index = (st.session_state.suggestion_index + 1) % len(GRATITUDE_SUGGESTIONS)
         st.rerun()
 
-# --- KHU VỰC NHẬP LIỆU ---
 st.markdown("### ✍️ Viết điều bạn biết ơn:")
 note_text = st.text_area(
     "",
@@ -451,11 +374,7 @@ if st.button("🌟 Thêm vào lọ biết ơn", type="primary", use_container_wi
         db.add_gratitude_note(note_text)
         success_stickers = ["🎉", "⭐", "🌟", "✨", "💫", "🎊", "🦋", "🌈", "🎁", "💝"]
         selected_stickers = random.sample(success_stickers, 3)
-        st.markdown(f"""
-        <div style="text-align: center; font-size: 3rem; margin: 1rem 0; animation: bounce 1s ease-in-out;">
-            {''.join(selected_stickers)}
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"""<div style="text-align: center; font-size: 3rem; margin: 1rem 0; animation: bounce 1s ease-in-out;">{''.join(selected_stickers)}</div>""", unsafe_allow_html=True)
         st.success("🌱 Đã thêm một hạt mầm biết ơn vào lọ! Cảm ơn bạn đã chia sẻ!")
         st.balloons()
         time.sleep(2)
@@ -465,7 +384,6 @@ if st.button("🌟 Thêm vào lọ biết ơn", type="primary", use_container_wi
 
 st.write("---")
 
-# --- TIMELINE HIỂN THỊ GHI CHÚ ---
 st.markdown("### 📖 Timeline - Những Kỷ Niệm Biết Ơn")
 gratitude_notes = db.get_gratitude_notes()
 
@@ -516,7 +434,6 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-# --- FOOTER KHUYẾN KHÍCH ---
 st.markdown("---")
 st.markdown("""
 <div class="footer-message" style="text-align: center; padding: 1rem;">
