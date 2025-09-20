@@ -298,6 +298,13 @@ else:
             "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn.",
             "page": "9_📖_Nguoi_ke_chuyen.py"
         },
+        {
+            "icon": "fa-solid fa-heart",
+            "color": "#9C27B0",
+            "title": "Góc An Yên - Hòa Nhập",
+            "desc": "Trợ lý ảo và hướng dẫn âm thanh cho học sinh hòa nhập.",
+            "page": "3_🫧_Góc_An_Yên.py"
+        },
     ]
     st.markdown('<div class="menu-list">', unsafe_allow_html=True)
     for item in MENU_ITEMS:
