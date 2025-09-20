@@ -1,37 +1,8 @@
-# ================== CORE STREAMLIT & WEB FRAMEWORK ==================
-streamlit>=1.28.0              # Main web application framework
-
-# ================== AI & LANGUAGE MODEL PROVIDERS ==================
-openai>=1.3.0                  # OpenAI GPT models integration
-google-generativeai>=0.3.0     # Google Gemini AI models
-google-cloud-aiplatform        # Google Cloud Vertex AI (optional)
-tiktoken                       # OpenAI tokenization for memory management
-
-# ================== GOOGLE CLOUD SERVICES (OPTIONAL) ==================
-google-cloud-texttospeech      # Text-to-speech functionality
-google-cloud-storage           # Cloud storage for assets (optional)
-google-cloud-translate         # Translation services (optional)
-
-# ================== IMAGE & MEDIA PROCESSING ==================
-Pillow>=9.0.0                  # Image processing and compression
-streamlit-drawable-canvas      # Drawing canvas component
-
-# ================== DATA PROCESSING & UTILITIES ==================
-pandas>=1.5.0                  # Data manipulation for mood tracking
-requests>=2.28.0               # HTTP requests for API calls
-python-dotenv>=0.19.0          # Environment variable management
-
-# ================== PERFORMANCE & RELIABILITY ==================
-tenacity>=8.0.0                # Retry logic for API calls
-orjson                         # Fast JSON processing for memory files
-
-# ================== SECURITY & AUTHENTICATION ==================
-bcrypt>=4.0.0                  # Password hashing
-passlib[bcrypt]                # Password validation utilities
-
-# ================== TEXT-TO-SPEECH & AUDIO ==================
-gtts                           # Google Text-to-Speech
-
-# ================== LOGGING & DEVELOPMENT ==================
-rich                           # Pretty console logging and formatting
-pip install -r BanDongHanh_Website
+streamlit
+pandas
+gtts
+google-generativeai
+streamlit-drawable-canvas
+google-cloud-texttospeech
+google-cloud-aiplatform
+bcrypt
