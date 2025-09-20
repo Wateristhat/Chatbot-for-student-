@@ -1,0 +1,9 @@
+# This file ensures the data directory is tracked by Git
+# Data directory is used for:
+# - Memory persistence (memory_chat.json)
+# - User data storage
+# - Temporary files
+# - Backup files
+
+# The actual data files are ignored by .gitignore for privacy and security
+# but the directory structure is preserved for proper app initialization
