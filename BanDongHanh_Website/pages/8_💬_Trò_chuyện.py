@@ -230,13 +230,13 @@ def get_config():
             "intro_message": "Hãy chọn một tình huống bên dưới để mình cùng luyện tập nhé!",
             "confirm_buttons": {"understood": "✅ Đã hiểu!", "not_understood": "❓ Chưa rõ lắm!"},
             "scenarios_basic": {
-                "👋 Chào hỏi bạn bè": "Bạn có thể nói: "Chào bạn, hôm nay vui không?"",
-                "🙋 Hỏi bài thầy cô": "Bạn thử hỏi: "Thầy/cô ơi, phần này em chưa rõ ạ?""
+                "👋 Chào hỏi bạn bè": "Bạn có thể nói: \"Chào bạn, hôm nay vui không?\"",
+                "🙋 Hỏi bài thầy cô": "Bạn thử hỏi: \"Thầy/cô ơi, phần này em chưa rõ ạ?\""
             },
             "scenarios_extended": {
-                "📚 Nhờ bạn giúp đỡ": "Bạn thử nói: "Cậu chỉ mình chỗ này với được không?"",
-                "🙏 Xin lỗi khi đến muộn": "Bạn có thể nói: "Em xin lỗi vì đã đến muộn, em có thể vào lớp không ạ?"",
-                "🤔 Hỏi khi không hiểu bài": "Thử nói: "Em chưa hiểu phần này, thầy/cô có thể giải thích lại được không ạ?"",
+                "📚 Nhờ bạn giúp đỡ": "Bạn thử nói: \"Cậu chỉ mình chỗ này với được không?\"",
+                "🙏 Xin lỗi khi đến muộn": "Bạn có thể nói: \"Em xin lỗi vì đã đến muộn, em có thể vào lớp không ạ?\"",
+                "🤔 Hỏi khi không hiểu bài": "Thử nói: \"Em chưa hiểu phần này, thầy/cô có thể giải thích lại được không ạ?\"",
             },
         },
         "general": {
@@ -307,7 +307,8 @@ if "tts_rate" not in st.session_state:
 # ========== 4) TTS (EDGE TTS NEURAL + FALLBACK GTTS) ==========
 
 @st.cache_data(show_spinner=False)
-def gtts_bytes(text: str):
+def gtts_bytes(text):
+    """Generate audio using gTTS as fallback"""
     if not GTTS_AVAILABLE:
         return None
     try:
@@ -317,50 +318,62 @@ def gtts_bytes(text: str):
         bio.seek(0)
         return bio.read()
     except Exception as e:
-        print("Lỗi gTTS:", e)
+        print(f"Lỗi gTTS: {e}")
         return None
 
-async def _edge_tts_bytes_async(text: str, voice: str, rate_pct: int):
+def edge_tts_bytes(text, voice, rate_pct):
+    """Generate audio using Edge TTS (preferred method)"""
     if not EDGE_TTS_AVAILABLE:
         return None
+    
     try:
-        # rate like "+0%", "-10%", "+10%"
+        # Use a synchronous approach to simplify the code and avoid asyncio issues
+        # Create a temporary file to store the audio
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
+            temp_path = temp_file.name
+        
+        # Build command arguments
         rate_str = f"{'+' if rate_pct>=0 else ''}{rate_pct}%"
-        communicate = edge_tts.Communicate(text, voice=voice, rate=rate_str)
-        audio = b""
-        async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                audio += chunk["data"]
-        return audio
+        
+        # Run the communicate command synchronously
+        import subprocess
+        cmd = [
+            "edge-tts",
+            "--voice", voice,
+            "--rate", rate_str,
+            "--text", text,
+            "--write-media", temp_path
+        ]
+        
+        # Execute the command
+        subprocess.run(cmd, check=True, capture_output=True)
+        
+        # Read the audio data
+        with open(temp_path, 'rb') as f:
+            audio_data = f.read()
+            
+        # Clean up
+        os.unlink(temp_path)
+        
+        return audio_data
     except Exception as e:
-        print("Lỗi Edge TTS:", e)
+        print(f"Lỗi Edge TTS: {e}")
         return None
 
-@st.cache_data(show_spinner=False)
-def edge_tts_bytes(text: str, voice: str, rate_pct: int):
-    try:
-        return asyncio.run(_edge_tts_bytes_async(text, voice, rate_pct))
-    except RuntimeError:
-        # In case event loop is already running (Streamlit quirk)
-        loop = asyncio.new_event_loop()
-        try:
-            return loop.run_until_complete(_edge_tts_bytes_async(text, voice, rate_pct))
-        finally:
-            loop.close()
-    except Exception as e:
-        print("Lỗi chạy Edge TTS:", e)
-        return None
-
-def synthesize_tts(text: str, voice: str, rate_pct: int):
+def synthesize_tts(text, voice, rate_pct):
+    """Generate text-to-speech audio using available methods"""
     # Prefer Edge TTS neural
     if EDGE_TTS_AVAILABLE:
         audio = edge_tts_bytes(text, voice, rate_pct)
         if audio:
             return audio
+            
     # Fallback gTTS
     return gtts_bytes(text)
 
-def autoplay_audio(audio_data: bytes):
+def autoplay_audio(audio_data):
+    """Play audio data automatically in the streamlit app"""
     if audio_data is None:
         return
         
@@ -373,15 +386,17 @@ def autoplay_audio(audio_data: bytes):
         """
         st.components.v1.html(md, height=0)
     except Exception as e:
-        print("Lỗi phát âm thanh:", e)
+        print(f"Lỗi phát âm thanh: {e}")
 
 
 # ========== 5) LOGIC CHAT & AI ==========
 
 def add_message(sender, text):
+    """Add a message to the chat history"""
     st.session_state.history.append({"sender": sender, "text": text})
 
 def detect_mood_from_text(text):
+    """Detect mood from user input text"""
     cfg = CONFIG["tam_su"]["moods"]
     lowered = text.lower()
     tokens = set(re.findall(r"\b\w+\b", lowered))
@@ -395,7 +410,8 @@ def detect_mood_from_text(text):
             best, score = mood, matches
     return best
 
-def call_gemini(prompt: str) -> str:
+def call_gemini(prompt):
+    """Call Gemini AI for text generation"""
     if not AI_ENABLED:
         return random.choice(CONFIG["general"]["neutral_replies"])
     try:
@@ -410,7 +426,8 @@ def call_gemini(prompt: str) -> str:
     except Exception as e:
         return f"Xin lỗi, hệ thống đang bận. Bạn thử lại sau nhé. (Lỗi: {str(e)[:50]}...)"
 
-def respond_bot(text: str):
+def respond_bot(text):
+    """Generate bot response with optional text-to-speech"""
     # Add bot message with typing effect
     with st.container():
         # Synthesize voice if enabled
@@ -461,7 +478,7 @@ with st.sidebar:
 # Shell for chat
 st.markdown('<div class="chat-shell">', unsafe_allow_html=True)
 
-# Quick action chips (giống app mua sắm có gợi ý thao tác)
+# Quick action chips
 quick_actions_col = st.container()
 with quick_actions_col:
     st.markdown('<div class="quick-actions">', unsafe_allow_html=True)
@@ -569,8 +586,7 @@ with options_container:
             st.rerun()
 
 
-# Chat input (modern, like shopping apps)
-placeholder = st.empty()
+# Chat input
 user_text = st.chat_input(CONFIG["ui"]["input_placeholder"])
 
 if user_text and not st.session_state.waiting_for_response:
@@ -618,7 +634,7 @@ if st.session_state.waiting_for_response:
 # Close shell
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Sticky input bar wrapper (purely visual; st.chat_input is already bottom-fixed by app flow)
+# Sticky input bar wrapper
 st.markdown(
     """
 <div class="input-bar">
