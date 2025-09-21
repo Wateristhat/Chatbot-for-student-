@@ -283,7 +283,6 @@ if "current_scenario" not in st.session_state:
 if "user_input_buffer" not in st.session_state:
     st.session_state.user_input_buffer = ""
     
-# Thêm đoạn này để tránh lỗi AttributeError
 if "is_processing" not in st.session_state:
     st.session_state.is_processing = False
 
@@ -323,18 +322,32 @@ if GENAI_AVAILABLE:
             
         if api_key:
             genai.configure(api_key=api_key)
-            # Sử dụng gemini-1.5-flash thay vì gemini-1.0-pro để tương thích tốt hơn
-            try:
-                gemini_model = genai.GenerativeModel("gemini-1.5-flash")
-            except Exception:
-                # Fallback nếu không có gemini-1.5-flash
-                gemini_model = genai.GenerativeModel("gemini-pro")
             
-            # Tạo chat session để lưu context - ĐÃ SỬA DÒNG NÀY
-            if "gemini_chat" not in st.session_state:
-                st.session_state.gemini_chat = gemini_model.start_chat(history=[])
-                
-            AI_ENABLED = True
+            # Sửa: Thử các mô hình theo thứ tự ưu tiên
+            gemini_models = ["gemini-1.5-flash", "gemini-pro"]
+            gemini_model = None
+            
+            for model_name in gemini_models:
+                try:
+                    gemini_model = genai.GenerativeModel(model_name)
+                    # Thử một request đơn giản để kiểm tra mô hình hoạt động
+                    gemini_model.generate_content("Hello")
+                    print(f"Đã kết nối thành công với mô hình {model_name}")
+                    break
+                except Exception as e:
+                    print(f"Không thể sử dụng mô hình {model_name}: {e}")
+                    continue
+            
+            if gemini_model:
+                # Khởi tạo chat session đơn giản không có tham số phức tạp
+                try:
+                    chat_session = gemini_model.start_chat(history=[])
+                    st.session_state.gemini_chat = chat_session
+                    AI_ENABLED = True
+                except Exception as e:
+                    print(f"Lỗi khởi tạo chat session: {e}")
+            else:
+                st.sidebar.error("Không thể kết nối với bất kỳ mô hình Gemini nào", icon="🚨")
         else:
             st.sidebar.warning("Chưa cấu hình API key cho Gemini", icon="⚠️")
     except Exception as e:
@@ -357,26 +370,30 @@ def call_gemini(prompt):
                 detected_name = name_match.group(2)
                 detected_name = detected_name.capitalize()
                 st.session_state.chat_context["user_name"] = detected_name
+                print(f"Đã phát hiện tên người dùng: {detected_name}")
                 
-        # Gửi đến Gemini
+        # Cải tiến: Thêm tiền tố để AI nhớ tên người dùng
+        if user_name:
+            prompt_with_context = f"Nhớ rằng tên của tôi là {user_name}. {prompt}"
+        else:
+            prompt_with_context = prompt
+        
+        # Gửi đến Gemini (đã đơn giản hóa)
         try:
-            # Thử sử dụng system_instruction nếu API hỗ trợ
-            system_prompt = (
-                "Hãy trả lời như một người bạn đồng hành AI thân thiện, kiên nhẫn và thấu hiểu dành cho học sinh Việt Nam. "
-                "Trả lời bằng tiếng Việt, ngắn gọn (dưới 100 từ) và giàu đồng cảm. "
-                "Hạn chế trả lời giáo điều và sử dụng ngôn ngữ tự nhiên, thân thiện."
+            response = st.session_state.gemini_chat.send_message(prompt_with_context)
+            response_text = response.text
+        except Exception as e:
+            print(f"Lỗi gọi API chat: {e}")
+            # Thử phương thức dự phòng
+            response = gemini_model.generate_content(
+                f"Bạn là trợ lý AI thân thiện nói tiếng Việt. Hãy trả lời ngắn gọn và thân thiện: {prompt_with_context}"
             )
-            
-            # Đối với một số phiên bản Gemini API, system_instruction có thể không được hỗ trợ
-            response = st.session_state.gemini_chat.send_message(prompt)
-        except TypeError:
-            # Nếu system_instruction không được hỗ trợ, sử dụng chỉ prompt
-            response = st.session_state.gemini_chat.send_message(prompt)
+            response_text = response.text
         
         # Lưu phản hồi vào context
-        st.session_state.chat_context["chat_history"].append({"role": "assistant", "content": response.text})
+        st.session_state.chat_context["chat_history"].append({"role": "assistant", "content": response_text})
         
-        return response.text
+        return response_text
     except Exception as e:
         error_msg = f"Xin lỗi, hệ thống đang bận. Bạn thử lại sau nhé. (Lỗi: {str(e)[:50]}...)"
         print(f"Gemini Error: {e}")
@@ -527,12 +544,14 @@ with st.sidebar:
             {"sender": "bot", "text": "Chào bạn, mình là Bạn đồng hành đây! Mình có thể giúp gì cho bạn hôm nay?"}
         ]
         st.session_state.chat_context = {"user_name": None, "chat_history": []}
-        if "gemini_chat" in st.session_state and AI_ENABLED:
+        
+        # Reset gemini chat nếu AI được bật
+        if "gemini_chat" in st.session_state and AI_ENABLED and gemini_model:
             try:
                 st.session_state.gemini_chat = gemini_model.start_chat(history=[])
             except Exception as e:
                 print(f"Error resetting gemini chat: {e}")
-                st.session_state.gemini_chat = None
+                
         st.success("Đã xóa lịch sử trò chuyện!")
         st.rerun()
     
@@ -548,7 +567,7 @@ with st.sidebar:
     - Hướng dẫn bài tập thư giãn
     """)
     
-    st.markdown("Phiên bản: 1.3.0")
+    st.markdown("Phiên bản: 1.3.1")
 
 # Shell for chat
 st.markdown('<div class="chat-shell">', unsafe_allow_html=True)
