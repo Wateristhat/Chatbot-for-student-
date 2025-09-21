@@ -252,6 +252,13 @@ def get_config():
                 "Cảm ơn bạn đã chia sẻ với mình hôm nay nha. Mình luôn sẵn sàng khi bạn cần 💖",
                 "Bạn đã làm rất tốt khi bộc lộ cảm xúc. Khi nào cần, mình vẫn ở đây ✨"
             ],
+            "fallback_replies": [
+                "Mình đang nghe bạn nói đây. Kể thêm về điều đó được không?",
+                "Thật thú vị! Bạn có thể chia sẻ thêm không?",
+                "Mình hiểu rồi. Còn điều gì nữa bạn muốn nói không?",
+                "Cảm ơn vì đã chia sẻ điều đó với mình. Mình đang lắng nghe bạn đây.",
+                "À, mình hiểu ý bạn rồi. Bạn có muốn nói thêm về chuyện đó không?"
+            ]
         },
     }
 
@@ -308,6 +315,8 @@ if "tts_rate" not in st.session_state:
 # Gemini optional
 AI_ENABLED = False
 CURRENT_MODEL = None
+gemini_model = None
+
 if GENAI_AVAILABLE:
     try:
         # First try to get from secrets
@@ -322,54 +331,84 @@ if GENAI_AVAILABLE:
             api_key = os.environ.get("GOOGLE_API_KEY")
             
         if api_key:
-            genai.configure(api_key=api_key)
-            
-            # Thử nhiều mô hình theo thứ tự ưu tiên
-            model_names = ["gemini-pro", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro"]
-            gemini_model = None
-            
-            for model_name in model_names:
+            try:
+                genai.configure(api_key=api_key)
+                
+                # Thử nhiều mô hình theo thứ tự ưu tiên - bao gồm cả các phiên bản cũ hơn để tương thích tối đa
+                model_names = ["gemini-1.0-pro", "gemini-pro", "gemini-1.5-flash", "gemini-1.5-pro"]
+                
+                # Kiểm tra mô hình nào có sẵn trước khi thử
+                available_models = []
                 try:
-                    print(f"Đang thử kết nối với mô hình: {model_name}")
-                    model = genai.GenerativeModel(model_name)
+                    # Lấy danh sách các mô hình có sẵn
+                    for model in genai.list_models():
+                        model_name = model.name.split("/")[-1]
+                        if any(name in model_name for name in model_names):
+                            available_models.append(model_name)
                     
-                    # Thử một request nhỏ để kiểm tra
-                    response = model.generate_content("Hello")
-                    if response.text:
-                        gemini_model = model
-                        CURRENT_MODEL = model_name
-                        print(f"✅ Kết nối thành công với mô hình: {model_name}")
-                        break
+                    if available_models:
+                        print(f"Các mô hình có sẵn: {available_models}")
+                    else:
+                        print("Không tìm thấy mô hình Gemini nào có sẵn")
+                        available_models = model_names  # Thử các mô hình mặc định
                 except Exception as e:
-                    print(f"❌ Không thể sử dụng mô hình {model_name}: {str(e)}")
-            
-            # Nếu tìm được mô hình hoạt động
-            if gemini_model:
-                try:
-                    # Khởi tạo chat đơn giản không có tham số phức tạp
-                    chat_session = gemini_model.start_chat(history=[])
-                    st.session_state.gemini_chat = chat_session
-                    AI_ENABLED = True
-                    st.sidebar.success(f"✅ AI đã kết nối với: {CURRENT_MODEL}")
-                except Exception as e:
-                    print(f"Lỗi khởi tạo chat: {e}")
-                    st.sidebar.error(f"Lỗi khởi tạo chat: {str(e)}", icon="🚨")
-            else:
-                st.sidebar.error("Không thể kết nối với mô hình Gemini nào", icon="🚨")
+                    print(f"Lỗi khi liệt kê mô hình: {e}")
+                    available_models = model_names  # Thử các mô hình mặc định
+                
+                # Thử từng mô hình cho đến khi tìm được mô hình hoạt động
+                for model_name in available_models:
+                    try:
+                        print(f"Đang thử kết nối với mô hình: {model_name}")
+                        model = genai.GenerativeModel(model_name)
+                        
+                        # Thử request đơn giản để xác minh kết nối
+                        response = model.generate_content("Xin chào")
+                        if hasattr(response, 'text') and response.text:
+                            gemini_model = model
+                            CURRENT_MODEL = model_name
+                            print(f"✅ Kết nối thành công với mô hình: {model_name}")
+                            break
+                    except Exception as e:
+                        error_str = str(e).lower()
+                        print(f"❌ Không thể sử dụng mô hình {model_name}: {error_str}")
+                        if "quota" in error_str or "429" in error_str:
+                            print("Vượt quá giới hạn API. Thử API key khác.")
+                            break
+                
+                # Nếu tìm được mô hình hoạt động
+                if gemini_model:
+                    try:
+                        # Khởi tạo chat session đơn giản không có tham số phức tạp
+                        chat_session = gemini_model.start_chat(history=[])
+                        st.session_state.gemini_chat = chat_session
+                        AI_ENABLED = True
+                        st.sidebar.success(f"✅ AI đã kết nối với: {CURRENT_MODEL}")
+                    except Exception as e:
+                        print(f"Lỗi khởi tạo chat: {e}")
+                        st.sidebar.error(f"Lỗi khởi tạo chat: {str(e)}", icon="🚨")
+                else:
+                    st.sidebar.error("Không thể kết nối với bất kỳ mô hình Gemini nào", icon="🚨")
+            except Exception as e:
+                error_msg = str(e).lower()
+                if "quota" in error_msg or "429" in error_msg:
+                    st.sidebar.error("⚠️ Đã vượt quá giới hạn API. Vui lòng thử lại sau hoặc dùng API key khác.", icon="🚨")
+                elif "not found" in error_msg or "404" in error_msg:
+                    st.sidebar.error("⚠️ Không tìm thấy mô hình yêu cầu. Vui lòng kiểm tra lại.", icon="🚨")
+                else:
+                    st.sidebar.error(f"Lỗi cấu hình Gemini: {str(e)}", icon="🚨")
         else:
             st.sidebar.warning("Chưa cấu hình API key cho Gemini", icon="⚠️")
     except Exception as e:
-        error_msg = str(e).lower()
-        if "quota" in error_msg or "429" in error_msg:
-            st.sidebar.error("⚠️ Đã vượt quá giới hạn API. Vui lòng thử lại sau hoặc dùng API key khác.", icon="🚨")
-        else:
-            st.sidebar.error(f"Lỗi cấu hình Gemini: {str(e)}", icon="🚨")
+        st.sidebar.error(f"Lỗi không xác định khi cấu hình AI: {str(e)}", icon="🚨")
+else:
+    st.sidebar.info("Thư viện Gemini không được cài đặt. Đang sử dụng chế độ chatbot đơn giản.", icon="ℹ️")
 
-
+# Hàm gọi Gemini với xử lý lỗi tốt hơn
 def call_gemini(prompt):
     """Call Gemini AI for text generation with context awareness"""
-    if not AI_ENABLED:
-        return random.choice(CONFIG["general"]["neutral_replies"])
+    if not AI_ENABLED or gemini_model is None:
+        return random.choice(CONFIG["general"]["fallback_replies"])
+    
     try:
         # Lưu đoạn chat hiện tại vào context
         st.session_state.chat_context["chat_history"].append({"role": "user", "content": prompt})
@@ -382,6 +421,7 @@ def call_gemini(prompt):
                 detected_name = name_match.group(2)
                 detected_name = detected_name.capitalize()
                 st.session_state.chat_context["user_name"] = detected_name
+                print(f"Đã phát hiện tên người dùng: {detected_name}")
                 
         # Tạo prompt với context tên người dùng
         if user_name:
@@ -396,26 +436,28 @@ def call_gemini(prompt):
             response_text = response.text
         except Exception as e:
             print(f"Lỗi chat session: {e}")
+            
+            # Kiểm tra lỗi cụ thể
+            error_str = str(e).lower()
+            if "quota" in error_str or "429" in error_str:
+                return "Xin lỗi, dịch vụ AI đang quá tải. Bạn vui lòng thử lại sau nhé!"
+            elif "not found" in error_str or "404" in error_str:
+                return "Xin lỗi, mình đang gặp vấn đề kỹ thuật với hệ thống AI. Vui lòng thử lại sau nhé!"
+            
             try:
-                # Phương thức 2: Tạo nội dung mới
-                response = gemini_model.generate_content(
-                    f"Bạn là trợ lý AI thân thiện nói tiếng Việt. Hãy trả lời ngắn gọn (dưới 100 từ): {prompt_with_context}"
-                )
+                # Phương thức 2: Tạo nội dung mới với prompt đơn giản hơn
+                simple_prompt = f"Trả lời ngắn gọn bằng tiếng Việt: {prompt_with_context}"
+                response = gemini_model.generate_content(simple_prompt)
                 response_text = response.text
             except Exception as e2:
                 print(f"Lỗi generate_content: {e2}")
+                
                 # Phương thức 3: Fallback hoàn toàn
-                error_lower = str(e2).lower()
-                if "quota" in error_lower or "429" in error_lower:
-                    return "Xin lỗi, dịch vụ AI đang quá tải. Bạn vui lòng thử lại sau nhé!"
-                elif "not found" in error_lower or "404" in error_lower:
-                    return "Xin lỗi, mình đang gặp vấn đề kỹ thuật. Vui lòng thử lại sau nhé!"
-                else:
-                    return random.choice([
-                        "Xin lỗi, mình đang gặp vấn đề kết nối. Bạn có thể thử lại sau nhé!",
-                        "Hệ thống đang bận. Bạn có thể hỏi câu khác không?",
-                        "Mình không thể trả lời được lúc này. Hãy thử lại sau nhé!"
-                    ])
+                return random.choice([
+                    "Xin lỗi, mình đang gặp vấn đề kết nối. Bạn có thể thử lại sau nhé!",
+                    "Hệ thống đang bận. Bạn có thể hỏi câu khác không?",
+                    "Mình không thể trả lời được lúc này. Hãy thử lại sau nhé!"
+                ])
         
         # Lưu phản hồi vào context
         st.session_state.chat_context["chat_history"].append({"role": "assistant", "content": response_text})
@@ -423,11 +465,8 @@ def call_gemini(prompt):
         return response_text
     except Exception as e:
         print(f"Lỗi tổng thể khi gọi Gemini: {e}")
-        error_lower = str(e).lower()
-        if "quota" in error_lower or "429" in error_lower:
-            return "Xin lỗi, dịch vụ AI đang quá tải. Bạn vui lòng thử lại sau nhé!"
-        else:
-            return "Xin lỗi, mình không thể xử lý yêu cầu của bạn lúc này."
+        return "Xin lỗi, mình không thể xử lý yêu cầu của bạn lúc này."
+
 
 # ========== 5) TTS (EDGE TTS NEURAL + FALLBACK GTTS) ==========
 
@@ -564,7 +603,19 @@ with st.sidebar:
     if AI_ENABLED:
         st.success(f"✅ AI đã kết nối với: {CURRENT_MODEL}")
     else:
-        st.warning("⚠️ Chức năng AI chưa sẵn sàng")
+        st.warning("⚠️ Chức năng AI chưa sẵn sàng - đang sử dụng chế độ cơ bản")
+    
+    # API key input
+    st.divider()
+    with st.expander("Cấu hình API Key"):
+        api_key_input = st.text_input("Google API Key", 
+                                     type="password", 
+                                     help="Nhập API key của Google để kích hoạt AI")
+        if st.button("Lưu API Key"):
+            if api_key_input:
+                os.environ["GOOGLE_API_KEY"] = api_key_input
+                st.success("Đã lưu API key! Vui lòng tải lại trang.")
+                st.experimental_rerun()
     
     st.divider()
     
@@ -597,7 +648,7 @@ with st.sidebar:
     - Hướng dẫn bài tập thư giãn
     """)
     
-    st.markdown("Phiên bản: 1.3.2")
+    st.markdown("Phiên bản: 1.4.0")
 
 # Shell for chat
 st.markdown('<div class="chat-shell">', unsafe_allow_html=True)
