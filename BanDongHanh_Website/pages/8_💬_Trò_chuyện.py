@@ -307,6 +307,7 @@ if "tts_rate" not in st.session_state:
 
 # Gemini optional
 AI_ENABLED = False
+CURRENT_MODEL = None
 if GENAI_AVAILABLE:
     try:
         # First try to get from secrets
@@ -323,35 +324,46 @@ if GENAI_AVAILABLE:
         if api_key:
             genai.configure(api_key=api_key)
             
-            # Sửa: Thử các mô hình theo thứ tự ưu tiên
-            gemini_models = ["gemini-1.5-flash", "gemini-pro"]
+            # Thử nhiều mô hình theo thứ tự ưu tiên
+            model_names = ["gemini-pro", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro"]
             gemini_model = None
             
-            for model_name in gemini_models:
+            for model_name in model_names:
                 try:
-                    gemini_model = genai.GenerativeModel(model_name)
-                    # Thử một request đơn giản để kiểm tra mô hình hoạt động
-                    gemini_model.generate_content("Hello")
-                    print(f"Đã kết nối thành công với mô hình {model_name}")
-                    break
+                    print(f"Đang thử kết nối với mô hình: {model_name}")
+                    model = genai.GenerativeModel(model_name)
+                    
+                    # Thử một request nhỏ để kiểm tra
+                    response = model.generate_content("Hello")
+                    if response.text:
+                        gemini_model = model
+                        CURRENT_MODEL = model_name
+                        print(f"✅ Kết nối thành công với mô hình: {model_name}")
+                        break
                 except Exception as e:
-                    print(f"Không thể sử dụng mô hình {model_name}: {e}")
-                    continue
+                    print(f"❌ Không thể sử dụng mô hình {model_name}: {str(e)}")
             
+            # Nếu tìm được mô hình hoạt động
             if gemini_model:
-                # Khởi tạo chat session đơn giản không có tham số phức tạp
                 try:
+                    # Khởi tạo chat đơn giản không có tham số phức tạp
                     chat_session = gemini_model.start_chat(history=[])
                     st.session_state.gemini_chat = chat_session
                     AI_ENABLED = True
+                    st.sidebar.success(f"✅ AI đã kết nối với: {CURRENT_MODEL}")
                 except Exception as e:
-                    print(f"Lỗi khởi tạo chat session: {e}")
+                    print(f"Lỗi khởi tạo chat: {e}")
+                    st.sidebar.error(f"Lỗi khởi tạo chat: {str(e)}", icon="🚨")
             else:
-                st.sidebar.error("Không thể kết nối với bất kỳ mô hình Gemini nào", icon="🚨")
+                st.sidebar.error("Không thể kết nối với mô hình Gemini nào", icon="🚨")
         else:
             st.sidebar.warning("Chưa cấu hình API key cho Gemini", icon="⚠️")
     except Exception as e:
-        st.sidebar.error(f"Lỗi cấu hình Gemini: {str(e)}", icon="🚨")
+        error_msg = str(e).lower()
+        if "quota" in error_msg or "429" in error_msg:
+            st.sidebar.error("⚠️ Đã vượt quá giới hạn API. Vui lòng thử lại sau hoặc dùng API key khác.", icon="🚨")
+        else:
+            st.sidebar.error(f"Lỗi cấu hình Gemini: {str(e)}", icon="🚨")
 
 
 def call_gemini(prompt):
@@ -362,7 +374,7 @@ def call_gemini(prompt):
         # Lưu đoạn chat hiện tại vào context
         st.session_state.chat_context["chat_history"].append({"role": "user", "content": prompt})
         
-        # Phát hiện tên người dùng
+        # Phát hiện tên người dùng từ tin nhắn
         user_name = st.session_state.chat_context.get("user_name", "")
         if not user_name:
             name_match = re.search(r"tên (tôi|mình|của mình|tui|của tui) là (\w+)", prompt.lower())
@@ -370,34 +382,52 @@ def call_gemini(prompt):
                 detected_name = name_match.group(2)
                 detected_name = detected_name.capitalize()
                 st.session_state.chat_context["user_name"] = detected_name
-                print(f"Đã phát hiện tên người dùng: {detected_name}")
                 
-        # Cải tiến: Thêm tiền tố để AI nhớ tên người dùng
+        # Tạo prompt với context tên người dùng
         if user_name:
-            prompt_with_context = f"Nhớ rằng tên của tôi là {user_name}. {prompt}"
+            prompt_with_context = f"Tên của tôi là {user_name}. {prompt}"
         else:
             prompt_with_context = prompt
         
-        # Gửi đến Gemini (đã đơn giản hóa)
+        # Thử gửi tin nhắn với xử lý lỗi tốt hơn
         try:
+            # Phương thức 1: Sử dụng chat session
             response = st.session_state.gemini_chat.send_message(prompt_with_context)
             response_text = response.text
         except Exception as e:
-            print(f"Lỗi gọi API chat: {e}")
-            # Thử phương thức dự phòng
-            response = gemini_model.generate_content(
-                f"Bạn là trợ lý AI thân thiện nói tiếng Việt. Hãy trả lời ngắn gọn và thân thiện: {prompt_with_context}"
-            )
-            response_text = response.text
+            print(f"Lỗi chat session: {e}")
+            try:
+                # Phương thức 2: Tạo nội dung mới
+                response = gemini_model.generate_content(
+                    f"Bạn là trợ lý AI thân thiện nói tiếng Việt. Hãy trả lời ngắn gọn (dưới 100 từ): {prompt_with_context}"
+                )
+                response_text = response.text
+            except Exception as e2:
+                print(f"Lỗi generate_content: {e2}")
+                # Phương thức 3: Fallback hoàn toàn
+                error_lower = str(e2).lower()
+                if "quota" in error_lower or "429" in error_lower:
+                    return "Xin lỗi, dịch vụ AI đang quá tải. Bạn vui lòng thử lại sau nhé!"
+                elif "not found" in error_lower or "404" in error_lower:
+                    return "Xin lỗi, mình đang gặp vấn đề kỹ thuật. Vui lòng thử lại sau nhé!"
+                else:
+                    return random.choice([
+                        "Xin lỗi, mình đang gặp vấn đề kết nối. Bạn có thể thử lại sau nhé!",
+                        "Hệ thống đang bận. Bạn có thể hỏi câu khác không?",
+                        "Mình không thể trả lời được lúc này. Hãy thử lại sau nhé!"
+                    ])
         
         # Lưu phản hồi vào context
         st.session_state.chat_context["chat_history"].append({"role": "assistant", "content": response_text})
         
         return response_text
     except Exception as e:
-        error_msg = f"Xin lỗi, hệ thống đang bận. Bạn thử lại sau nhé. (Lỗi: {str(e)[:50]}...)"
-        print(f"Gemini Error: {e}")
-        return error_msg
+        print(f"Lỗi tổng thể khi gọi Gemini: {e}")
+        error_lower = str(e).lower()
+        if "quota" in error_lower or "429" in error_lower:
+            return "Xin lỗi, dịch vụ AI đang quá tải. Bạn vui lòng thử lại sau nhé!"
+        else:
+            return "Xin lỗi, mình không thể xử lý yêu cầu của bạn lúc này."
 
 # ========== 5) TTS (EDGE TTS NEURAL + FALLBACK GTTS) ==========
 
@@ -532,7 +562,7 @@ with st.sidebar:
     st.session_state.tts_rate = rate
     
     if AI_ENABLED:
-        st.success("✅ AI đã được kết nối")
+        st.success(f"✅ AI đã kết nối với: {CURRENT_MODEL}")
     else:
         st.warning("⚠️ Chức năng AI chưa sẵn sàng")
     
@@ -567,7 +597,7 @@ with st.sidebar:
     - Hướng dẫn bài tập thư giãn
     """)
     
-    st.markdown("Phiên bản: 1.3.1")
+    st.markdown("Phiên bản: 1.3.2")
 
 # Shell for chat
 st.markdown('<div class="chat-shell">', unsafe_allow_html=True)
