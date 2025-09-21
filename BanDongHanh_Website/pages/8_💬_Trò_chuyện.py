@@ -281,26 +281,43 @@ if GENAI_AVAILABLE:
         st.sidebar.error(f"Lỗi cấu hình Gemini: {str(e)}", icon="🚨")
 
 
-# ========== 3) SESSION STATE ==========
+# ========== 3) SESSION STATE - FIXED INITIALIZATION ==========
 
-# Initialize session state
+# Initialize each session state variable individually to avoid missing keys
 if "page_state" not in st.session_state:
     st.session_state.page_state = STATE_CHAT
+    
+if "chat_state" not in st.session_state:
     st.session_state.chat_state = CHAT_STATE_MAIN
+    
+if "history" not in st.session_state:
     st.session_state.history = [
         {"sender": "bot", "text": "Chào bạn, mình là Bạn đồng hành đây! Mình có thể giúp gì cho bạn hôm nay?"}
     ]
+    
+if "turns" not in st.session_state:
     st.session_state.turns = 0
+    
+if "current_mood" not in st.session_state:
     st.session_state.current_mood = None
+    
+if "current_scenario" not in st.session_state:
     st.session_state.current_scenario = None
+    
+if "user_input_buffer" not in st.session_state:
     st.session_state.user_input_buffer = ""
-    st.session_state.waiting_for_response = False  # Flag to prevent multiple submissions
+    
+# Explicitly initialize waiting_for_response which was causing the error
+if "waiting_for_response" not in st.session_state:
+    st.session_state.waiting_for_response = False
 
 # Voice settings defaults
 if "tts_enabled" not in st.session_state:
     st.session_state.tts_enabled = True
+    
 if "tts_voice" not in st.session_state:
     st.session_state.tts_voice = "vi-VN-HoaiMyNeural"  # nữ
+    
 if "tts_rate" not in st.session_state:
     st.session_state.tts_rate = 0  # %
 
@@ -473,7 +490,7 @@ with st.sidebar:
     - Hướng dẫn bài tập thư giãn
     """)
     
-    st.markdown("Phiên bản: 1.2.0")
+    st.markdown("Phiên bản: 1.2.1")
 
 # Shell for chat
 st.markdown('<div class="chat-shell">', unsafe_allow_html=True)
