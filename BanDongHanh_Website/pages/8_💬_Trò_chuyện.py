@@ -1,11 +1,12 @@
 # pages/8_💬_Trò_chuyện.py
-import asyncio
 import base64
 import html
 import os
 import random
 import re
 import time
+import subprocess
+import tempfile
 from datetime import datetime
 from io import BytesIO
 
@@ -108,14 +109,13 @@ st.markdown(
 
 /* Quick actions (chips) */
 .quick-actions { display:flex; gap:10px; flex-wrap: wrap; margin: 10px 0 16px; }
-.quick-btn {
+.chip {
   border: none; color: white; background: linear-gradient(135deg, #0084FF, #0069cc);
   border-radius: 20px; padding: 8px 14px; font-size: 0.9rem; cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  text-align: center;
 }
-.quick-btn:hover { transform: translateY(-2px); box-shadow: 0 3px 6px rgba(0,0,0,0.15); }
+.chip:hover { transform: translateY(-2px); box-shadow: 0 3px 6px rgba(0,0,0,0.15); }
 
 /* Sticky input */
 .input-bar {
@@ -327,10 +327,7 @@ if GENAI_AVAILABLE:
             
             # Tạo chat session để lưu context
             if "gemini_chat" not in st.session_state:
-                st.session_state.gemini_chat = gemini_model.start_chat(
-                    history=[],
-                    generation_config={"temperature": 0.7, "top_p": 0.95, "top_k": 64}
-                )
+                st.session_state.gemini_chat = gemini_model.start_chat(history=[])
                 
             AI_ENABLED = True
         else:
@@ -370,10 +367,14 @@ def call_gemini(prompt):
                 st.session_state.chat_context["user_name"] = detected_name
         
         # Gửi đến Gemini với system prompt
-        response = st.session_state.gemini_chat.send_message(
-            contextual_prompt, 
-            system_instruction=system_prompt
-        )
+        try:
+            response = st.session_state.gemini_chat.send_message(
+                contextual_prompt,
+                system_instruction=system_prompt
+            )
+        except Exception as e:
+            # Fallback: nếu gặp lỗi với system_instruction, thử lại không dùng
+            response = st.session_state.gemini_chat.send_message(contextual_prompt)
         
         # Lưu phản hồi vào context
         st.session_state.chat_context["chat_history"].append({"role": "assistant", "content": response.text})
@@ -407,7 +408,6 @@ def edge_tts_bytes(text, voice, rate_pct):
     
     try:
         # Use a synchronous approach to simplify the code and avoid asyncio issues
-        import tempfile
         with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
             temp_path = temp_file.name
         
@@ -415,7 +415,6 @@ def edge_tts_bytes(text, voice, rate_pct):
         rate_str = f"{'+' if rate_pct>=0 else ''}{rate_pct}%"
         
         # Run the communicate command synchronously
-        import subprocess
         cmd = [
             "edge-tts",
             "--voice", voice,
@@ -532,7 +531,10 @@ with st.sidebar:
         ]
         st.session_state.chat_context = {"user_name": None, "chat_history": []}
         if "gemini_chat" in st.session_state:
-            st.session_state.gemini_chat = None
+            if AI_ENABLED:
+                st.session_state.gemini_chat = gemini_model.start_chat(history=[])
+            else:
+                st.session_state.gemini_chat = None
         st.success("Đã xóa lịch sử trò chuyện!")
         st.rerun()
     
@@ -559,7 +561,6 @@ with quick_actions_col:
     st.markdown('<div class="quick-actions">', unsafe_allow_html=True)
     qa_cols = st.columns(4)
     with qa_cols[0]:
-        st.markdown(f'<div class="quick-btn" onclick="parent.document.querySelector(\'button[data-testid=\\"element-primary-\\"]\')" style="cursor: pointer">💖 Tâm sự</div>', unsafe_allow_html=True)
         if st.button("💖 Tâm sự", use_container_width=True, key="btn_tam_su", help="Trò chuyện và chia sẻ cảm xúc"):
             st.session_state.chat_state = CHAT_STATE_TAM_SU_SELECTION
             respond_bot(CONFIG["tam_su"]["intro_message"])
