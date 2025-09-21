@@ -281,43 +281,26 @@ if GENAI_AVAILABLE:
         st.sidebar.error(f"Lỗi cấu hình Gemini: {str(e)}", icon="🚨")
 
 
-# ========== 3) SESSION STATE - FIXED INITIALIZATION ==========
+# ========== 3) SESSION STATE ==========
 
-# Initialize each session state variable individually to avoid missing keys
+# Initialize session state
 if "page_state" not in st.session_state:
     st.session_state.page_state = STATE_CHAT
-    
-if "chat_state" not in st.session_state:
     st.session_state.chat_state = CHAT_STATE_MAIN
-    
-if "history" not in st.session_state:
     st.session_state.history = [
         {"sender": "bot", "text": "Chào bạn, mình là Bạn đồng hành đây! Mình có thể giúp gì cho bạn hôm nay?"}
     ]
-    
-if "turns" not in st.session_state:
     st.session_state.turns = 0
-    
-if "current_mood" not in st.session_state:
     st.session_state.current_mood = None
-    
-if "current_scenario" not in st.session_state:
     st.session_state.current_scenario = None
-    
-if "user_input_buffer" not in st.session_state:
     st.session_state.user_input_buffer = ""
-    
-# Explicitly initialize waiting_for_response which was causing the error
-if "waiting_for_response" not in st.session_state:
-    st.session_state.waiting_for_response = False
+    st.session_state.waiting_for_response = False  # Flag to prevent multiple submissions
 
 # Voice settings defaults
 if "tts_enabled" not in st.session_state:
     st.session_state.tts_enabled = True
-    
 if "tts_voice" not in st.session_state:
     st.session_state.tts_voice = "vi-VN-HoaiMyNeural"  # nữ
-    
 if "tts_rate" not in st.session_state:
     st.session_state.tts_rate = 0  # %
 
@@ -335,59 +318,73 @@ def gtts_bytes(text):
         bio.seek(0)
         return bio.read()
     except Exception as e:
-        print(f"Lỗi gTTS: {e}")
+        st.error(f"Lỗi gTTS: {e}")
         return None
 
-def edge_tts_bytes(text, voice, rate_pct):
-    """Generate audio using Edge TTS (preferred method)"""
+# Fixed Edge TTS function - using asyncio properly
+async def _edge_tts_async(text, voice, rate_pct):
     if not EDGE_TTS_AVAILABLE:
         return None
     
     try:
-        # Use a synchronous approach to simplify the code and avoid asyncio issues
-        # Create a temporary file to store the audio
-        import tempfile
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
-            temp_path = temp_file.name
-        
-        # Build command arguments
+        # Format rate string
         rate_str = f"{'+' if rate_pct>=0 else ''}{rate_pct}%"
         
-        # Run the communicate command synchronously
-        import subprocess
-        cmd = [
-            "edge-tts",
-            "--voice", voice,
-            "--rate", rate_str,
-            "--text", text,
-            "--write-media", temp_path
-        ]
+        # Use the Python API directly
+        communicate = edge_tts.Communicate(text, voice, rate=rate_str)
         
-        # Execute the command
-        subprocess.run(cmd, check=True, capture_output=True)
-        
-        # Read the audio data
-        with open(temp_path, 'rb') as f:
-            audio_data = f.read()
-            
-        # Clean up
-        os.unlink(temp_path)
-        
-        return audio_data
+        # Stream the audio data
+        audio_data = bytearray()
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                audio_data.extend(chunk["data"])
+                
+        return bytes(audio_data)
     except Exception as e:
-        print(f"Lỗi Edge TTS: {e}")
+        st.error(f"Lỗi Edge TTS: {e}")
+        return None
+
+def edge_tts_bytes(text, voice, rate_pct):
+    """Wrapper to handle asyncio execution for Edge TTS"""
+    if not EDGE_TTS_AVAILABLE:
+        return None
+        
+    try:
+        # Create a new event loop for asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        # Run the async function
+        result = loop.run_until_complete(_edge_tts_async(text, voice, rate_pct))
+        loop.close()
+        return result
+    except Exception as e:
+        st.error(f"Lỗi chạy Edge TTS: {e}")
         return None
 
 def synthesize_tts(text, voice, rate_pct):
     """Generate text-to-speech audio using available methods"""
-    # Prefer Edge TTS neural
+    # Debug info
+    st.session_state.last_tts_attempt = {
+        "text": text[:50] + "...",
+        "voice": voice,
+        "rate": rate_pct,
+        "edge_available": EDGE_TTS_AVAILABLE,
+        "gtts_available": GTTS_AVAILABLE,
+        "timestamp": datetime.now().strftime("%H:%M:%S")
+    }
+    
+    # First try Edge TTS (preferred)
     if EDGE_TTS_AVAILABLE:
         audio = edge_tts_bytes(text, voice, rate_pct)
         if audio:
             return audio
             
-    # Fallback gTTS
-    return gtts_bytes(text)
+    # Then try gTTS as fallback
+    if GTTS_AVAILABLE:
+        return gtts_bytes(text)
+        
+    return None
 
 def autoplay_audio(audio_data):
     """Play audio data automatically in the streamlit app"""
@@ -403,7 +400,7 @@ def autoplay_audio(audio_data):
         """
         st.components.v1.html(md, height=0)
     except Exception as e:
-        print(f"Lỗi phát âm thanh: {e}")
+        st.error(f"Lỗi phát âm thanh: {e}")
 
 
 # ========== 5) LOGIC CHAT & AI ==========
@@ -461,20 +458,43 @@ def respond_bot(text):
 
 with st.sidebar:
     st.markdown("### Cài đặt giọng nói")
-    st.session_state.tts_enabled = st.toggle("Đọc to phản hồi", value=st.session_state.tts_enabled)
+    tts_enabled = st.toggle("Đọc to phản hồi", value=st.session_state.tts_enabled, key="tts_toggle")
+    st.session_state.tts_enabled = tts_enabled
     
+    voice_options = [
+        "vi-VN-HoaiMyNeural (Nữ)",
+        "vi-VN-NamMinhNeural (Nam)"
+    ]
+    
+    voice_index = 0
+    if st.session_state.tts_voice.endswith("NamMinhNeural"):
+        voice_index = 1
+        
     voice = st.selectbox(
         "Giọng đọc",
-        options=[
-            "vi-VN-HoaiMyNeural (Nữ)",
-            "vi-VN-NamMinhNeural (Nam)"
-        ],
-        index=0 if st.session_state.tts_voice.endswith("HoaiMyNeural") else 1
+        options=voice_options,
+        index=voice_index,
+        key="voice_select"
     )
-    st.session_state.tts_voice = "vi-VN-HoaiMyNeural" if "HoaiMy" in voice else "vi-VN-NamMinhNeural"
     
-    rate = st.slider("Tốc độ nói (%)", -50, 50, st.session_state.tts_rate, step=5)
+    # Update voice based on selection
+    if "HoaiMy" in voice:
+        st.session_state.tts_voice = "vi-VN-HoaiMyNeural"
+    else:
+        st.session_state.tts_voice = "vi-VN-NamMinhNeural"
+    
+    # Update rate
+    rate = st.slider("Tốc độ nói (%)", -50, 50, st.session_state.tts_rate, step=5, key="rate_slider")
     st.session_state.tts_rate = rate
+    
+    # Debug info for TTS
+    if "last_tts_attempt" in st.session_state:
+        with st.expander("Thông tin TTS"):
+            st.write(f"**Trạng thái TTS:**")
+            st.write(f"- Edge TTS: {'✅ Sẵn sàng' if EDGE_TTS_AVAILABLE else '❌ Không có'}")
+            st.write(f"- gTTS: {'✅ Sẵn sàng' if GTTS_AVAILABLE else '❌ Không có'}")
+            st.write(f"- Lần cuối: {st.session_state.last_tts_attempt['timestamp']}")
+            st.write(f"- Văn bản: {st.session_state.last_tts_attempt['text']}")
     
     st.divider()
     
