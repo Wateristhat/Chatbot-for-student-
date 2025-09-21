@@ -647,7 +647,7 @@ if st.session_state.show_suggestions and len(st.session_state.chat_history) == 0
         if sug_cols[i % 5].button(s, key=f"sugg_{i}"):
             add_message("user", s)
             st.session_state.pending_user_msg = s
-            st.experimental_rerun()
+            st.rerun()  # Changed from experimental_rerun
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ================== FORM GỬI TIN + ẢNH ==================
@@ -668,7 +668,7 @@ if user_text:
             imgs_bytes.append(f.read())
     add_message("user", user_text, images=imgs_bytes)
     st.session_state.pending_user_msg = user_text
-    st.experimental_rerun()
+    st.rerun()  # Changed from experimental_rerun
 
 # ================== XỬ LÝ TRẢ LỜI AI ==================
 if st.session_state.pending_user_msg is not None:
@@ -687,7 +687,7 @@ if st.session_state.pending_user_msg is not None:
         st.session_state.memory_summary = new_summary
         st.session_state.memory_version += 1
         save_memory()
-    st.experimental_rerun()
+    st.rerun()  # Changed from experimental_rerun
 
 # ================== FOOTER NOTE ==================
 st.markdown("""
