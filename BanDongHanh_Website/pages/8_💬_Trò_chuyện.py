@@ -108,13 +108,14 @@ st.markdown(
 
 /* Quick actions (chips) */
 .quick-actions { display:flex; gap:10px; flex-wrap: wrap; margin: 10px 0 16px; }
-.chip {
+.quick-btn {
   border: none; color: white; background: linear-gradient(135deg, #0084FF, #0069cc);
   border-radius: 20px; padding: 8px 14px; font-size: 0.9rem; cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  text-align: center;
 }
-.chip:hover { transform: translateY(-2px); box-shadow: 0 3px 6px rgba(0,0,0,0.15); }
+.quick-btn:hover { transform: translateY(-2px); box-shadow: 0 3px 6px rgba(0,0,0,0.15); }
 
 /* Sticky input */
 .input-bar {
@@ -256,31 +257,6 @@ def get_config():
 
 CONFIG = get_config()
 
-# Gemini optional
-AI_ENABLED = False
-if GENAI_AVAILABLE:
-    try:
-        # First try to get from secrets
-        api_key = None
-        try:
-            api_key = st.secrets.get("GOOGLE_API_KEY")
-        except:
-            pass
-            
-        # Then try environment variable
-        if not api_key:
-            api_key = os.environ.get("GOOGLE_API_KEY")
-            
-        if api_key:
-            genai.configure(api_key=api_key)
-            gemini_model = genai.GenerativeModel("gemini-1.5-flash")
-            AI_ENABLED = True
-        else:
-            st.sidebar.warning("Chưa cấu hình API key cho Gemini", icon="⚠️")
-    except Exception as e:
-        st.sidebar.error(f"Lỗi cấu hình Gemini: {str(e)}", icon="🚨")
-
-
 # ========== 3) SESSION STATE ==========
 
 # Initialize session state
@@ -310,6 +286,13 @@ if "user_input_buffer" not in st.session_state:
 if "is_processing" not in st.session_state:
     st.session_state.is_processing = False
 
+# Lưu trữ context (thêm tính năng mới)
+if "chat_context" not in st.session_state:
+    st.session_state.chat_context = {
+        "user_name": None,
+        "chat_history": []
+    }
+
 # Voice settings defaults
 if "tts_enabled" not in st.session_state:
     st.session_state.tts_enabled = True
@@ -320,9 +303,89 @@ if "tts_voice" not in st.session_state:
 if "tts_rate" not in st.session_state:
     st.session_state.tts_rate = 0  # %
 
-# ========== 4) TTS (EDGE TTS NEURAL + FALLBACK GTTS) ==========
+# ========== 4) GEMINI AI ==========
 
-@st.cache_data(show_spinner=False)
+# Gemini optional
+AI_ENABLED = False
+if GENAI_AVAILABLE:
+    try:
+        # First try to get from secrets
+        api_key = None
+        try:
+            api_key = st.secrets.get("GOOGLE_API_KEY")
+        except:
+            pass
+            
+        # Then try environment variable
+        if not api_key:
+            api_key = os.environ.get("GOOGLE_API_KEY")
+            
+        if api_key:
+            genai.configure(api_key=api_key)
+            # Sử dụng gemini-1.0-pro thay vì flash để có context dài hơn
+            gemini_model = genai.GenerativeModel("gemini-1.0-pro")
+            
+            # Tạo chat session để lưu context
+            if "gemini_chat" not in st.session_state:
+                st.session_state.gemini_chat = gemini_model.start_chat(
+                    history=[],
+                    generation_config={"temperature": 0.7, "top_p": 0.95, "top_k": 64}
+                )
+                
+            AI_ENABLED = True
+        else:
+            st.sidebar.warning("Chưa cấu hình API key cho Gemini", icon="⚠️")
+    except Exception as e:
+        st.sidebar.error(f"Lỗi cấu hình Gemini: {str(e)}", icon="🚨")
+
+
+def call_gemini(prompt):
+    """Call Gemini AI for text generation with context awareness"""
+    if not AI_ENABLED:
+        return random.choice(CONFIG["general"]["neutral_replies"])
+    try:
+        # Lưu đoạn chat hiện tại vào context
+        st.session_state.chat_context["chat_history"].append({"role": "user", "content": prompt})
+        
+        # Tạo nội dung system prompt
+        system_prompt = (
+            "Hãy trả lời như một người bạn đồng hành AI thân thiện, kiên nhẫn và thấu hiểu dành cho học sinh Việt Nam. "
+            "Trả lời bằng tiếng Việt, ngắn gọn (dưới 100 từ) và giàu đồng cảm. "
+            "Hạn chế trả lời giáo điều và sử dụng ngôn ngữ tự nhiên, thân thiện.\n\n"
+            "Hãy nhớ thông tin cá nhân của người dùng nếu họ chia sẻ (như tên, tuổi, sở thích...)."
+        )
+        
+        # Tạo prompt với context
+        user_name = st.session_state.chat_context.get("user_name", "")
+        if user_name:
+            contextual_prompt = f"[Tên người dùng: {user_name}]\n{prompt}"
+        else:
+            contextual_prompt = prompt
+            
+            # Phát hiện tên người dùng
+            name_match = re.search(r"tên (tôi|mình|của mình|tui|của tui) là (\w+)", prompt.lower())
+            if name_match:
+                detected_name = name_match.group(2)
+                detected_name = detected_name.capitalize()
+                st.session_state.chat_context["user_name"] = detected_name
+        
+        # Gửi đến Gemini với system prompt
+        response = st.session_state.gemini_chat.send_message(
+            contextual_prompt, 
+            system_instruction=system_prompt
+        )
+        
+        # Lưu phản hồi vào context
+        st.session_state.chat_context["chat_history"].append({"role": "assistant", "content": response.text})
+        
+        return response.text
+    except Exception as e:
+        error_msg = f"Xin lỗi, hệ thống đang bận. Bạn thử lại sau nhé. (Lỗi: {str(e)[:50]}...)"
+        print(f"Gemini Error: {e}")
+        return error_msg
+
+# ========== 5) TTS (EDGE TTS NEURAL + FALLBACK GTTS) ==========
+
 def gtts_bytes(text):
     """Generate audio using gTTS as fallback"""
     if not GTTS_AVAILABLE:
@@ -337,29 +400,41 @@ def gtts_bytes(text):
         print(f"Lỗi gTTS: {e}")
         return None
 
-@st.cache_data(show_spinner=False)
 def edge_tts_bytes(text, voice, rate_pct):
-    """Generate audio using Edge TTS (preferred method)"""
+    """Generate audio using Edge TTS synchronously (avoid asyncio issues)"""
     if not EDGE_TTS_AVAILABLE:
         return None
     
     try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        # Use a synchronous approach to simplify the code and avoid asyncio issues
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
+            temp_path = temp_file.name
         
-        async def _synthesize():
-            rate_str = f"{'+' if rate_pct>=0 else ''}{rate_pct}%"
-            communicate = edge_tts.Communicate(text, voice=voice, rate=rate_str)
-            audio = b""
-            async for chunk in communicate.stream():
-                if chunk["type"] == "audio":
-                    audio += chunk["data"]
-            return audio
+        # Build command arguments
+        rate_str = f"{'+' if rate_pct>=0 else ''}{rate_pct}%"
+        
+        # Run the communicate command synchronously
+        import subprocess
+        cmd = [
+            "edge-tts",
+            "--voice", voice,
+            "--rate", rate_str,
+            "--text", text,
+            "--write-media", temp_path
+        ]
+        
+        # Execute the command
+        subprocess.run(cmd, check=True, capture_output=True)
+        
+        # Read the audio data
+        with open(temp_path, 'rb') as f:
+            audio_data = f.read()
             
-        audio_data = loop.run_until_complete(_synthesize())
-        loop.close()
-        return audio_data
+        # Clean up
+        os.unlink(temp_path)
         
+        return audio_data
     except Exception as e:
         print(f"Lỗi Edge TTS: {e}")
         return None
@@ -392,7 +467,7 @@ def autoplay_audio(audio_data):
         print(f"Lỗi phát âm thanh: {e}")
 
 
-# ========== 5) LOGIC CHAT & AI ==========
+# ========== 6) LOGIC CHAT & AI ==========
 
 def add_message(sender, text):
     """Add a message to the chat history"""
@@ -413,22 +488,6 @@ def detect_mood_from_text(text):
             best, score = mood, matches
     return best
 
-def call_gemini(prompt):
-    """Call Gemini AI for text generation"""
-    if not AI_ENABLED:
-        return random.choice(CONFIG["general"]["neutral_replies"])
-    try:
-        contextual = (
-            "Hãy trả lời như một người bạn đồng hành AI thân thiện, kiên nhẫn và thấu hiểu dành cho học sinh."
-            " Trả lời bằng tiếng Việt, ngắn gọn (dưới 100 từ) và giàu đồng cảm. "
-            " Hạn chế trả lời giáo điều và sử dụng ngôn ngữ tự nhiên, thân thiện.\n\n"
-            f"Câu hỏi/Chia sẻ của người dùng: '{prompt}'"
-        )
-        resp = gemini_model.generate_content(contextual)
-        return resp.text or random.choice(CONFIG["general"]["neutral_replies"])
-    except Exception as e:
-        return f"Xin lỗi, hệ thống đang bận. Bạn thử lại sau nhé. (Lỗi: {str(e)[:50]}...)"
-
 def respond_bot(text):
     """Generate bot response with optional text-to-speech"""
     add_message("bot", text)
@@ -440,7 +499,7 @@ def respond_bot(text):
             if audio:
                 autoplay_audio(audio)
 
-# ========== 6) GIAO DIỆN CHÍNH (SHOPPING CHAT STYLE) ==========
+# ========== 7) GIAO DIỆN CHÍNH (SHOPPING CHAT STYLE) ==========
 
 with st.sidebar:
     st.markdown("### Cài đặt giọng nói")
@@ -459,7 +518,23 @@ with st.sidebar:
     rate = st.slider("Tốc độ nói (%)", -50, 50, st.session_state.tts_rate, step=5)
     st.session_state.tts_rate = rate
     
+    if AI_ENABLED:
+        st.success("✅ AI đã được kết nối")
+    else:
+        st.warning("⚠️ Chức năng AI chưa sẵn sàng")
+    
     st.divider()
+    
+    # Thêm nút xóa lịch sử
+    if st.button("🗑️ Xóa lịch sử trò chuyện"):
+        st.session_state.history = [
+            {"sender": "bot", "text": "Chào bạn, mình là Bạn đồng hành đây! Mình có thể giúp gì cho bạn hôm nay?"}
+        ]
+        st.session_state.chat_context = {"user_name": None, "chat_history": []}
+        if "gemini_chat" in st.session_state:
+            st.session_state.gemini_chat = None
+        st.success("Đã xóa lịch sử trò chuyện!")
+        st.rerun()
     
     # About section
     st.markdown("### Giới thiệu")
@@ -473,7 +548,7 @@ with st.sidebar:
     - Hướng dẫn bài tập thư giãn
     """)
     
-    st.markdown("Phiên bản: 1.2.0")
+    st.markdown("Phiên bản: 1.3.0")
 
 # Shell for chat
 st.markdown('<div class="chat-shell">', unsafe_allow_html=True)
@@ -484,21 +559,22 @@ with quick_actions_col:
     st.markdown('<div class="quick-actions">', unsafe_allow_html=True)
     qa_cols = st.columns(4)
     with qa_cols[0]:
-        if st.button("💖 Tâm sự", use_container_width=True, key="btn_tam_su"):
+        st.markdown(f'<div class="quick-btn" onclick="parent.document.querySelector(\'button[data-testid=\\"element-primary-\\"]\')" style="cursor: pointer">💖 Tâm sự</div>', unsafe_allow_html=True)
+        if st.button("💖 Tâm sự", use_container_width=True, key="btn_tam_su", help="Trò chuyện và chia sẻ cảm xúc"):
             st.session_state.chat_state = CHAT_STATE_TAM_SU_SELECTION
             respond_bot(CONFIG["tam_su"]["intro_message"])
             st.rerun()
     with qa_cols[1]:
-        if st.button("🗣️ Luyện giao tiếp", use_container_width=True, key="btn_giao_tiep"):
+        if st.button("🗣️ Luyện giao tiếp", use_container_width=True, key="btn_giao_tiep", help="Thực hành kỹ năng giao tiếp"):
             st.session_state.chat_state = CHAT_STATE_GIAO_TIEP_SELECTION_BASIC
             respond_bot(CONFIG["giao_tiep"]["intro_message"])
             st.rerun()
     with qa_cols[2]:
-        if st.button("📓 Nhật ký", use_container_width=True, key="btn_journal"):
+        if st.button("📓 Nhật ký", use_container_width=True, key="btn_journal", help="Lưu lại cảm xúc hàng ngày"):
             st.session_state.page_state = STATE_JOURNAL
             st.rerun()
     with qa_cols[3]:
-        if st.button("😌 Thư giãn", use_container_width=True, key="btn_relax"):
+        if st.button("😌 Thư giãn", use_container_width=True, key="btn_relax", help="Các hoạt động giúp thư giãn"):
             st.session_state.page_state = STATE_RELAX
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
@@ -597,31 +673,45 @@ if user_text and not st.session_state.is_processing:
     add_message("user", user_text)
     st.session_state.turns += 1
 
-    # Process the response
-    if st.session_state.chat_state == CHAT_STATE_TAM_SU_CHAT:
-        mood = st.session_state.current_mood
-        styles_all = sum(CONFIG["tam_su"]["moods"][mood]["styles"].values(), [])
-        response_text = random.choice(styles_all)
-        if st.session_state.turns >= 2:
-            st.session_state.chat_state = CHAT_STATE_AWAITING_FOLLOWUP
-            respond_bot(f"{response_text} {CONFIG['general']['follow_up_prompt']}")
+    # Rerun to display the user message immediately
+    st.rerun()
+
+# Process the input after rerun if the processing flag is set
+if st.session_state.is_processing:
+    try:
+        # Get the last user message
+        last_msg = [m for m in st.session_state.history if m["sender"] == "user"][-1]
+        user_text = last_msg["text"]
+        
+        # Process the user message based on the current state
+        if st.session_state.chat_state == CHAT_STATE_TAM_SU_CHAT:
+            mood = st.session_state.current_mood
+            styles_all = sum(CONFIG["tam_su"]["moods"][mood]["styles"].values(), [])
+            response_text = random.choice(styles_all)
+            if st.session_state.turns >= 2:
+                st.session_state.chat_state = CHAT_STATE_AWAITING_FOLLOWUP
+                respond_bot(f"{response_text} {CONFIG['general']['follow_up_prompt']}")
+            else:
+                respond_bot(response_text)
         else:
-            respond_bot(response_text)
-    else:
-        detected = detect_mood_from_text(user_text)
-        if detected:
-            st.session_state.chat_state = CHAT_STATE_TAM_SU_CHAT
-            st.session_state.current_mood = detected
-            st.session_state.turns = 0
-            respond_bot(CONFIG["tam_su"]["moods"][detected]["initial"])
-        else:
-            # Call AI for open-ended stuff
-            reply = call_gemini(user_text)
-            st.session_state.chat_state = CHAT_STATE_AWAITING_FOLLOWUP
-            respond_bot(reply)
+            detected = detect_mood_from_text(user_text)
+            if detected:
+                st.session_state.chat_state = CHAT_STATE_TAM_SU_CHAT
+                st.session_state.current_mood = detected
+                st.session_state.turns = 0
+                respond_bot(CONFIG["tam_su"]["moods"][detected]["initial"])
+            else:
+                # Call AI for open-ended stuff
+                reply = call_gemini(user_text)
+                st.session_state.chat_state = CHAT_STATE_AWAITING_FOLLOWUP
+                respond_bot(reply)
+    except Exception as e:
+        print(f"Error processing message: {e}")
+        respond_bot("Xin lỗi, có lỗi xảy ra. Bạn có thể thử lại sau.")
+    finally:
+        # Reset the processing flag
+        st.session_state.is_processing = False
     
-    # Reset processing flag
-    st.session_state.is_processing = False
     st.rerun()
 
 # Close shell
@@ -640,7 +730,7 @@ st.markdown(
 )
 
 
-# ========== 7) ROUTER NỘI BỘ: NHẬT KÝ & THƯ GIÃN ==========
+# ========== 8) ROUTER NỘI BỘ: NHẬT KÝ & THƯ GIÃN ==========
 
 def render_journal_ui():
     st.title("📓 Nhật Ký Cảm Xúc")
