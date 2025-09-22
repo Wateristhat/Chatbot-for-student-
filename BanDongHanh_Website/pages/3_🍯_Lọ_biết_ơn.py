@@ -61,13 +61,12 @@ def create_audio_file(text):
     # Kiểm tra text đầu vào
     if not text or not text.strip():
         return None
-    
     try:
         tts = gTTS(text=text.strip(), lang='vi', slow=False)
         with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
             tts.save(tmp_file.name)
             return tmp_file.name
-    except Exception as e:
+    except Exception:
         # Không hiển thị lỗi đỏ, chỉ trả về None
         return None
 
@@ -319,7 +318,7 @@ with col2:
                         audio_bytes = f.read()
                     st.audio(audio_bytes, format='audio/mp3', autoplay=True)
                     os.unlink(audio_file)
-                except Exception as e:
+                except Exception:
                     st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
             else:
                 st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
@@ -354,7 +353,7 @@ with col_guide2:
                         audio_bytes = f.read()
                     st.audio(audio_bytes, format='audio/mp3', autoplay=True)
                     os.unlink(audio_file)
-                except Exception as e:
+                except Exception:
                     st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
             else:
                 st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
@@ -422,7 +421,7 @@ if gratitude_notes:
                                 audio_bytes = f.read()
                             st.audio(audio_bytes, format='audio/mp3', autoplay=True)
                             os.unlink(audio_file)
-                        except Exception as e:
+                        except Exception:
                             st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
                     else:
                         st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
