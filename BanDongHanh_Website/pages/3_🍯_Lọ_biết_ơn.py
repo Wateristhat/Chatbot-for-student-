@@ -58,17 +58,69 @@ def get_random_encouragement():
     return random.choice(ENCOURAGING_MESSAGES)
 
 def create_audio_file(text):
+    """Tạo file âm thanh từ text với xử lý lỗi chi tiết"""
     # Kiểm tra text đầu vào
-    if not text or not text.strip():
-        return None
+    if not text:
+        print("🔍 TTS Debug: Text is None")
+        return None, "empty_text"
+    
+    if not text.strip():
+        print("🔍 TTS Debug: Text is empty after stripping")
+        return None, "empty_text"
+    
+    cleaned_text = text.strip()
+    if len(cleaned_text) < 3:
+        print(f"🔍 TTS Debug: Text too short ({len(cleaned_text)} characters)")
+        return None, "text_too_short"
+    
     try:
-        tts = gTTS(text=text.strip(), lang='vi', slow=False)
+        print(f"🔍 TTS Debug: Attempting to create TTS for text length {len(cleaned_text)}")
+        tts = gTTS(text=cleaned_text, lang='vi', slow=False)
+        
         with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
+            print(f"🔍 TTS Debug: Saving to temporary file {tmp_file.name}")
             tts.save(tmp_file.name)
-            return tmp_file.name
-    except Exception:
-        # Không hiển thị lỗi đỏ, chỉ trả về None
-        return None
+            
+            # Verify file was created successfully
+            if os.path.exists(tmp_file.name) and os.path.getsize(tmp_file.name) > 0:
+                print(f"🔍 TTS Debug: Success! File size: {os.path.getsize(tmp_file.name)} bytes")
+                return tmp_file.name, "success"
+            else:
+                print("🔍 TTS Debug: File created but empty or missing")
+                return None, "no_audio_generated"
+                
+    except Exception as e:
+        error_str = str(e).lower()
+        print(f"🔍 TTS Debug: Exception - {type(e).__name__}: {e}")
+        
+        if "connection" in error_str or "network" in error_str or "failed to connect" in error_str:
+            return None, "network_error"
+        elif "timeout" in error_str:
+            return None, "timeout_error"
+        elif "forbidden" in error_str or "403" in error_str:
+            return None, "access_blocked"
+        elif "503" in error_str or "502" in error_str or "500" in error_str:
+            return None, "server_error"
+        else:
+            return None, f"unknown_error: {str(e)}"
+
+def get_error_message(error_code):
+    """Trả về thông báo lỗi thân thiện cho học sinh"""
+    error_messages = {
+        "empty_text": "💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!",
+        "text_too_short": "💭 Nội dung quá ngắn để tạo âm thanh. Hãy thêm vài từ nữa nhé!",
+        "network_error": "🌐 Không thể kết nối internet để tạo âm thanh. Hãy kiểm tra kết nối mạng và thử lại sau nhé!",
+        "timeout_error": "⏰ Kết nối quá chậm. Hãy thử lại sau vài giây hoặc kiểm tra tốc độ mạng!",
+        "access_blocked": "🚫 Dịch vụ tạo âm thanh tạm thời bị chặn. Hãy thử lại sau 5-10 phút nhé!",
+        "server_error": "🔧 Máy chủ tạo âm thanh đang bận. Hãy thử lại sau vài phút!",
+        "no_audio_generated": "🎵 Không thể tạo âm thanh lúc này. Hãy thử lại sau nhé!",
+    }
+    
+    # Handle unknown errors
+    if error_code.startswith("unknown_error:"):
+        return "🎵 Hiện tại không thể tạo âm thanh. Bạn có thể đọc nội dung ở trên nhé!"
+    
+    return error_messages.get(error_code, "🎵 Hiện tại không thể tạo âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
 
 if 'selected_emotion' not in st.session_state:
     st.session_state.selected_emotion = None
@@ -310,18 +362,47 @@ with col1:
         st.rerun()
 with col2:
     if st.button("🔊 Đọc to", help="Nghe lời động viên"):
-        with st.spinner("Đang tạo âm thanh..."):
-            audio_file = create_audio_file(encouragement['message'])
-            if audio_file:
-                try:
-                    with open(audio_file, 'rb') as f:
-                        audio_bytes = f.read()
-                    st.audio(audio_bytes, format='audio/mp3', autoplay=True)
-                    os.unlink(audio_file)
-                except Exception:
-                    st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
-            else:
-                st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
+        # Kiểm tra text trước khi xử lý
+        if not encouragement or not encouragement.get('message') or not encouragement['message'].strip():
+            st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
+        else:
+            with st.spinner("Đang tạo âm thanh..."):
+                audio_file, status = create_audio_file(encouragement['message'])
+                if audio_file and status == "success":
+                    try:
+                        with open(audio_file, 'rb') as f:
+                            audio_bytes = f.read()
+                        st.audio(audio_bytes, format='audio/mp3', autoplay=True)
+                        os.unlink(audio_file)
+                        print(f"🔍 TTS Success: Played encouragement message")
+                    except Exception as e:
+                        print(f"🔍 TTS Debug: File playback error - {e}")
+                        st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
+                        # Clean up file if it exists
+                        try:
+                            if audio_file and os.path.exists(audio_file):
+                                os.unlink(audio_file)
+                        except:
+                            pass
+                else:
+                    # Show user-friendly error message
+                    error_msg = get_error_message(status)
+                    
+                    # Use different display methods based on error type
+                    if status == "network_error":
+                        st.warning(error_msg)
+                        st.info("💡 **Cách khắc phục**: Kiểm tra wifi/4G → Thử lại sau 30 giây")
+                        print(f"🔍 TTS Debug: Network error for encouragement message")
+                    elif status == "timeout_error":
+                        st.warning(error_msg)
+                        st.info("💡 **Cách khắc phục**: Chờ 10 giây → Thử lại → Kiểm tra tốc độ mạng")
+                    elif status in ["server_error", "access_blocked"]:
+                        st.warning(error_msg)
+                        st.info("💡 **Cách khắc phục**: Đợi 5-10 phút → Thử lại → Lỗi từ nhà cung cấp dịch vụ")
+                    else:
+                        st.info(error_msg)
+                    
+                    print(f"🔍 TTS Debug: Failed to create audio for encouragement - {status}")
 
 st.markdown("""
 <div class="suggestion-box">
@@ -345,18 +426,44 @@ with col_guide2:
                         "Hãy viết về những điều nhỏ bé mà bạn biết ơn hôm nay. "
                         "Có thể là nụ cười của bạn bè, bữa ăn ngon, hay cảm giác được yêu thương. "
                         "Không cần hoàn hảo, chỉ cần chân thành từ trái tim.")
+        
         with st.spinner("Đang tạo âm thanh..."):
-            audio_file = create_audio_file(guidance_text)
-            if audio_file:
+            audio_file, status = create_audio_file(guidance_text)
+            if audio_file and status == "success":
                 try:
                     with open(audio_file, 'rb') as f:
                         audio_bytes = f.read()
                     st.audio(audio_bytes, format='audio/mp3', autoplay=True)
                     os.unlink(audio_file)
-                except Exception:
+                    print(f"🔍 TTS Success: Played guidance text")
+                except Exception as e:
+                    print(f"🔍 TTS Debug: File playback error - {e}")
                     st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
+                    # Clean up file if it exists
+                    try:
+                        if audio_file and os.path.exists(audio_file):
+                            os.unlink(audio_file)
+                    except:
+                        pass
             else:
-                st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
+                # Show user-friendly error message
+                error_msg = get_error_message(status)
+                
+                # Use different display methods based on error type
+                if status == "network_error":
+                    st.warning(error_msg)
+                    st.info("💡 **Cách khắc phục**: Kiểm tra wifi/4G → Thử lại sau 30 giây")
+                    print(f"🔍 TTS Debug: Network error for guidance text")
+                elif status == "timeout_error":
+                    st.warning(error_msg)
+                    st.info("💡 **Cách khắc phục**: Chờ 10 giây → Thử lại → Kiểm tra tốc độ mạng")
+                elif status in ["server_error", "access_blocked"]:
+                    st.warning(error_msg)
+                    st.info("💡 **Cách khắc phục**: Đợi 5-10 phút → Thử lại → Lỗi từ nhà cung cấp dịch vụ")
+                else:
+                    st.info(error_msg)
+                
+                print(f"🔍 TTS Debug: Failed to create audio for guidance - {status}")
 
 current_suggestion = GRATITUDE_SUGGESTIONS[st.session_state.suggestion_index]
 st.markdown(f"""<div class="suggestion-box"><strong>💡 Gợi ý cho bạn:</strong><br>{current_suggestion}</div>""", unsafe_allow_html=True)
@@ -414,17 +521,46 @@ if gratitude_notes:
             col1, col2, col3 = st.columns([2, 2, 1])
             with col1:
                 if st.button("🔊 Đọc to", key=f"tts_{note_id}", help="Nghe ghi chú này"):
-                    audio_file = create_audio_file(note_content)
-                    if audio_file:
-                        try:
-                            with open(audio_file, 'rb') as f:
-                                audio_bytes = f.read()
-                            st.audio(audio_bytes, format='audio/mp3', autoplay=True)
-                            os.unlink(audio_file)
-                        except Exception:
-                            st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
+                    # Kiểm tra nội dung trước khi xử lý TTS
+                    if not note_content or not note_content.strip():
+                        st.info("💭 Ghi chú này không có nội dung để đọc!")
                     else:
-                        st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
+                        with st.spinner("Đang tạo âm thanh..."):
+                            audio_file, status = create_audio_file(note_content)
+                            if audio_file and status == "success":
+                                try:
+                                    with open(audio_file, 'rb') as f:
+                                        audio_bytes = f.read()
+                                    st.audio(audio_bytes, format='audio/mp3', autoplay=True)
+                                    os.unlink(audio_file)
+                                    print(f"🔍 TTS Success: Played note {note_id}")
+                                except Exception as e:
+                                    print(f"🔍 TTS Debug: File playback error for note {note_id} - {e}")
+                                    st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
+                                    # Clean up file if it exists
+                                    try:
+                                        if audio_file and os.path.exists(audio_file):
+                                            os.unlink(audio_file)
+                                    except:
+                                        pass
+                            else:
+                                # Show user-friendly error message
+                                error_msg = get_error_message(status)
+                                
+                                # Use different display methods based on error type
+                                if status == "network_error":
+                                    st.warning(error_msg)
+                                    st.info("💡 **Cách khắc phục**: Kiểm tra wifi/4G → Thử lại sau 30 giây")
+                                elif status == "timeout_error":
+                                    st.warning(error_msg)
+                                    st.info("💡 **Cách khắc phục**: Chờ 10 giây → Thử lại → Kiểm tra tốc độ mạng")
+                                elif status in ["server_error", "access_blocked"]:
+                                    st.warning(error_msg)
+                                    st.info("💡 **Cách khắc phục**: Đợi 5-10 phút → Thử lại → Lỗi từ nhà cung cấp dịch vụ")
+                                else:
+                                    st.info(error_msg)
+                                
+                                print(f"🔍 TTS Debug: Failed to create audio for note {note_id} - {status}")
             with col2:
                 if st.button("💝 Thích", key=f"like_{note_id}", help="Tôi thích ghi chú này!"):
                     st.markdown("💕 Cảm ơn bạn đã thích kỷ niệm này!")
