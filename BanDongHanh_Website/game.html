@@ -1,52 +1,356 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Trò chơi tránh vật cản</title>
+  <title>🐝 Bee Bay Cùng Bạn - Nhanh Tay Lẹ Mắt</title>
   <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(135deg, #87CEEB, #98FB98, #FFE4B5);
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      min-height: 100vh;
+    }
+    
+    .game-container {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      display: inline-block;
+      margin: 10px;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      color: #2E8B57;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      margin: 10px 0;
+      animation: bounce 2s ease-in-out infinite;
+    }
+    
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-10px); }
+      60% { transform: translateY(-5px); }
+    }
+    
+    .instruction {
+      font-size: 1.5rem;
+      color: #4169E1;
+      margin: 15px 0;
+      font-weight: bold;
+      background: linear-gradient(135deg, #E6E6FA, #F0F8FF);
+      padding: 10px;
+      border-radius: 15px;
+      border: 3px solid #9370DB;
+    }
+    
+    .space-key {
+      display: inline-block;
+      background: #4169E1;
+      color: white;
+      padding: 8px 20px;
+      border-radius: 10px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin: 0 5px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    
     canvas {
-      border: 1px solid black;
+      border: 4px solid #FFD700;
+      border-radius: 15px;
       display: block;
-      margin: auto;
+      margin: 20px auto;
+      background: linear-gradient(to bottom, #87CEEB, #98FB98);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    
+    .score-display {
+      font-size: 1.8rem;
+      color: #2E8B57;
+      font-weight: bold;
+      margin: 10px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    .game-over {
+      background: rgba(255, 182, 193, 0.9);
+      padding: 20px;
+      border-radius: 15px;
+      margin: 20px;
+      border: 3px solid #FF69B4;
+    }
+    
+    .encouragement {
+      font-size: 1.6rem;
+      color: #FF1493;
+      font-weight: bold;
+      margin: 15px 0;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .button {
+      background: linear-gradient(135deg, #32CD32, #228B22);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      border-radius: 25px;
+      cursor: pointer;
+      margin: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      transition: transform 0.2s ease;
+    }
+    
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+    
+    .mode-selector {
+      margin: 20px 0;
+    }
+    
+    .mode-button {
+      background: linear-gradient(135deg, #FFB347, #FF8C69);
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 1.2rem;
+    }
+    
+    .mode-button.active {
+      background: linear-gradient(135deg, #32CD32, #228B22);
     }
   </style>
 </head>
 <body>
-  <h1 style="text-align: center;">Trò chơi Tránh Vật Cản</h1>
-  <p style="text-align: center;">Nhấn phím SPACE để nhảy và tránh vật cản!</p>
-  <canvas id="gameCanvas" width="480" height="320"></canvas>
+  <div class="game-container">
+    <h1>🐝 Bee Bay Cùng Bạn!</h1>
+    
+    <div class="instruction">
+      Nhấn phím <span class="space-key">SPACE</span> để giúp Bee nhảy qua chướng ngại vật! 🎈
+      <br>🐝⬆️ Hãy giúp Bee bay cao cao nhé! ✨
+    </div>
+    
+    <div class="mode-selector">
+      <button class="button mode-button active" onclick="setGameMode('easy')">🌟 Siêu Dễ</button>
+      <button class="button mode-button" onclick="setGameMode('normal')">⭐ Bình Thường</button>
+    </div>
+    
+    <div class="score-display">
+      <span id="currentScore">Điểm hiện tại: 0</span> | 
+      <span id="highScore">Điểm cao nhất: 0</span>
+    </div>
+    
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    
+    <div id="gameOverScreen" class="game-over" style="display: none;">
+      <div class="encouragement" id="encouragementMessage">Bạn đã cố gắng rất tốt! 🌟</div>
+      <button class="button" onclick="restartGame()">🔄 Cùng Bee thử lại nhé!</button>
+      <button class="button" onclick="speakEncouragement()" style="background: linear-gradient(135deg, #9370DB, #8A2BE2);">🔊 Đọc to</button>
+    </div>
+  </div>
 
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    let player = { x: 50, y: 150, width: 20, height: 20, gravity: 2, velocity: 0 };
+    // Game state
+    let gameMode = 'easy'; // 'easy' or 'normal'
+    let gameRunning = false;
+    let gameStarted = false;
+    let obstacleSpawnTimer;
+    let animationId;
+    
+    // Game settings based on mode
+    const gameSettings = {
+      easy: {
+        obstacleSpeed: 3,
+        spawnInterval: 2500,
+        gravity: 1.5,
+        jumpPower: -8
+      },
+      normal: {
+        obstacleSpeed: 5,
+        spawnInterval: 1500,
+        gravity: 2,
+        jumpPower: -10
+      }
+    };
+
+    // Game objects
+    let player = { 
+      x: 80, 
+      y: 200, 
+      width: 40, 
+      height: 40, 
+      gravity: gameSettings.easy.gravity, 
+      velocity: 0,
+      isJumping: false
+    };
     let obstacles = [];
     let score = 0;
-    let gameOver = false;
+    let highScore = localStorage.getItem('beeGameHighScore') || 0;
 
-    function drawPlayer() {
-      ctx.fillStyle = "blue";
-      ctx.fillRect(player.x, player.y, player.width, player.height);
+    // Encouraging messages
+    const encouragementMessages = [
+      "Bạn đã cố gắng rất tốt! 🌟",
+      "Tuyệt vời! Bee rất tự hào về bạn! 🐝✨", 
+      "Không sao đâu, cùng thử lại nhé! 💪",
+      "Bạn đang học hỏi và tiến bộ mỗi ngày! 🌈",
+      "Bee tin bạn sẽ làm được! 🌟",
+      "Mỗi lần thử là một bước tiến! 🎈"
+    ];
+
+    // Sound effects using Web Audio API
+    let audioContext;
+    
+    function initAudio() {
+      try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      } catch(e) {
+        console.log('Web Audio API not supported');
+      }
+    }
+
+    function playSound(frequency, duration, type = 'sine') {
+      if (!audioContext) return;
+      
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = type;
+      
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+      
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + duration);
+    }
+
+    // Text-to-Speech function
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'vi-VN';
+        utterance.rate = 0.8;
+        speechSynthesis.speak(utterance);
+      } else {
+        console.log('Text-to-Speech not supported');
+      }
+    }
+
+    function speakEncouragement() {
+      const message = document.getElementById('encouragementMessage').textContent;
+      speakText(message);
+    }
+
+    function updateScoreDisplay() {
+      document.getElementById('currentScore').textContent = `Điểm hiện tại: ${score}`;
+      document.getElementById('highScore').textContent = `Điểm cao nhất: ${highScore}`;
+    }
+
+    function setGameMode(mode) {
+      gameMode = mode;
+      player.gravity = gameSettings[mode].gravity;
+      
+      // Update button states
+      document.querySelectorAll('.mode-button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+    }
+
+    function drawBee() {
+      // Bee body (yellow circle)
+      ctx.fillStyle = "#FFD700";
+      ctx.beginPath();
+      ctx.arc(player.x + player.width/2, player.y + player.height/2, player.width/2, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Bee stripes
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(player.x + 8, player.y + 10, 4, 20);
+      ctx.fillRect(player.x + 16, player.y + 10, 4, 20);
+      ctx.fillRect(player.x + 24, player.y + 10, 4, 20);
+      
+      // Wings (animated flapping)
+      const wingOffset = Math.sin(Date.now() * 0.02) * 2;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+      ctx.fillRect(player.x - 5, player.y + 5 + wingOffset, 15, 8);
+      ctx.fillRect(player.x + player.width - 10, player.y + 5 - wingOffset, 15, 8);
+      
+      // Eyes
+      ctx.fillStyle = "#000000";
+      ctx.beginPath();
+      ctx.arc(player.x + 12, player.y + 12, 3, 0, 2 * Math.PI);
+      ctx.arc(player.x + 24, player.y + 12, 3, 0, 2 * Math.PI);
+      ctx.fill();
     }
 
     function drawObstacle(obstacle) {
-      ctx.fillStyle = "red";
-      ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+      // Draw balloon obstacles with different colors
+      const colors = ["#FF69B4", "#87CEEB", "#98FB98", "#FFB6C1", "#DDA0DD"];
+      const colorIndex = obstacle.colorIndex || 0;
+      
+      // Balloon
+      ctx.fillStyle = colors[colorIndex];
+      ctx.beginPath();
+      ctx.arc(obstacle.x + obstacle.width/2, obstacle.y + 15, 12, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Balloon string
+      ctx.strokeStyle = "#8B4513";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(obstacle.x + obstacle.width/2, obstacle.y + 27);
+      ctx.lineTo(obstacle.x + obstacle.width/2, obstacle.y + obstacle.height);
+      ctx.stroke();
+      
+      // Add emoji face on balloon
+      ctx.fillStyle = "#000000";
+      ctx.font = "12px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("😊", obstacle.x + obstacle.width/2, obstacle.y + 20);
     }
 
     function handlePlayerJump() {
-      player.velocity = -10; // Nhảy lên
+      if (!gameRunning && !gameStarted) {
+        startGame();
+        return;
+      }
+      
+      if (gameRunning && player.velocity >= 0) {
+        player.velocity = gameSettings[gameMode].jumpPower;
+        player.isJumping = true;
+        playSound(600, 0.1, 'square'); // Jump sound
+      }
     }
 
     function updatePlayer() {
       player.velocity += player.gravity;
       player.y += player.velocity;
 
-      // Giới hạn không cho rơi ra ngoài khung
-      if (player.y + player.height > canvas.height) {
-        player.y = canvas.height - player.height;
+      // Ground collision
+      if (player.y + player.height > canvas.height - 20) {
+        player.y = canvas.height - 20 - player.height;
         player.velocity = 0;
+        player.isJumping = false;
       }
+      
+      // Ceiling collision
       if (player.y < 0) {
         player.y = 0;
         player.velocity = 0;
@@ -54,76 +358,207 @@
     }
 
     function spawnObstacle() {
-      const obstacleHeight = Math.random() * 100 + 50;
+      if (!gameRunning) return;
+      
+      const obstacleHeight = Math.random() * 60 + 40;
       const obstacle = {
         x: canvas.width,
-        y: canvas.height - obstacleHeight,
-        width: 20,
+        y: canvas.height - 20 - obstacleHeight,
+        width: 25,
         height: obstacleHeight,
+        colorIndex: Math.floor(Math.random() * 5)
       };
       obstacles.push(obstacle);
     }
 
     function updateObstacles() {
+      const currentSpeed = gameSettings[gameMode].obstacleSpeed;
+      
       for (let i = obstacles.length - 1; i >= 0; i--) {
-        obstacles[i].x -= 5;
+        obstacles[i].x -= currentSpeed;
 
-        // Xóa vật cản nếu ra khỏi khung
+        // Remove obstacle and increase score
         if (obstacles[i].x + obstacles[i].width < 0) {
           obstacles.splice(i, 1);
           score++;
+          updateScoreDisplay();
+          playSound(800, 0.15, 'sine'); // Score sound
+          
+          // Milestone encouragement
+          if (score > 0 && score % 5 === 0) {
+            showMilestoneMessage();
+          }
         }
 
-        // Kiểm tra va chạm
-        if (
-          player.x < obstacles[i].x + obstacles[i].width &&
-          player.x + player.width > obstacles[i].x &&
-          player.y < obstacles[i].y + obstacles[i].height &&
-          player.y + player.height > obstacles[i].y
+        // Collision detection
+        if (obstacles[i] && 
+          player.x < obstacles[i].x + obstacles[i].width - 5 &&
+          player.x + player.width - 5 > obstacles[i].x &&
+          player.y < obstacles[i].y + obstacles[i].height - 5 &&
+          player.y + player.height - 5 > obstacles[i].y
         ) {
-          gameOver = true;
+          endGame();
+          break;
         }
       }
+    }
+
+    function showMilestoneMessage() {
+      // Create temporary milestone display
+      const milestone = document.createElement('div');
+      milestone.textContent = `Tuyệt vời! ${score} điểm! 🌟`;
+      milestone.style.cssText = `
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        background: rgba(255, 215, 0, 0.9); color: #2E8B57; padding: 15px 30px;
+        border-radius: 20px; font-size: 1.5rem; font-weight: bold;
+        z-index: 1000; animation: fadeInOut 2s ease-in-out forwards;
+      `;
+      
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes fadeInOut {
+          0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+          50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+          100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+      `;
+      
+      document.head.appendChild(style);
+      document.body.appendChild(milestone);
+      
+      setTimeout(() => {
+        document.body.removeChild(milestone);
+        document.head.removeChild(style);
+      }, 2000);
+    }
+
+    function drawBackground() {
+      // Sky gradient
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, "#87CEEB");
+      gradient.addColorStop(1, "#98FB98");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Clouds
+      ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+      ctx.beginPath();
+      ctx.arc(150 + Math.sin(Date.now() * 0.001) * 20, 60, 25, 0, 2 * Math.PI);
+      ctx.arc(400 + Math.sin(Date.now() * 0.0008) * 15, 80, 30, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Ground
+      ctx.fillStyle = "#90EE90";
+      ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
     }
 
     function drawScore() {
-      ctx.fillStyle = "black";
-      ctx.font = "20px Arial";
-      ctx.fillText(`Điểm: ${score}`, 10, 20);
+      ctx.fillStyle = "#2E8B57";
+      ctx.font = "bold 24px Comic Sans MS";
+      ctx.textAlign = "left";
+      ctx.fillText(`🏆 ${score}`, 20, 40);
+      
+      if (score > 0) {
+        ctx.fillStyle = "#FF6347";
+        ctx.font = "bold 18px Comic Sans MS";
+        ctx.fillText(`Cao nhất: ${highScore}`, 20, 65);
+      }
+    }
+
+    function endGame() {
+      gameRunning = false;
+      gameStarted = false;
+      
+      // Update high score
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('beeGameHighScore', highScore);
+        updateScoreDisplay();
+      }
+      
+      // Play game over sound
+      playSound(300, 0.5, 'sawtooth');
+      
+      // Clear timers
+      if (obstacleSpawnTimer) {
+        clearInterval(obstacleSpawnTimer);
+      }
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+      
+      // Show encouraging message
+      const randomMessage = encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
+      document.getElementById('encouragementMessage').textContent = randomMessage;
+      document.getElementById('gameOverScreen').style.display = 'block';
     }
 
     function gameLoop() {
-      if (gameOver) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "black";
-        ctx.font = "30px Arial";
-        ctx.fillText("Game Over!", canvas.width / 2 - 70, canvas.height / 2);
-        return;
-      }
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!gameRunning) return;
+      
+      drawBackground();
       updatePlayer();
       updateObstacles();
-
-      drawPlayer();
+      
+      drawBee();
       obstacles.forEach(drawObstacle);
       drawScore();
 
-      requestAnimationFrame(gameLoop);
+      animationId = requestAnimationFrame(gameLoop);
     }
 
     function startGame() {
-      setInterval(spawnObstacle, 1500); // Sinh vật cản mỗi 1.5 giây
+      gameRunning = true;
+      gameStarted = true;
+      score = 0;
+      obstacles = [];
+      player.y = 200;
+      player.velocity = 0;
+      
+      updateScoreDisplay();
+      document.getElementById('gameOverScreen').style.display = 'none';
+      
+      // Initialize audio on first user interaction
+      if (!audioContext) {
+        initAudio();
+      }
+      
+      // Start obstacle spawning
+      obstacleSpawnTimer = setInterval(spawnObstacle, gameSettings[gameMode].spawnInterval);
+      
       gameLoop();
     }
 
-    document.body.addEventListener("keydown", (e) => {
+    function restartGame() {
+      startGame();
+    }
+
+    // Event listeners
+    document.addEventListener("keydown", (e) => {
       if (e.code === "Space") {
+        e.preventDefault();
         handlePlayerJump();
       }
     });
 
-    startGame();
+    // Touch support for mobile
+    canvas.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      handlePlayerJump();
+    });
+
+    // Initialize display
+    updateScoreDisplay();
+    
+    // Initial game state - show instructions
+    drawBackground();
+    drawBee();
+    
+    // Draw "Press SPACE to start" message
+    ctx.fillStyle = "#4169E1";
+    ctx.font = "bold 20px Comic Sans MS";
+    ctx.textAlign = "center";
+    ctx.fillText("Nhấn SPACE để bắt đầu!", canvas.width/2, canvas.height/2 + 50);
   </script>
 </body>
 </html>
