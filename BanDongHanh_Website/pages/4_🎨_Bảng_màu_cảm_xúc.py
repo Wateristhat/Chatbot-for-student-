@@ -134,6 +134,11 @@ AVATAR_EMOJIS = ["🧚‍♀️", "🦄", "🌸", "⭐", "🎈", "🌙", "🦋",
 # --- HÀM TEXT-TO-SPEECH ---
 @st.cache_data
 def text_to_speech(text):
+    """Chuyển văn bản thành giọng nói."""
+    # Kiểm tra text đầu vào
+    if not text or not text.strip():
+        return None
+    
     try:
         audio_bytes = BytesIO()
         tts = gTTS(text=text, lang='vi', slow=False)
@@ -143,6 +148,22 @@ def text_to_speech(text):
     except Exception as e:
         st.error(f"Lỗi tạo âm thanh: {e}")
         return None
+
+# --- HÀM TẠO NÚT ĐỌC TO ---
+def create_tts_button(text, key_suffix, button_text="🔊 Đọc to"):
+    """Tạo nút đọc to cho văn bản."""
+    if st.button(button_text, key=f"tts_{key_suffix}", help="Nhấn để nghe nội dung"):
+        # Kiểm tra text trước khi tạo âm thanh
+        if not text or not text.strip():
+            st.warning("⚠️ Không có nội dung để đọc. Hãy thử lại sau nhé!")
+            return
+            
+        with st.spinner("Đang chuẩn bị âm thanh..."):
+            audio_data = text_to_speech(text)
+            if audio_data:
+                st.audio(audio_data, format="audio/mp3")
+            else:
+                st.warning("⚠️ Không thể tạo file âm thanh. Hãy thử lại sau nhé!")
 
 # --- GIAO DIỆN CHÍNH ---
 st.markdown('<div class="main-container">', unsafe_allow_html=True)
@@ -157,9 +178,14 @@ if 'current_message' not in st.session_state:
     st.session_state.current_avatar = random.choice(AVATAR_EMOJIS)
 
 # Thay đổi thông điệp mỗi 30 giây hoặc khi người dùng tương tác
-if st.button("🔄 Lời khuyến khích mới", key="new_encouragement"):
-    st.session_state.current_message = random.choice(ENCOURAGEMENT_MESSAGES)
-    st.session_state.current_avatar = random.choice(AVATAR_EMOJIS)
+enc_col1, enc_col2 = st.columns([5, 1])
+with enc_col1:
+    if st.button("🔄 Lời khuyến khích mới", key="new_encouragement"):
+        st.session_state.current_message = random.choice(ENCOURAGEMENT_MESSAGES)
+        st.session_state.current_avatar = random.choice(AVATAR_EMOJIS)
+
+with enc_col2:
+    create_tts_button(st.session_state.current_message, "encouragement", "🔊 Nghe động viên")
 
 st.markdown(f"""
 <div class="assistant-box">
@@ -181,11 +207,7 @@ with col1:
     st.write(instructions)
 
 with col2:
-    if st.button("🔊 Đọc to hướng dẫn", key="tts_instructions"):
-        with st.spinner("Đang chuẩn bị âm thanh..."):
-            audio_data = text_to_speech(instructions)
-            if audio_data:
-                st.audio(audio_data, format="audio/mp3")
+    create_tts_button(instructions, "instructions", "🔊 Đọc to hướng dẫn")
 
 st.write("---")
 
