@@ -32,26 +32,35 @@ ASSISTANT_AVATARS = ["🤖", "😊", "🌟", "💙", "🌸", "✨"]
 @st.cache_data
 def text_to_speech(text):
     """Chuyển văn bản thành giọng nói."""
+    # Kiểm tra text đầu vào
+    if not text or not text.strip():
+        return None
+    
     try:
         audio_bytes = BytesIO()
-        tts = gTTS(text=text, lang='vi', slow=False)
+        tts = gTTS(text=text.strip(), lang='vi', slow=False)
         tts.write_to_fp(audio_bytes)
         audio_bytes.seek(0)
         return audio_bytes.read()
     except Exception as e:
-        st.error(f"Lỗi tạo âm thanh: {e}")
+        # Không hiển thị lỗi đỏ, chỉ trả về None để xử lý nhẹ nhàng
         return None
 
 # --- HÀM TẠO NÚT ĐỌC TO ---
 def create_tts_button(text, key_suffix, button_text="🔊 Đọc to"):
     """Tạo nút đọc to cho văn bản."""
     if st.button(button_text, key=f"tts_{key_suffix}", help="Nhấn để nghe hướng dẫn"):
+        # Kiểm tra text đầu vào
+        if not text or not text.strip():
+            st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
+            return
+        
         with st.spinner("Đang chuẩn bị âm thanh..."):
             audio_data = text_to_speech(text)
             if audio_data:
                 st.audio(audio_data, format="audio/mp3")
             else:
-                st.warning("Không thể tạo file âm thanh.")
+                st.info("🎵 Hiện tại không thể tạo âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
 
 # --- CSS CHO GIAO DIỆN THÂN THIỆN ---
 st.markdown("""
