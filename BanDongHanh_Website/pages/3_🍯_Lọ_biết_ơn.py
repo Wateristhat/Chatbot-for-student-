@@ -58,19 +58,17 @@ def get_random_encouragement():
     return random.choice(ENCOURAGING_MESSAGES)
 
 def create_audio_file(text):
-    """Tạo file âm thanh từ văn bản với kiểm tra đầu vào."""
-    # Kiểm tra đầu vào text
+    # Kiểm tra text đầu vào
     if not text or not text.strip():
         return None
-    
     try:
         tts = gTTS(text=text.strip(), lang='vi', slow=False)
         with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
             tts.save(tmp_file.name)
             return tmp_file.name
-    except Exception as e:
-        st.error(f"Lỗi tạo file âm thanh: {e}")
-        return "error"  # Return "error" instead of None to distinguish from empty text
+    except Exception:
+        # Không hiển thị lỗi đỏ, chỉ trả về None
+        return None
 
 if 'selected_emotion' not in st.session_state:
     st.session_state.selected_emotion = None
@@ -314,16 +312,16 @@ with col2:
     if st.button("🔊 Đọc to", help="Nghe lời động viên"):
         with st.spinner("Đang tạo âm thanh..."):
             audio_file = create_audio_file(encouragement['message'])
-            if audio_file and audio_file != "error":
+            if audio_file:
                 try:
                     with open(audio_file, 'rb') as f:
                         audio_bytes = f.read()
                     st.audio(audio_bytes, format='audio/mp3', autoplay=True)
                     os.unlink(audio_file)
-                except Exception as e:
-                    st.error(f"Không thể phát âm thanh: {e}")
-            elif audio_file != "error":
-                st.warning("⚠️ Không có nội dung để đọc to.")
+                except Exception:
+                    st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
+            else:
+                st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
 
 st.markdown("""
 <div class="suggestion-box">
@@ -349,16 +347,16 @@ with col_guide2:
                         "Không cần hoàn hảo, chỉ cần chân thành từ trái tim.")
         with st.spinner("Đang tạo âm thanh..."):
             audio_file = create_audio_file(guidance_text)
-            if audio_file and audio_file != "error":
+            if audio_file:
                 try:
                     with open(audio_file, 'rb') as f:
                         audio_bytes = f.read()
                     st.audio(audio_bytes, format='audio/mp3', autoplay=True)
                     os.unlink(audio_file)
-                except Exception as e:
-                    st.error(f"Không thể phát âm thanh: {e}")
-            elif audio_file != "error":
-                st.warning("⚠️ Không có nội dung để đọc to.")
+                except Exception:
+                    st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
+            else:
+                st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
 
 current_suggestion = GRATITUDE_SUGGESTIONS[st.session_state.suggestion_index]
 st.markdown(f"""<div class="suggestion-box"><strong>💡 Gợi ý cho bạn:</strong><br>{current_suggestion}</div>""", unsafe_allow_html=True)
@@ -417,16 +415,16 @@ if gratitude_notes:
             with col1:
                 if st.button("🔊 Đọc to", key=f"tts_{note_id}", help="Nghe ghi chú này"):
                     audio_file = create_audio_file(note_content)
-                    if audio_file and audio_file != "error":
+                    if audio_file:
                         try:
                             with open(audio_file, 'rb') as f:
                                 audio_bytes = f.read()
                             st.audio(audio_bytes, format='audio/mp3', autoplay=True)
                             os.unlink(audio_file)
-                        except Exception as e:
-                            st.error(f"Không thể phát âm thanh: {e}")
-                    elif audio_file != "error":
-                        st.warning("⚠️ Không có nội dung để đọc to.")
+                        except Exception:
+                            st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
+                    else:
+                        st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
             with col2:
                 if st.button("💝 Thích", key=f"like_{note_id}", help="Tôi thích ghi chú này!"):
                     st.markdown("💕 Cảm ơn bạn đã thích kỷ niệm này!")
