@@ -301,9 +301,9 @@ else:
         {
             "icon": "fa-solid fa-heart",
             "color": "#9C27B0",
-            "title": "Góc An Yên - Hòa Nhập",
-            "desc": "Trợ lý ảo và hướng dẫn âm thanh cho học sinh hòa nhập.",
-            "page": "3_🫧_Góc_An_Yên.py"
+            "title": "Góc An Yên",
+            "desc": "Trợ lý ảo và hướng dẫn âm thanh cho các bài tập thư giãn.",
+            "page": "2_🫧_Góc_An_Yên.py"
         },
     ]
     st.markdown('<div class="menu-list">', unsafe_allow_html=True)

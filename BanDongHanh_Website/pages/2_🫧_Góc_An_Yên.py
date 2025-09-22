@@ -26,7 +26,7 @@ except ImportError:
     EDGE_TTS_AVAILABLE = False
 
 # --- CẤU HÌNH TRANG ---
-st.set_page_config(page_title="Góc An Yên - Dành cho học sinh hòa nhập", page_icon="🫧", layout="centered")
+st.set_page_config(page_title="Góc An Yên", page_icon="🫧", layout="centered")
 
 # --- CÁC THÔNG ĐIỆP ĐỘNG VIÊN NGẪU NHIÊN ---
 ENCOURAGEMENT_MESSAGES = [
@@ -428,7 +428,7 @@ def show_virtual_assistant():
         create_tts_button(st.session_state.current_message, "assistant_msg", "🔊 Nghe động viên")
 
 # --- GIAO DIỆN CHÍNH ---
-st.title("🫧 Góc An Yên - Dành cho học sinh hòa nhập")
+st.title("🫧 Góc An Yên")
 
 # Nút quay về trang chủ
 st.markdown("⬅️ [Quay về Trang chủ](../0_💖_Trang_chủ.py)")
@@ -440,7 +440,7 @@ st.write("---")
 
 # Mô tả thân thiện
 description_text = """
-Chào mừng đến với Góc An Yên đặc biệt dành cho các bạn học sinh! 
+Chào mừng đến với Góc An Yên! 
 Đây là không gian an toàn để bạn thư giãn, tìm lại sự bình yên và chăm sóc cảm xúc của mình.
 Chúng mình sẽ cùng nhau thực hành những bài tập đơn giản và hiệu quả nhé!
 """
@@ -559,7 +559,7 @@ with tab1:
         with col1:
             if st.button("💾 Lưu vào nhật ký", key="save_breathing", use_container_width=True):
                 if feeling_content.strip():
-                    add_mood_entry("Hơi Thở Nhiệm Màu - Hòa Nhập", feeling_content.strip())
+                    add_mood_entry("Hơi Thở Nhiệm Màu", feeling_content.strip())
                     st.success("✅ Đã lưu cảm nhận vào nhật ký!")
                     st.session_state.show_breathing_sharing = False
                     time.sleep(1)
@@ -635,7 +635,7 @@ with tab2:
         with col1:
             if st.button("💾 Lưu vào nhật ký", key="save_543", use_container_width=True):
                 if feeling_content.strip():
-                    add_mood_entry("Chạm Vào Hiện Tại (5-4-3-2-1) - Hòa Nhập", feeling_content.strip())
+                    add_mood_entry("Chạm Vào Hiện Tại (5-4-3-2-1)", feeling_content.strip())
                     st.success("✅ Đã lưu cảm nhận vào nhật ký!")
                     st.session_state.show_543_sharing = False
                     time.sleep(1)
@@ -734,7 +734,7 @@ with tab3:
         with col1:
             if st.button("💾 Lưu vào nhật ký", key="save_observation", use_container_width=True):
                 if feeling_content.strip():
-                    add_mood_entry("Ô Cửa Sổ Thần Kỳ - Hòa Nhập", feeling_content.strip())
+                    add_mood_entry("Ô Cửa Sổ Thần Kỳ", feeling_content.strip())
                     st.success("✅ Đã lưu cảm nhận vào nhật ký!")
                     st.session_state.show_observation_sharing = False
                     time.sleep(1)
@@ -749,9 +749,9 @@ with tab3:
 
 # --- PHẦN XEM LỊCH SỬ ---
 st.write("---")
-st.header("📖 Lịch Sử Góc An Yên - Hòa Nhập")
+st.header("📖 Lịch Sử Góc An Yên")
 
-history_description = "Xem lại những cảm nhận và trải nghiệm của bạn từ các bài tập trong Góc An Yên dành cho học sinh hòa nhập."
+history_description = "Xem lại những cảm nhận và trải nghiệm từ các bài tập trong Góc An Yên."
 st.markdown(f'<div class="inclusive-instruction">{history_description}</div>', unsafe_allow_html=True)
 create_tts_button(history_description, "history_desc")
 
@@ -761,22 +761,22 @@ if st.button("📖 Xem lịch sử của tôi", use_container_width=True):
 if st.session_state.get("show_history", False):
     st.markdown("### 💭 Các cảm nhận đã lưu:")
     
-    # Lấy entries từ phiên bản hòa nhập
+    # Lấy entries từ Góc An Yên
     all_entries = get_mood_entries()
-    inclusive_exercises = [
-        "Hơi Thở Nhiệm Màu - Hòa Nhập", 
-        "Chạm Vào Hiện Tại (5-4-3-2-1) - Hòa Nhập", 
-        "Ô Cửa Sổ Thần Kỳ - Hòa Nhập"
+    corner_exercises = [
+        "Hơi Thở Nhiệm Màu", 
+        "Chạm Vào Hiện Tại (5-4-3-2-1)", 
+        "Ô Cửa Sổ Thần Kỳ"
     ]
     
-    # Lọc entries từ phiên bản hòa nhập
-    inclusive_entries = [entry for entry in all_entries if entry["exercise_type"] in inclusive_exercises]
+    # Lọc entries từ Góc An Yên
+    corner_entries = [entry for entry in all_entries if entry["exercise_type"] in corner_exercises]
     
-    if inclusive_entries:
+    if corner_entries:
         # Sắp xếp theo thời gian mới nhất trước
-        inclusive_entries.sort(key=lambda x: x["timestamp"], reverse=True)
+        corner_entries.sort(key=lambda x: x["timestamp"], reverse=True)
         
-        for entry in inclusive_entries:
+        for entry in corner_entries:
             with st.container():
                 # Chọn emoji theo loại bài tập
                 if "Hơi Thở" in entry["exercise_type"]:
