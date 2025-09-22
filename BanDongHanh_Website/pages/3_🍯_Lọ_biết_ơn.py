@@ -70,7 +70,7 @@ def create_audio_file(text):
             return tmp_file.name
     except Exception as e:
         st.error(f"Lỗi tạo file âm thanh: {e}")
-        return None
+        return "error"  # Return "error" instead of None to distinguish from empty text
 
 if 'selected_emotion' not in st.session_state:
     st.session_state.selected_emotion = None
@@ -314,7 +314,7 @@ with col2:
     if st.button("🔊 Đọc to", help="Nghe lời động viên"):
         with st.spinner("Đang tạo âm thanh..."):
             audio_file = create_audio_file(encouragement['message'])
-            if audio_file:
+            if audio_file and audio_file != "error":
                 try:
                     with open(audio_file, 'rb') as f:
                         audio_bytes = f.read()
@@ -322,7 +322,7 @@ with col2:
                     os.unlink(audio_file)
                 except Exception as e:
                     st.error(f"Không thể phát âm thanh: {e}")
-            else:
+            elif audio_file != "error":
                 st.warning("⚠️ Không có nội dung để đọc to.")
 
 st.markdown("""
@@ -349,7 +349,7 @@ with col_guide2:
                         "Không cần hoàn hảo, chỉ cần chân thành từ trái tim.")
         with st.spinner("Đang tạo âm thanh..."):
             audio_file = create_audio_file(guidance_text)
-            if audio_file:
+            if audio_file and audio_file != "error":
                 try:
                     with open(audio_file, 'rb') as f:
                         audio_bytes = f.read()
@@ -357,7 +357,7 @@ with col_guide2:
                     os.unlink(audio_file)
                 except Exception as e:
                     st.error(f"Không thể phát âm thanh: {e}")
-            else:
+            elif audio_file != "error":
                 st.warning("⚠️ Không có nội dung để đọc to.")
 
 current_suggestion = GRATITUDE_SUGGESTIONS[st.session_state.suggestion_index]
@@ -417,7 +417,7 @@ if gratitude_notes:
             with col1:
                 if st.button("🔊 Đọc to", key=f"tts_{note_id}", help="Nghe ghi chú này"):
                     audio_file = create_audio_file(note_content)
-                    if audio_file:
+                    if audio_file and audio_file != "error":
                         try:
                             with open(audio_file, 'rb') as f:
                                 audio_bytes = f.read()
@@ -425,7 +425,7 @@ if gratitude_notes:
                             os.unlink(audio_file)
                         except Exception as e:
                             st.error(f"Không thể phát âm thanh: {e}")
-                    else:
+                    elif audio_file != "error":
                         st.warning("⚠️ Không có nội dung để đọc to.")
             with col2:
                 if st.button("💝 Thích", key=f"like_{note_id}", help="Tôi thích ghi chú này!"):
