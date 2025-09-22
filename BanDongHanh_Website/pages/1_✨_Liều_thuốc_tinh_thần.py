@@ -381,45 +381,89 @@ def play_encouragement_audio(message_data):
 def show_floating_effects():
     """Hiển thị hiệu ứng bong bóng bay và sao rơi"""
     if st.session_state.show_effects:
-        # JavaScript cho hiệu ứng
-        effects_html = """
+        # JavaScript cho hiệu ứng động
+        effects_html = f"""
         <script>
-        function createBubbles() {
-            for(let i = 0; i < 5; i++) {
-                setTimeout(() => {
+        function createBubbles() {{
+            for(let i = 0; i < 6; i++) {{
+                setTimeout(() => {{
                     const bubble = document.createElement('div');
-                    bubble.className = 'bubble';
+                    bubble.innerHTML = '{random.choice(["🫧", "💫", "✨", "🌟", "🎈", "💎"])}';
+                    bubble.style.position = 'fixed';
                     bubble.style.left = Math.random() * 100 + '%';
-                    bubble.style.width = (Math.random() * 20 + 10) + 'px';
-                    bubble.style.height = bubble.style.width;
-                    bubble.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 80%)`;
+                    bubble.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
+                    bubble.style.zIndex = '9999';
+                    bubble.style.pointerEvents = 'none';
+                    bubble.style.animation = 'bubble-float 4s ease-out forwards';
                     document.body.appendChild(bubble);
                     setTimeout(() => bubble.remove(), 4000);
-                }, i * 500);
-            }
-        }
+                }}, i * 300);
+            }}
+        }}
         
-        function createFallingStars() {
-            for(let i = 0; i < 3; i++) {
-                setTimeout(() => {
+        function createFallingStars() {{
+            for(let i = 0; i < 4; i++) {{
+                setTimeout(() => {{
                     const star = document.createElement('div');
-                    star.innerHTML = '⭐';
-                    star.className = 'falling-star';
+                    star.innerHTML = '{random.choice(["⭐", "🌟", "✨", "💫"])}';
+                    star.style.position = 'fixed';
                     star.style.left = Math.random() * 100 + '%';
+                    star.style.fontSize = '1.8rem';
+                    star.style.zIndex = '9999';
+                    star.style.pointerEvents = 'none';
+                    star.style.animation = 'star-fall 3s ease-in forwards';
                     document.body.appendChild(star);
                     setTimeout(() => star.remove(), 3000);
-                }, i * 800);
-            }
-        }
+                }}, i * 600);
+            }}
+        }}
         
-        if (window.showEffects) {
-            createBubbles();
-            createFallingStars();
-        }
+        function createFlyingBee() {{
+            const bee = document.createElement('div');
+            bee.innerHTML = '🐝';
+            bee.style.position = 'fixed';
+            bee.style.fontSize = '2rem';
+            bee.style.zIndex = '9999';
+            bee.style.pointerEvents = 'none';
+            bee.style.left = '-50px';
+            bee.style.top = Math.random() * 50 + 30 + '%';
+            bee.style.animation = 'bee-fly 8s linear forwards';
+            document.body.appendChild(bee);
+            setTimeout(() => bee.remove(), 8000);
+        }}
+        
+        // Thêm CSS animations nếu chưa có
+        if (!document.getElementById('magic-animations')) {{
+            const style = document.createElement('style');
+            style.id = 'magic-animations';
+            style.textContent = `
+                @keyframes bubble-float {{
+                    0% {{ transform: translateY(0) rotate(0deg) scale(1); opacity: 0.8; }}
+                    50% {{ transform: translateY(-50vh) rotate(180deg) scale(1.2); opacity: 1; }}
+                    100% {{ transform: translateY(-100vh) rotate(360deg) scale(0.8); opacity: 0; }}
+                }}
+                @keyframes star-fall {{
+                    0% {{ transform: translateY(-10px) translateX(0) rotate(0deg); opacity: 1; }}
+                    100% {{ transform: translateY(100vh) translateX(50px) rotate(360deg); opacity: 0; }}
+                }}
+                @keyframes bee-fly {{
+                    0% {{ transform: translateX(0) translateY(0) rotate(0deg); }}
+                    25% {{ transform: translateX(25vw) translateY(-20px) rotate(10deg); }}
+                    50% {{ transform: translateX(50vw) translateY(10px) rotate(-5deg); }}
+                    75% {{ transform: translateX(75vw) translateY(-15px) rotate(8deg); }}
+                    100% {{ transform: translateX(100vw) translateY(0) rotate(0deg); }}
+                }}
+            `;
+            document.head.appendChild(style);
+        }}
+        
+        // Chạy hiệu ứng
+        setTimeout(createBubbles, 500);
+        setTimeout(createFallingStars, 1000);
+        setTimeout(createFlyingBee, 1500);
         </script>
         """
         st.markdown(effects_html, unsafe_allow_html=True)
-        st.markdown('<script>window.showEffects = true;</script>', unsafe_allow_html=True)
 
 # --- HÀM XỬ LÝ ---
 def select_category(category_key):
@@ -521,7 +565,7 @@ def save_message_to_journal():
         st.error(f"❌ Có lỗi khi lưu thông điệp: {str(e)}")
 
 def show_journal_history():
-    """Hiển thị lịch sử nhật ký liều thuốc tinh thần"""
+    """Hiển thị lịch sử nhật ký liều thuốc tinh thần với thống kê cho giáo viên"""
     try:
         ensure_csv_exists()
         csv_path = get_csv_path()
@@ -534,12 +578,41 @@ def show_journal_history():
         if filtered_df.empty:
             st.info("📝 Chưa có thông điệp nào được lưu trong nhật ký.")
         else:
-            st.subheader("📖 Nhật Ký Liều Thuốc Tinh Thần")
+            st.markdown("### 📖 Nhật Ký Liều Thuốc Tinh Thần")
+            
+            # Thống kê cho giáo viên
+            st.markdown("#### 📊 Thống Kê Sử Dụng (Dành cho Giáo viên)")
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.metric("📈 Tổng lượt sử dụng", len(filtered_df))
+            
+            with col2:
+                # Phân tích loại động viên được dùng nhiều nhất
+                categories_used = []
+                for content in filtered_df["Nội dung"]:
+                    if "Ong Bee" in content or "Bướm xinh" in content or "Sao sáng" in content or "Cầu vồng" in content or "Kỳ lân" in content:
+                        categories_used.append("Cổ vũ")
+                    elif "Chim cánh cụt" in content or "Gấu koala" in content or "Hoa hướng dương" in content or "Khinh khí cầu" in content:
+                        categories_used.append("Vui vẻ") 
+                    elif "Bong bóng" in content or "Sóng biển" in content or "Lá cây" in content or "Trăng xinh" in content or "Ngọn nến" in content:
+                        categories_used.append("Bình yên")
+                        
+                most_used = max(set(categories_used), key=categories_used.count) if categories_used else "Chưa có"
+                st.metric("💫 Loại được ưa thích", most_used)
+            
+            with col3:
+                # Ngày sử dụng gần nhất
+                latest_date = filtered_df["Ngày giờ"].max() if not filtered_df.empty else "Chưa có"
+                st.metric("📅 Sử dụng gần nhất", latest_date[:10] if latest_date != "Chưa có" else "Chưa có")
+            
+            st.write("---")
             
             # Sắp xếp theo thời gian mới nhất
             filtered_df = filtered_df.sort_values("Ngày giờ", ascending=False)
             
-            # Hiển thị bảng
+            # Hiển thị bảng chi tiết
+            st.markdown("#### 📋 Chi Tiết Sử Dụng")
             st.dataframe(
                 filtered_df,
                 use_container_width=True,
@@ -560,7 +633,17 @@ def show_journal_history():
                 }
             )
             
-            st.info(f"📊 Tổng cộng: {len(filtered_df)} thông điệp đã lưu")
+            # Hướng dẫn cho giáo viên
+            st.markdown("""
+            ---
+            ### 👩‍🏫 Hướng Dẫn Cho Giáo Viên
+            - **Tần suất sử dụng cao**: Học sinh có thể đang cần nhiều hỗ trợ tinh thần
+            - **Loại "Cổ vũ"**: Học sinh cần động viên và khích lệ
+            - **Loại "Vui vẻ"**: Học sinh muốn giải tỏa căng thẳng
+            - **Loại "Bình yên"**: Học sinh cần hỗ trợ quản lý cảm xúc và stress
+            
+            💡 *Gợi ý: Nếu học sinh sử dụng nhiều một loại động viên, hãy trò chuyện riêng để hiểu thêm về tình hình của em.*
+            """)
             
     except Exception as e:
         st.error(f"❌ Có lỗi khi đọc nhật ký: {str(e)}")
