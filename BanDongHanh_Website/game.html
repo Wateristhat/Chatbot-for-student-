@@ -64,7 +64,14 @@
       display: block;
       margin: 20px auto;
       background: linear-gradient(to bottom, #87CEEB, #98FB98);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+      cursor: pointer;
+    }
+    
+    canvas:hover {
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      transform: translateY(-2px);
+      transition: all 0.3s ease;
     }
     
     .score-display {
@@ -129,6 +136,17 @@
     .mode-button.active {
       background: linear-gradient(135deg, #32CD32, #228B22);
     }
+    
+    .audio-controls {
+      margin: 15px 0;
+    }
+    
+    .audio-button {
+      background: linear-gradient(135deg, #27ae60, #2ecc71);
+      margin: 5px;
+      padding: 8px 16px;
+      font-size: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -145,6 +163,11 @@
       <button class="button mode-button" onclick="setGameMode('normal')">⭐ Bình Thường</button>
     </div>
     
+    <div class="audio-controls">
+      <button id="audioToggle" class="button audio-button" onclick="toggleAudio()">🔊 Âm thanh: Bật</button>
+      <button id="musicToggle" class="button audio-button" onclick="toggleBackgroundMusic()">🎵 Bật nhạc nền</button>
+    </div>
+    
     <div class="score-display">
       <span id="currentScore">Điểm hiện tại: 0</span> | 
       <span id="highScore">Điểm cao nhất: 0</span>
@@ -156,6 +179,11 @@
       <div class="encouragement" id="encouragementMessage">Bạn đã cố gắng rất tốt! 🌟</div>
       <button class="button" onclick="restartGame()">🔄 Cùng Bee thử lại nhé!</button>
       <button class="button" onclick="speakEncouragement()" style="background: linear-gradient(135deg, #9370DB, #8A2BE2);">🔊 Đọc to</button>
+    </div>
+    
+    <div class="debug-controls" style="margin-top: 10px; font-size: 0.9rem;">
+      <button class="button" onclick="toggleDebugMode()" style="background: linear-gradient(135deg, #34495e, #2c3e50); font-size: 0.8rem; padding: 5px 10px;">🐞 Debug</button>
+      <button class="button" onclick="exportGameLog()" style="background: linear-gradient(135deg, #16a085, #1abc9c); font-size: 0.8rem; padding: 5px 10px;">📄 Xuất Log</button>
     </div>
   </div>
 
@@ -210,34 +238,203 @@
       "Mỗi lần thử là một bước tiến! 🎈"
     ];
 
-    // Sound effects using Web Audio API
+    // Enhanced sound system with multiple fallbacks and background music
     let audioContext;
+    let audioEnabled = true;
+    let backgroundMusic = null;
+    let musicPlaying = false;
     
     function initAudio() {
       try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        console.log('✅ Web Audio API initialized successfully');
+        
+        // Resume audio context if suspended (required by modern browsers)
+        if (audioContext.state === 'suspended') {
+          audioContext.resume().then(() => {
+            console.log('✅ Audio context resumed');
+          });
+        }
+        
+        // Create background music
+        createBackgroundMusic();
       } catch(e) {
-        console.log('Web Audio API not supported');
+        console.warn('⚠️ Web Audio API not supported, using fallback audio');
+        audioContext = null;
       }
     }
 
-    function playSound(frequency, duration, type = 'sine') {
+    function createBackgroundMusic() {
       if (!audioContext) return;
       
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
+      try {
+        // Create a simple, pleasant background music loop
+        const createMusicLoop = () => {
+          if (!audioContext || !musicPlaying) return;
+          
+          const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88]; // C-major scale
+          const melodyPattern = [0, 2, 4, 2, 0, 2, 4, 5, 4, 2, 0];
+          
+          melodyPattern.forEach((noteIndex, i) => {
+            setTimeout(() => {
+              if (musicPlaying && audioContext) {
+                playMusicNote(notes[noteIndex], 0.5);
+              }
+            }, i * 800);
+          });
+          
+          // Loop the music
+          setTimeout(() => {
+            if (musicPlaying) {
+              createMusicLoop();
+            }
+          }, melodyPattern.length * 800);
+        };
+        
+        backgroundMusic = createMusicLoop;
+      } catch(e) {
+        console.warn('⚠️ Background music creation failed:', e);
+      }
+    }
+
+    function playMusicNote(frequency, duration) {
+      if (!audioContext || !musicPlaying) return;
       
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
+      try {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = frequency;
+        oscillator.type = 'sine';
+        
+        // Very soft volume for background music
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.02, audioContext.currentTime + 0.1);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+        
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + duration);
+      } catch(e) {
+        console.warn('⚠️ Music note playback failed:', e);
+      }
+    }
+
+    function toggleBackgroundMusic() {
+      if (!audioContext) {
+        initAudio();
+      }
       
-      oscillator.frequency.value = frequency;
-      oscillator.type = type;
+      musicPlaying = !musicPlaying;
+      const button = document.getElementById('musicToggle');
       
-      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+      if (musicPlaying) {
+        button.textContent = '🎵 Tắt nhạc nền';
+        button.style.background = 'linear-gradient(135deg, #FF6B6B, #4ECDC4)';
+        if (backgroundMusic) {
+          backgroundMusic();
+        }
+      } else {
+        button.textContent = '🎵 Bật nhạc nền';
+        button.style.background = 'linear-gradient(135deg, #95a5a6, #bdc3c7)';
+      }
+    }
+
+    function playSound(frequency, duration, type = 'sine', volume = 0.1) {
+      if (!audioEnabled) return;
       
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + duration);
+      // Try Web Audio API first
+      if (audioContext && audioContext.state !== 'suspended') {
+        try {
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.frequency.value = frequency;
+          oscillator.type = type;
+          
+          gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(volume, audioContext.currentTime + 0.01);
+          gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+          
+          oscillator.start();
+          oscillator.stop(audioContext.currentTime + duration);
+          return;
+        } catch(e) {
+          console.warn('⚠️ Web Audio playback failed, trying fallback:', e);
+        }
+      }
+      
+      // Fallback: HTML5 Audio with data URL (for simple sounds)
+      try {
+        // Generate a simple beep sound
+        const sampleRate = 8000;
+        const samples = duration * sampleRate;
+        const buffer = new ArrayBuffer(44 + samples * 2);
+        const view = new DataView(buffer);
+        
+        // WAV header
+        const writeString = (offset, string) => {
+          for (let i = 0; i < string.length; i++) {
+            view.setUint8(offset + i, string.charCodeAt(i));
+          }
+        };
+        
+        writeString(0, 'RIFF');
+        view.setUint32(4, 36 + samples * 2, true);
+        writeString(8, 'WAVE');
+        writeString(12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, 1, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * 2, true);
+        view.setUint16(32, 2, true);
+        view.setUint16(34, 16, true);
+        writeString(36, 'data');
+        view.setUint32(40, samples * 2, true);
+        
+        // Generate sound data
+        for (let i = 0; i < samples; i++) {
+          const sample = Math.sin(frequency * 2 * Math.PI * i / sampleRate) * volume * 32767;
+          view.setInt16(44 + i * 2, sample, true);
+        }
+        
+        const blob = new Blob([buffer], { type: 'audio/wav' });
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        
+        audio.volume = 0.3;
+        audio.play().catch(e => {
+          console.warn('⚠️ Fallback audio playback failed:', e);
+        });
+        
+        // Clean up
+        audio.onended = () => {
+          URL.revokeObjectURL(url);
+        };
+      } catch(e) {
+        console.warn('⚠️ All audio playback methods failed:', e);
+      }
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const button = document.getElementById('audioToggle');
+      
+      if (audioEnabled) {
+        button.textContent = '🔊 Âm thanh: Bật';
+        button.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+      } else {
+        button.textContent = '🔇 Âm thanh: Tắt';
+        button.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+        musicPlaying = false;
+        document.getElementById('musicToggle').textContent = '🎵 Bật nhạc nền';
+      }
     }
 
     // Text-to-Speech function
@@ -265,6 +462,7 @@
     function setGameMode(mode) {
       gameMode = mode;
       player.gravity = gameSettings[mode].gravity;
+      log(`Game mode changed to: ${mode}`, 'info');
       
       // Update button states
       document.querySelectorAll('.mode-button').forEach(btn => {
@@ -274,56 +472,113 @@
     }
 
     function drawBee() {
-      // Bee body (yellow circle)
-      ctx.fillStyle = "#FFD700";
+      // Bee body (bright yellow with gradient)
+      const gradient = ctx.createRadialGradient(
+        player.x + player.width/2, player.y + player.height/2, 5,
+        player.x + player.width/2, player.y + player.height/2, player.width/2
+      );
+      gradient.addColorStop(0, "#FFFF00");
+      gradient.addColorStop(1, "#FFD700");
+      
+      ctx.fillStyle = gradient;
       ctx.beginPath();
       ctx.arc(player.x + player.width/2, player.y + player.height/2, player.width/2, 0, 2 * Math.PI);
       ctx.fill();
       
-      // Bee stripes
+      // Enhanced bee stripes (thicker and more visible)
       ctx.fillStyle = "#000000";
-      ctx.fillRect(player.x + 8, player.y + 10, 4, 20);
-      ctx.fillRect(player.x + 16, player.y + 10, 4, 20);
-      ctx.fillRect(player.x + 24, player.y + 10, 4, 20);
+      ctx.fillRect(player.x + 6, player.y + 8, 6, 24);
+      ctx.fillRect(player.x + 16, player.y + 8, 6, 24);
+      ctx.fillRect(player.x + 28, player.y + 8, 6, 24);
       
-      // Wings (animated flapping)
-      const wingOffset = Math.sin(Date.now() * 0.02) * 2;
-      ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-      ctx.fillRect(player.x - 5, player.y + 5 + wingOffset, 15, 8);
-      ctx.fillRect(player.x + player.width - 10, player.y + 5 - wingOffset, 15, 8);
+      // Wings (more prominent with better animation)
+      const wingOffset = Math.sin(Date.now() * 0.03) * 3;
+      const wingGradient = ctx.createLinearGradient(player.x - 8, player.y, player.x + 20, player.y);
+      wingGradient.addColorStop(0, "rgba(255, 255, 255, 0.9)");
+      wingGradient.addColorStop(1, "rgba(240, 248, 255, 0.7)");
       
-      // Eyes
+      ctx.fillStyle = wingGradient;
+      ctx.fillRect(player.x - 8, player.y + 4 + wingOffset, 18, 10);
+      ctx.fillRect(player.x + player.width - 12, player.y + 4 - wingOffset, 18, 10);
+      
+      // Eyes (larger and more expressive)
+      ctx.fillStyle = "#FFFFFF";
+      ctx.beginPath();
+      ctx.arc(player.x + 12, player.y + 12, 5, 0, 2 * Math.PI);
+      ctx.arc(player.x + 28, player.y + 12, 5, 0, 2 * Math.PI);
+      ctx.fill();
+      
       ctx.fillStyle = "#000000";
       ctx.beginPath();
       ctx.arc(player.x + 12, player.y + 12, 3, 0, 2 * Math.PI);
-      ctx.arc(player.x + 24, player.y + 12, 3, 0, 2 * Math.PI);
+      ctx.arc(player.x + 28, player.y + 12, 3, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Eye shine
+      ctx.fillStyle = "#FFFFFF";
+      ctx.beginPath();
+      ctx.arc(player.x + 13, player.y + 11, 1, 0, 2 * Math.PI);
+      ctx.arc(player.x + 29, player.y + 11, 1, 0, 2 * Math.PI);
       ctx.fill();
     }
 
     function drawObstacle(obstacle) {
-      // Draw balloon obstacles with different colors
-      const colors = ["#FF69B4", "#87CEEB", "#98FB98", "#FFB6C1", "#DDA0DD"];
+      // Enhanced balloon obstacles with better contrast and shadows
+      const colors = [
+        "#FF1493", "#00BFFF", "#32CD32", "#FF6347", "#9932CC",
+        "#FF69B4", "#1E90FF", "#00FF7F", "#FF4500", "#8A2BE2"
+      ];
       const colorIndex = obstacle.colorIndex || 0;
       
-      // Balloon
-      ctx.fillStyle = colors[colorIndex];
+      // Drop shadow for better visibility
+      ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+      ctx.beginPath();
+      ctx.arc(obstacle.x + obstacle.width/2 + 2, obstacle.y + 17, 12, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Main balloon with gradient
+      const balloonGradient = ctx.createRadialGradient(
+        obstacle.x + obstacle.width/2 - 3, obstacle.y + 12, 2,
+        obstacle.x + obstacle.width/2, obstacle.y + 15, 12
+      );
+      balloonGradient.addColorStop(0, "#FFFFFF");
+      balloonGradient.addColorStop(0.3, colors[colorIndex]);
+      balloonGradient.addColorStop(1, colors[colorIndex]);
+      
+      ctx.fillStyle = balloonGradient;
       ctx.beginPath();
       ctx.arc(obstacle.x + obstacle.width/2, obstacle.y + 15, 12, 0, 2 * Math.PI);
       ctx.fill();
       
-      // Balloon string
-      ctx.strokeStyle = "#8B4513";
+      // Balloon outline for better definition
+      ctx.strokeStyle = "#333333";
       ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(obstacle.x + obstacle.width/2, obstacle.y + 15, 12, 0, 2 * Math.PI);
+      ctx.stroke();
+      
+      // Enhanced balloon string with better visibility
+      ctx.strokeStyle = "#4A4A4A";
+      ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(obstacle.x + obstacle.width/2, obstacle.y + 27);
       ctx.lineTo(obstacle.x + obstacle.width/2, obstacle.y + obstacle.height);
       ctx.stroke();
       
-      // Add emoji face on balloon
+      // Balloon reflection
+      ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+      ctx.beginPath();
+      ctx.arc(obstacle.x + obstacle.width/2 - 3, obstacle.y + 12, 4, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Enhanced emoji face on balloon with outline
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 1;
       ctx.fillStyle = "#000000";
-      ctx.font = "12px Arial";
+      ctx.font = "bold 14px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("😊", obstacle.x + obstacle.width/2, obstacle.y + 20);
+      ctx.strokeText("😊", obstacle.x + obstacle.width/2, obstacle.y + 21);
+      ctx.fillText("😊", obstacle.x + obstacle.width/2, obstacle.y + 21);
     }
 
     function handlePlayerJump() {
@@ -335,7 +590,7 @@
       if (gameRunning && player.velocity >= 0) {
         player.velocity = gameSettings[gameMode].jumpPower;
         player.isJumping = true;
-        playSound(600, 0.1, 'square'); // Jump sound
+        playSound(600, 0.15, 'square', 0.2); // Enhanced jump sound
       }
     }
 
@@ -382,7 +637,7 @@
           obstacles.splice(i, 1);
           score++;
           updateScoreDisplay();
-          playSound(800, 0.15, 'sine'); // Score sound
+          playSound(800, 0.2, 'sine', 0.15); // Enhanced score sound
           
           // Milestone encouragement
           if (score > 0 && score % 5 === 0) {
@@ -433,35 +688,97 @@
     }
 
     function drawBackground() {
-      // Sky gradient
+      // Enhanced sky gradient with better contrast
       const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      gradient.addColorStop(0, "#87CEEB");
+      gradient.addColorStop(0, "#4A90E2");
+      gradient.addColorStop(0.7, "#87CEEB");
       gradient.addColorStop(1, "#98FB98");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Clouds
-      ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-      ctx.beginPath();
-      ctx.arc(150 + Math.sin(Date.now() * 0.001) * 20, 60, 25, 0, 2 * Math.PI);
-      ctx.arc(400 + Math.sin(Date.now() * 0.0008) * 15, 80, 30, 0, 2 * Math.PI);
-      ctx.fill();
+      // Multiple animated clouds with better visibility
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.strokeStyle = "rgba(200, 200, 200, 0.5)";
+      ctx.lineWidth = 1;
       
-      // Ground
-      ctx.fillStyle = "#90EE90";
+      // Cloud 1
+      ctx.beginPath();
+      const cloud1X = 120 + Math.sin(Date.now() * 0.001) * 30;
+      ctx.arc(cloud1X, 50, 20, 0, 2 * Math.PI);
+      ctx.arc(cloud1X + 25, 50, 25, 0, 2 * Math.PI);
+      ctx.arc(cloud1X + 15, 35, 15, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Cloud 2
+      ctx.beginPath();
+      const cloud2X = 350 + Math.sin(Date.now() * 0.0008) * 25;
+      ctx.arc(cloud2X, 70, 18, 0, 2 * Math.PI);
+      ctx.arc(cloud2X + 30, 70, 22, 0, 2 * Math.PI);
+      ctx.arc(cloud2X + 20, 55, 18, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Cloud 3 (smaller)
+      ctx.beginPath();
+      const cloud3X = 480 + Math.sin(Date.now() * 0.0012) * 20;
+      ctx.arc(cloud3X, 45, 12, 0, 2 * Math.PI);
+      ctx.arc(cloud3X + 18, 45, 15, 0, 2 * Math.PI);
+      ctx.arc(cloud3X + 10, 35, 10, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Enhanced ground with texture
+      const groundGradient = ctx.createLinearGradient(0, canvas.height - 20, 0, canvas.height);
+      groundGradient.addColorStop(0, "#228B22");
+      groundGradient.addColorStop(1, "#006400");
+      ctx.fillStyle = groundGradient;
       ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+      
+      // Ground texture lines
+      ctx.strokeStyle = "rgba(0, 100, 0, 0.3)";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < canvas.width; i += 30) {
+        ctx.beginPath();
+        ctx.moveTo(i, canvas.height - 20);
+        ctx.lineTo(i + 15, canvas.height);
+        ctx.stroke();
+      }
     }
 
     function drawScore() {
+      // Enhanced score display with background and better contrast
+      ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+      ctx.fillRect(10, 10, 180, 70);
+      
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.fillRect(12, 12, 176, 66);
+      
+      // Current score
       ctx.fillStyle = "#2E8B57";
       ctx.font = "bold 24px Comic Sans MS";
       ctx.textAlign = "left";
       ctx.fillText(`🏆 ${score}`, 20, 40);
       
-      if (score > 0) {
+      // High score
+      if (score > 0 || highScore > 0) {
         ctx.fillStyle = "#FF6347";
-        ctx.font = "bold 18px Comic Sans MS";
-        ctx.fillText(`Cao nhất: ${highScore}`, 20, 65);
+        ctx.font = "bold 16px Comic Sans MS";
+        ctx.fillText(`🌟 Cao nhất: ${highScore}`, 20, 65);
+      }
+      
+      // Game mode indicator
+      ctx.fillStyle = "#4169E1";
+      ctx.font = "bold 14px Comic Sans MS";
+      ctx.textAlign = "right";
+      const modeText = gameMode === 'easy' ? '🌟 Siêu Dễ' : '⭐ Bình Thường';
+      ctx.fillText(modeText, canvas.width - 20, 40);
+      
+      // FPS counter (for debugging)
+      if (gameRunning && Date.now() % 1000 < 16) {
+        ctx.fillStyle = "#888888";
+        ctx.font = "10px Arial";
+        ctx.fillText(`FPS: ${Math.round(1000/16)}`, canvas.width - 70, 60);
       }
     }
 
@@ -469,15 +786,20 @@
       gameRunning = false;
       gameStarted = false;
       
+      log(`Game ended. Final score: ${score}, High score: ${Math.max(score, highScore)}`, 'info');
+      
       // Update high score
       if (score > highScore) {
         highScore = score;
         localStorage.setItem('beeGameHighScore', highScore);
         updateScoreDisplay();
+        log(`New high score achieved: ${highScore}!`, 'success');
       }
       
-      // Play game over sound
-      playSound(300, 0.5, 'sawtooth');
+      // Play game over sound with multiple tones
+      playSound(300, 0.3, 'sawtooth', 0.1);
+      setTimeout(() => playSound(250, 0.3, 'sawtooth', 0.08), 200);
+      setTimeout(() => playSound(200, 0.4, 'sawtooth', 0.06), 400);
       
       // Clear timers
       if (obstacleSpawnTimer) {
@@ -515,6 +837,8 @@
       player.y = 200;
       player.velocity = 0;
       
+      log(`Game started in ${gameMode} mode`, 'success');
+      
       updateScoreDisplay();
       document.getElementById('gameOverScreen').style.display = 'none';
       
@@ -547,18 +871,143 @@
       handlePlayerJump();
     });
 
+    // Enhanced debugging and logging system for teachers/developers
+    let debugMode = localStorage.getItem('beeGameDebug') === 'true';
+    let gameLog = [];
+    
+    function log(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = { timestamp, message, type };
+      gameLog.push(logEntry);
+      
+      // Keep only last 50 log entries
+      if (gameLog.length > 50) {
+        gameLog = gameLog.slice(-50);
+      }
+      
+      console.log(`[${timestamp}] ${type.toUpperCase()}: ${message}`);
+      
+      if (debugMode) {
+        const debugPanel = document.getElementById('debugPanel');
+        if (debugPanel) {
+          updateDebugPanel();
+        }
+      }
+    }
+    
+    function toggleDebugMode() {
+      debugMode = !debugMode;
+      localStorage.setItem('beeGameDebug', debugMode);
+      
+      if (debugMode) {
+        createDebugPanel();
+        log('Debug mode enabled', 'info');
+      } else {
+        removeDebugPanel();
+        log('Debug mode disabled', 'info');
+      }
+    }
+    
+    function createDebugPanel() {
+      let debugPanel = document.getElementById('debugPanel');
+      if (!debugPanel) {
+        debugPanel = document.createElement('div');
+        debugPanel.id = 'debugPanel';
+        debugPanel.style.cssText = `
+          position: fixed; top: 10px; right: 10px; width: 300px; height: 200px;
+          background: rgba(0, 0, 0, 0.8); color: white; padding: 10px;
+          border-radius: 10px; font-family: monospace; font-size: 12px;
+          overflow-y: auto; z-index: 1000; border: 2px solid #4169E1;
+        `;
+        
+        const header = document.createElement('div');
+        header.innerHTML = '<strong>🐞 Debug Panel</strong> <button onclick="toggleDebugMode()" style="float: right;">❌</button>';
+        debugPanel.appendChild(header);
+        
+        const logContainer = document.createElement('div');
+        logContainer.id = 'debugLog';
+        debugPanel.appendChild(logContainer);
+        
+        document.body.appendChild(debugPanel);
+      }
+      updateDebugPanel();
+    }
+    
+    function updateDebugPanel() {
+      const logContainer = document.getElementById('debugLog');
+      if (logContainer) {
+        logContainer.innerHTML = gameLog.slice(-10).map(entry => 
+          `<div style="margin: 2px 0; color: ${getLogColor(entry.type)}">[${entry.timestamp}] ${entry.message}</div>`
+        ).join('');
+        logContainer.scrollTop = logContainer.scrollHeight;
+      }
+    }
+    
+    function getLogColor(type) {
+      switch(type) {
+        case 'error': return '#ff6b6b';
+        case 'warning': return '#ffa726';
+        case 'success': return '#66bb6a';
+        default: return '#90caf9';
+      }
+    }
+    
+    function removeDebugPanel() {
+      const debugPanel = document.getElementById('debugPanel');
+      if (debugPanel) {
+        debugPanel.remove();
+      }
+    }
+    
+    function exportGameLog() {
+      const logData = JSON.stringify(gameLog, null, 2);
+      const blob = new Blob([logData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bee-game-log-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      log('Game log exported', 'success');
+    }
+
+    // Initialize logging
+    log('Game initialized', 'info');
+    log(`Browser: ${navigator.userAgent}`, 'info');
+    log(`Screen: ${screen.width}x${screen.height}`, 'info');
+    
+    // Debug hotkey (Ctrl + D)
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'd') {
+        e.preventDefault();
+        toggleDebugMode();
+      }
+    });
+    
     // Initialize display
     updateScoreDisplay();
     
-    // Initial game state - show instructions
+    // Initial game state - show enhanced instructions
     drawBackground();
     drawBee();
     
-    // Draw "Press SPACE to start" message
+    // Enhanced start message with better visibility
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.fillRect(canvas.width/2 - 150, canvas.height/2 - 40, 300, 80);
+    
+    ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+    ctx.fillRect(canvas.width/2 - 145, canvas.height/2 - 35, 290, 70);
+    
     ctx.fillStyle = "#4169E1";
-    ctx.font = "bold 20px Comic Sans MS";
+    ctx.font = "bold 22px Comic Sans MS";
     ctx.textAlign = "center";
-    ctx.fillText("Nhấn SPACE để bắt đầu!", canvas.width/2, canvas.height/2 + 50);
+    ctx.fillText("Nhấn SPACE để bắt đầu!", canvas.width/2, canvas.height/2 - 5);
+    
+    ctx.fillStyle = "#2E8B57";
+    ctx.font = "bold 16px Comic Sans MS";
+    ctx.fillText("Hoặc nhấn vào màn hình 📱", canvas.width/2, canvas.height/2 + 20);
   </script>
 </body>
 </html>
