@@ -1,407 +1,453 @@
 import streamlit as st
-from streamlit_drawable_canvas import st_canvas
-import json
-import random
-from gtts import gTTS
-from io import BytesIO
-import base64
 import sys
 import os
+import base64
+import io
 from datetime import datetime
-
-# Thêm đường dẫn để import database
+import tempfile
+from gtts import gTTS
+from io import BytesIO
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from database import add_artwork, get_artworks_by_date, get_artwork_data
+import database as db
+import html
+import time
+import random
 
-# --- CẤU HÌNH TRANG ---
-st.set_page_config(page_title="Bảng màu cảm xúc", page_icon="🎨", layout="wide")
-
-# --- KHỞI TẠO SESSION STATE ---
-if 'selected_emotion' not in st.session_state:
-    st.session_state.selected_emotion = ""
-if 'emotion_description' not in st.session_state:
-    st.session_state.emotion_description = ""
-
-# --- CSS TÙY CHỈNH CHO GIAO DIỆN THÂN THIỆN ---
-st.markdown("""
-<style>
-    .main-container {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        padding: 20px;
-        border-radius: 20px;
-        margin: 10px;
-    }
-    
-    .friendly-header {
-        font-size: 2.5rem;
-        color: #6a5acd;
-        text-align: center;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
-    }
-    
-    .assistant-box {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 15px;
-        margin: 15px 0;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    }
-    
-    .emotion-selector {
-        background: #fff;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        margin: 15px 0;
-    }
-    
-    .drawing-tools {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 15px;
-        margin: 15px 0;
-        border: 2px solid #e9ecef;
-    }
-    
-    .celebration {
-        animation: bounce 2s infinite;
-        text-align: center;
-        font-size: 2rem;
-    }
-    
-    @keyframes bounce {
-        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-        40% { transform: translateY(-30px); }
-        60% { transform: translateY(-15px); }
-    }
-    
-    .timeline-item {
-        background: white;
-        padding: 15px;
-        margin: 10px 0;
-        border-radius: 10px;
-        border-left: 5px solid #667eea;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .stButton > button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 25px;
-        font-size: 1.1rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-    
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# --- DANH SÁCH CẢM XÚC VÀ LỜI KHUYẾN KHÍCH ---
-EMOTIONS = {
-    "😊": "Vui vẻ",
-    "😢": "Buồn bã", 
-    "😠": "Tức giận",
-    "😰": "Lo lắng",
-    "😍": "Yêu thương",
-    "🤔": "Suy tư",
-    "😴": "Mệt mỏi",
-    "🥳": "Phấn khích",
-    "😔": "Thất vọng",
-    "🤗": "Ấm áp"
-}
-
-ENCOURAGEMENT_MESSAGES = [
-    "Hãy để cảm xúc của bạn trở thành những nét cọ tuyệt đẹp! 🎨",
-    "Mỗi màu sắc đều kể một câu chuyện riêng của bạn! 🌈",
-    "Không có gì sai cả, chỉ có những sáng tạo độc đáo! ✨",
-    "Hãy thể hiện bản thân một cách tự do nhất! 🦋",
-    "Tranh của bạn là duy nhất trên thế giới này! 💫",
-    "Cảm xúc là nguồn cảm hứng tuyệt vời nhất! 💝",
-    "Hãy tô màu cho tâm hồn của bạn! 🎭",
-    "Mỗi nét vẽ đều có giá trị đặc biệt! 🌟"
+GRATITUDE_SUGGESTIONS = [
+    "Hôm nay bạn đã nụ cười với ai? Điều gì khiến bạn cảm thấy vui vẻ?",
+    "Có món ăn nào ngon khiến bạn nhớ mãi không? Kể cho mình nghe nhé!",
+    "Bạn đã học được điều gì mới mẻ hôm nay? Dù là điều nhỏ nhất!",
+    "Ai là người đã giúp đỡ bạn gần đây? Bạn biết ơn họ điều gì?",
+    "Thiên nhiên có gì đẹp khiến bạn thích thú? Trời xanh, cây lá, hay tiếng chim hót?",
+    "Bạn đã làm được việc gì khiến bản thân tự hào? Dù nhỏ nhất cũng được!",
+    "Có khoảnh khắc nào hôm nay khiến bạn cảm thấy bình yên và hạnh phúc?",
+    "Điều gì trong ngôi nhà của bạn khiến bạn cảm thấy ấm áp và an toàn?"
 ]
 
-AVATAR_EMOJIS = ["🧚‍♀️", "🦄", "🌸", "⭐", "🎈", "🌙", "🦋", "🌻"]
+ASSISTANT_MESSAGES = [
+    "Chào bạn! Mình là Bee - bạn đồng hành nhỏ của bạn! 🐝✨",
+    "Hôm nay bạn có muốn chia sẻ điều gì đặc biệt không? 💫",
+    "Mỗi điều biết ơn nhỏ đều là kho báu quý giá lắm! 💎",
+    "Bạn làm rất tốt khi ghi lại những khoảnh khắc đẹp! 🌟",
+    "Cảm ơn bạn đã tin tương và chia sẻ với mình! 🤗"
+]
 
-# --- HÀM TEXT-TO-SPEECH ---
-@st.cache_data
-def text_to_speech(text):
+GRATITUDE_RESPONSES = [
+    "Thật tuyệt vời! Lời biết ơn của bạn đã được thêm vào lọ! 🌟",
+    "Cảm ơn bạn đã chia sẻ! Điều này sẽ làm sáng cả ngày của bạn! ✨", 
+    "Tuyệt quá! Bạn vừa tạo ra một kỷ niệm đẹp! 💝",
+    "Mình cảm thấy ấm lòng khi đọc lời biết ơn của bạn! 🤗",
+    "Bạn đã làm cho thế giới này tích cực hơn một chút! 🦋"
+]
+
+AVATAR_OPTIONS = ["🐝", "🦋", "🌟", "💫", "🌸", "🦄", "🧚‍♀️", "🌻"]
+AVATAR_NAMES = ["Ong Bee", "Bướm xinh", "Sao sáng", "Ánh sáng", "Hoa đào", "Kỳ lân", "Tiên nhỏ", "Hoa hướng dương"]
+
+ENCOURAGING_MESSAGES = [
+    {"avatar": "🌸", "message": "Thật tuyệt vời khi bạn dành thời gian để cảm ơn! Mỗi lời biết ơn là một hạt giống hạnh phúc được gieo vào trái tim bạn."},
+    {"avatar": "🌟", "message": "Hãy nhớ rằng, những điều nhỏ bé nhất cũng có thể mang lại niềm vui lớn. Bạn đã làm rất tốt rồi!"},
+    {"avatar": "💖","message": "Mỗi khi bạn viết lời biết ơn, bạn đang nuôi dưỡng một tâm hồn tích cực. Điều này thật đáng quý!"},
+    {"avatar": "🦋","message": "Biết ơn giống như ánh nắng ấm áp, nó không chỉ sưởi ấm trái tim bạn mà còn lan tỏa đến những người xung quanh."},
+    {"avatar": "🌈","message": "Bạn có biết không? Khi chúng ta biết ơn, não bộ sẽ tiết ra những hormone hạnh phúc. Bạn đang chăm sóc bản thân thật tốt!"},
+    {"avatar": "🌺","message": "Mỗi lời cảm ơn bạn viết ra đều là một món quà bạn tặng cho chính mình. Hãy tiếp tục nuôi dưỡng lòng biết ơn nhé!"},
+    {"avatar": "✨","message": "Đôi khi những điều đơn giản nhất lại mang đến hạnh phúc lớn nhất. Bạn đã nhận ra điều này rồi đấy!"},
+    {"avatar": "🍀","message": "Lòng biết ơn là chìa khóa mở ra cánh cửa hạnh phúc. Bạn đang trên đúng con đường rồi!"}
+]
+
+def get_random_encouragement():
+    return random.choice(ENCOURAGING_MESSAGES)
+
+def create_audio_file(text):
     # Kiểm tra text đầu vào
     if not text or not text.strip():
         return None
-    
     try:
-        audio_bytes = BytesIO()
         tts = gTTS(text=text.strip(), lang='vi', slow=False)
-        tts.write_to_fp(audio_bytes)
-        audio_bytes.seek(0)
-        return audio_bytes.read()
-    except Exception as e:
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
+            tts.save(tmp_file.name)
+            return tmp_file.name
+    except Exception:
         # Không hiển thị lỗi đỏ, chỉ trả về None
         return None
 
-# --- GIAO DIỆN CHÍNH ---
-st.markdown('<div class="main-container">', unsafe_allow_html=True)
-st.markdown('<h1 class="friendly-header">🎨 Bảng màu cảm xúc</h1>', unsafe_allow_html=True)
+if 'selected_emotion' not in st.session_state:
+    st.session_state.selected_emotion = None
+if 'suggestion_index' not in st.session_state:
+    st.session_state.suggestion_index = random.randint(0, 4)
+if 'selected_avatar' not in st.session_state:
+    st.session_state.selected_avatar = "🐝"
+if 'current_assistant_message' not in st.session_state:
+    st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
+if 'show_gratitude_response' not in st.session_state:
+    st.session_state.show_gratitude_response = False
 
-# Nút quay về trang chủ
-st.markdown("⬅️ [🏠 Quay về Trang chủ](../0_💖_Trang_chủ.py)")
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+.main-title,
+.assistant-message,
+.suggestion-box,
+.gratitude-input,
+.timeline-content,
+.timeline-date,
+.footer-message,
+.empty-state-message,
+.empty-state-subtitle,
+.emotion-selection,
+.timeline-count,
+.guidance-section h4,
+.guidance-section p {
+    font-family: 'Comic Neue', Arial, sans-serif !important;
+}
+.main-title {
+    font-size: 3rem;
+    text-align: center;
+    background: linear-gradient(45deg, #FFD700, #FFA500, #FF69B4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    font-weight: 700;
+}
+.assistant-box {
+    background: linear-gradient(135deg, #FFE4E1, #F0F8FF);
+    border: 3px solid #FFB6C1;
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    box-shadow: 0 4px 15px rgba(255, 182, 193, 0.3);
+    animation: gentle-pulse 3s ease-in-out infinite;
+}
+@keyframes gentle-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+.assistant-avatar {
+    font-size: 3rem;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    animation: bounce 2s ease-in-out infinite;
+}
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+.assistant-message {
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-align: center;
+    color: #4169E1;
+    line-height: 1.5;
+}
+.suggestion-box {
+    font-size: 1.2rem;
+    color: #4B0082;
+    background: linear-gradient(135deg, #E6E6FA, #F5F5DC);
+    border: 2px solid #9370DB;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(147, 112, 219, 0.2);
+    line-height: 1.6;
+}
+.gratitude-input {
+    font-size: 1.1rem;
+    border: 3px solid #DDA0DD;
+    border-radius: 15px;
+    padding: 1rem;
+}
+.timeline-item {
+    background: linear-gradient(135deg, #FFF8DC, #FFFACD);
+    border-left: 6px solid #FFD700;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+    transition: all 0.3s ease;
+}
+.timeline-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+}
+.timeline-content {
+    font-size: 1.2rem;
+    color: #8B4513;
+    margin-bottom: 0.8rem;
+    line-height: 1.6;
+}
+.timeline-date {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #CD853F;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.success-animation {
+    animation: rainbow 2s ease-in-out;
+}
+@keyframes rainbow {
+    0% { background: #ff0000; }
+    16.66% { background: #ff8000; }
+    33.33% { background: #ffff00; }
+    50% { background: #80ff00; }
+    66.66% { background: #00ffff; }
+    83.33% { background: #8000ff; }
+    100% { background: #ff0080; }
+}
+.stButton > button {
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-radius: 25px;
+    border: 3px solid #32CD32;
+    background: linear-gradient(45deg, #98FB98, #90EE90);
+    color: #006400;
+    padding: 0.8rem 2rem;
+    transition: all 0.3s ease;
+    font-family: 'Comic Neue', Arial, sans-serif !important;
+}
+.stButton > button:hover {
+    background: linear-gradient(45deg, #90EE90, #7FFFD4);
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(50, 205, 50, 0.3);
+}
+button:focus {
+    outline: 2px solid #4facfe;
+    outline-offset: 2px;
+}
+.timeline-item:focus-within {
+    outline: 2px solid #FFD700;
+    outline-offset: 2px;
+}
+.guidance-section {
+    background: linear-gradient(135deg, #F0F8FF, #E6E6FA);
+    border: 2px solid #9370DB;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    box-shadow: 0 3px 10px rgba(147, 112, 219, 0.2);
+}
+.guidance-section h4 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #4B0082;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+.guidance-section p {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #4B0082;
+    line-height: 1.6;
+    margin-bottom: 0.8rem;
+}
+.footer-message {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #8B4513;
+    line-height: 1.6;
+}
+.empty-state-message {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #9370DB;
+    line-height: 1.6;
+}
+.empty-state-subtitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #DDA0DD;
+    line-height: 1.5;
+}
+.emotion-selection {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #FF69B4;
+    line-height: 1.5;
+}
+.timeline-count {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #8B4513;
+    line-height: 1.5;
+}
+</style>
+""", unsafe_allow_html=True)
 
-# --- TRỢ LÝ ẢO ĐỘNG VIÊN ---
-if 'current_message' not in st.session_state:
-    st.session_state.current_message = random.choice(ENCOURAGEMENT_MESSAGES)
-    st.session_state.current_avatar = random.choice(AVATAR_EMOJIS)
+st.markdown('<h1 class="main-title">🍯 Lọ Biết Ơn Của Bạn</h1>', unsafe_allow_html=True)
+st.markdown("⬅️ [Quay về Trang chủ](../0_💖_Trang_chủ.py)")
 
-# Thay đổi thông điệp mỗi 30 giây hoặc khi người dùng tương tác
-if st.button("🔄 Lời khuyến khích mới", key="new_encouragement"):
-    st.session_state.current_message = random.choice(ENCOURAGEMENT_MESSAGES)
-    st.session_state.current_avatar = random.choice(AVATAR_EMOJIS)
+current_message = random.choice(ASSISTANT_MESSAGES)
+st.markdown(f"""<div class="assistant-box"><div class="assistant-avatar">🐝</div><div class="assistant-message">{current_message}</div></div>""", unsafe_allow_html=True)
 
-st.markdown(f"""
-<div class="assistant-box">
-    <h3>{st.session_state.current_avatar} Trợ lý nhỏ của bạn nói:</h3>
-    <p style="font-size: 1.2rem; font-style: italic;">"{st.session_state.current_message}"</p>
+st.markdown("### 💝 Hôm nay bạn cảm thấy thế nào?")
+emotion_cols = st.columns(5)
+emotions = ["😊", "😃", "🥰", "😌", "🤗"]
+emotion_names = ["Vui vẻ", "Hạnh phúc", "Yêu thương", "Bình yên", "Ấm áp"]
+
+for i, (col, emotion, name) in enumerate(zip(emotion_cols, emotions, emotion_names)):
+    with col:
+        if st.button(emotion, key=f"emotion_{i}", help=name):
+            st.session_state.selected_emotion = emotion
+            st.rerun()
+
+if st.session_state.selected_emotion:
+    st.markdown(f"<div class='emotion-selection' style='text-align: center; margin: 1rem 0;'>Bạn đang cảm thấy {st.session_state.selected_emotion} - Thật tuyệt vời!</div>", unsafe_allow_html=True)
+
+st.write("---")
+
+if 'current_encouragement' not in st.session_state:
+    st.session_state.current_encouragement = get_random_encouragement()
+encouragement = st.session_state.current_encouragement
+st.markdown(f"""<div class="assistant-box"><div class="assistant-avatar">{encouragement['avatar']}</div><div class="assistant-message">{encouragement['message']}</div></div>""", unsafe_allow_html=True)
+
+col1, col2 = st.columns([3, 1])
+with col1:
+    if st.button("🎲 Nhận lời động viên mới", help="Nhận một thông điệp động viên khác"):
+        st.session_state.current_encouragement = get_random_encouragement()
+        st.rerun()
+with col2:
+    if st.button("🔊 Đọc to", help="Nghe lời động viên"):
+        with st.spinner("Đang tạo âm thanh..."):
+            audio_file = create_audio_file(encouragement['message'])
+            if audio_file:
+                try:
+                    with open(audio_file, 'rb') as f:
+                        audio_bytes = f.read()
+                    st.audio(audio_bytes, format='audio/mp3', autoplay=True)
+                    os.unlink(audio_file)
+                except Exception:
+                    st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
+            else:
+                st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
+
+st.markdown("""
+<div class="suggestion-box">
+    <strong>💡 Gợi ý cho bạn:</strong><br>
+    Hôm nay có điều gì khiến bạn mỉm cười không?
+</div>
+""", unsafe_allow_html=True)
+st.markdown("""
+<div class="guidance-section">
+    <h4>💡 Hướng dẫn sử dụng Lọ Biết Ơn</h4>
+    <p>🌟 Hãy viết về những điều nhỏ bé mà bạn biết ơn hôm nay</p>
+    <p>💝 Có thể là nụ cười của bạn bè, bữa ăn ngon, hay cảm giác được yêu thương</p>
+    <p>🌈 Không cần hoàn hảo, chỉ cần chân thành từ trái tim</p>
 </div>
 """, unsafe_allow_html=True)
 
-# --- NÚT ĐỌC TO HƯỚNG DẪN ---
-col1, col2 = st.columns([3, 1])
-with col1:
-    st.markdown("### 📝 Hướng dẫn sử dụng")
-    instructions = """
-    Đây là không gian để bạn tự do thể hiện cảm xúc qua màu sắc và hình vẽ. 
-    Hãy chọn emoji cảm xúc phù hợp với tâm trạng hiện tại của bạn, 
-    sau đó để tay bạn di chuyển một cách tự nhiên trên bảng vẽ. 
-    Không cần phải vẽ đẹp hay có ý nghĩa gì cả - chỉ cần thể hiện cảm xúc thật của bạn.
-    """
-    st.write(instructions)
-
-with col2:
-    if st.button("🔊 Đọc to hướng dẫn", key="tts_instructions"):
-        with st.spinner("Đang chuẩn bị âm thanh..."):
-            audio_data = text_to_speech(instructions)
-            if audio_data:
-                st.audio(audio_data, format="audio/mp3")
-            else:
-                st.info("🎵 Hiện tại không thể tạo âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
-
-st.write("---")
-
-# --- CHỌN EMOJI CẢM XÚC ---
-st.markdown('<div class="emotion-selector">', unsafe_allow_html=True)
-st.markdown("### 💭 Cảm xúc của bạn hiện tại:")
-
-# Tạo lưới emoji
-emotion_cols = st.columns(5)
-selected_emotion = None
-
-for i, (emoji, description) in enumerate(EMOTIONS.items()):
-    col_index = i % 5
-    with emotion_cols[col_index]:
-        if st.button(f"{emoji}\n{description}", key=f"emotion_{emoji}", use_container_width=True):
-            st.session_state.selected_emotion = emoji
-            st.session_state.emotion_description = description
-
-# Hiển thị cảm xúc đã chọn
-selected_emotion = st.session_state.get("selected_emotion", "")
-emotion_description = st.session_state.get("emotion_description", "")
-
-if selected_emotion:
-    st.success(f"Cảm xúc đã chọn: {selected_emotion} {emotion_description}")
-else:
-    st.info("Hãy chọn một cảm xúc phù hợp với tâm trạng của bạn!")
-
-st.markdown('</div>', unsafe_allow_html=True)
-
-# --- KHU VỰC VẼ (CHỈ HIỆN KHI ĐÃ CHỌN CẢM XÚC) ---
-if selected_emotion:
-    st.write("---")
-    st.markdown('<div class="drawing-tools">', unsafe_allow_html=True)
-    st.markdown("### 🎨 Công cụ vẽ")
-    
-    # Công cụ vẽ với giao diện thân thiện hơn
-    tool_col1, tool_col2 = st.columns(2)
-    
-    with tool_col1:
-        st.markdown("#### 🖌️ Nét vẽ")
-        stroke_width = st.slider("Độ dày nét bút:", min_value=1, max_value=50, value=15, 
-                                help="Chọn độ dày phù hợp với cảm xúc của bạn")
-        
-        drawing_mode = st.selectbox(
-            "Kiểu vẽ:",
-            ("freedraw", "line", "rect", "circle"),
-            help="Chọn 'freedraw' để vẽ tự do",
-            format_func=lambda x: {
-                "freedraw": "🖍️ Vẽ tự do", 
-                "line": "📏 Đường thẳng",
-                "rect": "⬛ Hình chữ nhật", 
-                "circle": "⭕ Hình tròn"
-            }[x]
-        )
-    
-    with tool_col2:
-        st.markdown("#### 🎨 Màu sắc")
-        
-        # Màu sắc đề xuất theo cảm xúc
-        emotion_colors = {
-            "😊": "#FFD700",  # Vàng vui vẻ
-            "😢": "#4169E1",  # Xanh buồn
-            "😠": "#DC143C",  # Đỏ tức giận
-            "😰": "#808080",  # Xám lo lắng
-            "😍": "#FF69B4",  # Hồng yêu thương
-            "🤔": "#9370DB",  # Tím suy tư
-            "😴": "#2F4F4F",  # Xanh đậm mệt mỏi
-            "🥳": "#FF4500",  # Cam phấn khích
-            "😔": "#8B4513",  # Nâu thất vọng
-            "🤗": "#FFA500"   # Cam ấm áp
-        }
-        
-        suggested_color = emotion_colors.get(selected_emotion, "#FF5733")
-        emotion_desc = st.session_state.get("emotion_description", "")
-        stroke_color = st.color_picker("Màu bút:", suggested_color, 
-                                     help=f"Màu gợi ý cho cảm xúc {emotion_desc}")
-        
-        # Màu nền dịu mắt
-        bg_colors = {
-            "🌸 Hồng nhạt": "#FFF0F5",
-            "☁️ Trắng mây": "#F8F8FF", 
-            "🌿 Xanh nhạt": "#F0FFF0",
-            "🌅 Cam nhạt": "#FFF8DC",
-            "💜 Tím nhạt": "#F8F0FF"
-        }
-        
-        bg_name = st.selectbox("Màu nền:", list(bg_colors.keys()))
-        bg_color = bg_colors[bg_name]
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # --- KHUNG VẼ CANVAS ---
-    st.markdown("### 🖼️ Bảng vẽ cảm xúc")
-    st.write("Hãy để cảm xúc của bạn tự do bay bổng trên bảng vẽ này!")
-    
-    canvas_result = st_canvas(
-        fill_color="rgba(255, 165, 0, 0.3)",
-        stroke_width=stroke_width,
-        stroke_color=stroke_color,
-        background_color=bg_color,
-        height=600,  # Tăng chiều cao
-        drawing_mode=drawing_mode,
-        key="emotion_canvas",
-        display_toolbar=True,
-    )
-    
-    # --- NÚT LUU TÁC PHẨM ---
-    save_col1, save_col2 = st.columns([2, 1])
-    
-    with save_col1:
-        emotion_desc = st.session_state.get("emotion_description", "")
-        artwork_title = st.text_input("Đặt tên cho tác phẩm của bạn (tùy chọn):", 
-                                    placeholder=f"Tranh {emotion_desc} của tôi" if emotion_desc else "Tác phẩm của tôi")
-    
-    with save_col2:
-        if st.button("💾 Lưu tác phẩm", type="primary", use_container_width=True):
-            if canvas_result.json_data is not None:
+col_guide1, col_guide2 = st.columns([3, 1])
+with col_guide2:
+    if st.button("🔊 Đọc hướng dẫn", help="Nghe hướng dẫn sử dụng", key="guidance_tts"):
+        guidance_text = ("Hướng dẫn sử dụng Lọ Biết Ơn. "
+                        "Hãy viết về những điều nhỏ bé mà bạn biết ơn hôm nay. "
+                        "Có thể là nụ cười của bạn bè, bữa ăn ngon, hay cảm giác được yêu thương. "
+                        "Không cần hoàn hảo, chỉ cần chân thành từ trái tim.")
+        with st.spinner("Đang tạo âm thanh..."):
+            audio_file = create_audio_file(guidance_text)
+            if audio_file:
                 try:
-                    # Lưu dữ liệu canvas dưới dạng JSON string
-                    canvas_data = json.dumps(canvas_result.json_data)
-                    emotion_desc = st.session_state.get("emotion_description", "")
-                    title = artwork_title if artwork_title else f"Tranh {emotion_desc}" if emotion_desc else "Tác phẩm nghệ thuật"
-                    
-                    add_artwork(selected_emotion, canvas_data, title)
-                    
-                    # Hiệu ứng ăn mừng
-                    st.markdown('<div class="celebration">🎉 🌟 ✨ Tuyệt vời! ✨ 🌟 🎉</div>', 
-                              unsafe_allow_html=True)
-                    st.success(f"Đã lưu tác phẩm '{title}' với cảm xúc {selected_emotion}!")
-                    st.balloons()
-                    
-                    # Thông điệp khuyến khích
-                    emotion_desc = st.session_state.get("emotion_description", "")
-                    celebration_msg = f"Bạn đã hoàn thành một tác phẩm tuyệt vời"
-                    if emotion_desc:
-                        celebration_msg += f" thể hiện cảm xúc {emotion_desc}"
-                    celebration_msg += "! Mỗi nét vẽ đều có ý nghĩa và giá trị riêng. Hãy tiếp tục sáng tạo nhé! 🎨✨"
-                    
-                    st.info(celebration_msg)
-                    
-                except Exception as e:
-                    st.error(f"Lỗi khi lưu tác phẩm: {e}")
+                    with open(audio_file, 'rb') as f:
+                        audio_bytes = f.read()
+                    st.audio(audio_bytes, format='audio/mp3', autoplay=True)
+                    os.unlink(audio_file)
+                except Exception:
+                    st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
             else:
-                st.warning("Hãy vẽ gì đó trước khi lưu nhé!")
+                st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
 
-# --- TIMELINE HIỂN THỊ CÁC TÁC PHẨM ĐÃ LƯU ---
+current_suggestion = GRATITUDE_SUGGESTIONS[st.session_state.suggestion_index]
+st.markdown(f"""<div class="suggestion-box"><strong>💡 Gợi ý cho bạn:</strong><br>{current_suggestion}</div>""", unsafe_allow_html=True)
+
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    if st.button("🔄 Gợi ý khác", use_container_width=True):
+        st.session_state.suggestion_index = (st.session_state.suggestion_index + 1) % len(GRATITUDE_SUGGESTIONS)
+        st.rerun()
+
+st.markdown("### ✍️ Viết điều bạn biết ơn:")
+note_text = st.text_area(
+    "",
+    height=120,
+    key="gratitude_input",
+    placeholder="Hãy viết về điều làm bạn cảm thấy biết ơn... Mỗi từ đều có ý nghĩa! 💕",
+    label_visibility="collapsed"
+)
+
+if st.button("🌟 Thêm vào lọ biết ơn", type="primary", use_container_width=True):
+    if note_text:
+        db.add_gratitude_note(note_text)
+        success_stickers = ["🎉", "⭐", "🌟", "✨", "💫", "🎊", "🦋", "🌈", "🎁", "💝"]
+        selected_stickers = random.sample(success_stickers, 3)
+        st.markdown(f"""<div style="text-align: center; font-size: 3rem; margin: 1rem 0; animation: bounce 1s ease-in-out;">{''.join(selected_stickers)}</div>""", unsafe_allow_html=True)
+        st.success("🌱 Đã thêm một hạt mầm biết ơn vào lọ! Cảm ơn bạn đã chia sẻ!")
+        st.balloons()
+        time.sleep(2)
+        st.rerun()
+    else:
+        st.warning("💛 Bạn hãy viết gì đó để chia sẻ nhé! Mình đang chờ đây!")
+
 st.write("---")
-st.markdown("### 📚 Bộ sưu tập tranh cảm xúc của bạn")
 
-# Tabs cho các chế độ xem khác nhau
-tab1, tab2 = st.tabs(["📅 Theo ngày", "😊 Theo cảm xúc"])
+st.markdown("### 📖 Timeline - Những Kỷ Niệm Biết Ơn")
+gratitude_notes = db.get_gratitude_notes()
 
-with tab1:
-    st.markdown("Xem lại hành trình cảm xúc qua tranh vẽ theo từng ngày:")
-    artworks_by_date = get_artworks_by_date()
-    
-    if not artworks_by_date:
-        st.info("Bạn chưa có tác phẩm nào. Hãy vẽ tác phẩm đầu tiên của bạn! 🎨")
-    else:
-        for date, artworks in artworks_by_date.items():
-            with st.expander(f"📅 {date} ({len(artworks)} tác phẩm)"):
-                for artwork in artworks:
-                    st.markdown(f"""
-                    <div class="timeline-item">
-                        <strong>{artwork['emotion_emoji']} {artwork['title']}</strong><br>
-                        <small>⏰ {artwork['timestamp']}</small>
-                    </div>
-                    """, unsafe_allow_html=True)
+if gratitude_notes:
+    st.markdown(f"<div class='timeline-count' style='text-align: center; margin-bottom: 1.5rem;'>Bạn đã có <strong>{len(gratitude_notes)}</strong> kỷ niệm đẹp! 💎</div>", unsafe_allow_html=True)
+    for note_id, note_content, timestamp in gratitude_notes:
+        try:
+            dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+            formatted_date = dt.strftime("%d/%m/%Y lúc %H:%M")
+            day_name = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"][dt.weekday()]
+            full_date = f"{day_name}, {formatted_date}"
+        except:
+            full_date = timestamp
+        with st.container():
+            st.markdown(f"""
+            <div class="timeline-item">
+                <div class="timeline-content">{html.escape(note_content)}</div>
+                <div class="timeline-date">📅 {full_date}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            col1, col2, col3 = st.columns([2, 2, 1])
+            with col1:
+                if st.button("🔊 Đọc to", key=f"tts_{note_id}", help="Nghe ghi chú này"):
+                    audio_file = create_audio_file(note_content)
+                    if audio_file:
+                        try:
+                            with open(audio_file, 'rb') as f:
+                                audio_bytes = f.read()
+                            st.audio(audio_bytes, format='audio/mp3', autoplay=True)
+                            os.unlink(audio_file)
+                        except Exception:
+                            st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
+                    else:
+                        st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
+            with col2:
+                if st.button("💝 Thích", key=f"like_{note_id}", help="Tôi thích ghi chú này!"):
+                    st.markdown("💕 Cảm ơn bạn đã thích kỷ niệm này!")
+            with col3:
+                if st.button("🗑️", key=f"delete_{note_id}", help="Xóa ghi chú này"):
+                    db.delete_gratitude_note(note_id)
+                    st.success("🌸 Đã xóa ghi chú!")
+                    time.sleep(1)
+                    st.rerun()
+else:
+    st.markdown("""
+    <div style="text-align: center; padding: 3rem;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🍯</div>
+        <div class="empty-state-message">Chiếc lọ biết ơn của bạn đang chờ những điều tuyệt vời đầu tiên!</div>
+        <div class="empty-state-subtitle" style="margin-top: 1rem;">Hãy bắt đầu bằng việc chia sẻ một điều nhỏ nhất mà bạn biết ơn hôm nay ❤️</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-with tab2:
-    st.markdown("Xem tác phẩm được nhóm theo cảm xúc:")
-    
-    # Hiển thị theo từng loại cảm xúc
-    all_artworks = get_artworks_by_date()
-    emotion_groups = {}
-    
-    for date, artworks in all_artworks.items():
-        for artwork in artworks:
-            emotion = artwork['emotion_emoji']
-            if emotion not in emotion_groups:
-                emotion_groups[emotion] = []
-            emotion_groups[emotion].append(artwork)
-    
-    if not emotion_groups:
-        st.info("Bạn chưa có tác phẩm nào. Hãy thể hiện cảm xúc qua tranh vẽ! 😊")
-    else:
-        for emotion, artworks in emotion_groups.items():
-            emotion_name = EMOTIONS.get(emotion, "Cảm xúc khác")
-            with st.expander(f"{emotion} {emotion_name} ({len(artworks)} tác phẩm)"):
-                for artwork in artworks:
-                    col1, col2 = st.columns([3, 1])
-                    with col1:
-                        st.write(f"🎨 **{artwork['title']}**")
-                        st.caption(f"📅 {artwork['timestamp']}")
-                    with col2:
-                        if st.button("👁️ Xem", key=f"view_{artwork['id']}"):
-                            st.info("Tính năng xem lại tranh sẽ được cập nhật sớm!")
-
-# Kết thúc container chính
-st.markdown('</div>', unsafe_allow_html=True)
-
-# --- THÔNG BÁO HƯỚNG DẪN CÀI ĐẶT (GIỮ NGUYÊN) ---
-with st.expander("Gặp lỗi khi chạy trang này?"):
-    st.info(
-        """
-        **Lưu ý:** Lần đầu sử dụng, bạn cần cài đặt thư viện cho tính năng này.
-        Mở Terminal hoặc Command Prompt và chạy lệnh sau:
-        ```bash
-        pip install streamlit-drawable-canvas gtts
-        ```
-        Sau đó, hãy làm mới lại trang web.
-        """
-    )
+st.markdown("---")
+st.markdown("""
+<div class="footer-message" style="text-align: center; padding: 1rem;">
+    <strong>💫 Lời nhắn từ Bee:</strong><br>
+    "Mỗi ngày là một món quà, mỗi khoảnh khắc biết ơn là một viên ngọc quý. 
+    Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
+</div>
+""", unsafe_allow_html=True)
