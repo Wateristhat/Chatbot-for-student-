@@ -57,18 +57,53 @@ ENCOURAGING_MESSAGES = [
 def get_random_encouragement():
     return random.choice(ENCOURAGING_MESSAGES)
 
+def get_error_message(error_code):
+    """Trả về thông báo lỗi thân thiện cho học sinh"""
+    error_messages = {
+        "empty_text": "💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!",
+        "text_too_short": "💭 Nội dung quá ngắn để tạo âm thanh. Hãy thêm vài từ nữa nhé!",
+        "network_error": "🌐 Không thể kết nối để tạo âm thanh. Hãy kiểm tra kết nối mạng và thử lại nhé! 💫",
+        "timeout_error": "⏰ Kết nối hơi chậm. Hãy thử lại sau vài giây nữa nhé! ⭐",
+        "access_blocked": "🚫 Tính năng âm thanh tạm thời không khả dụng. Hãy thử lại sau hoặc dùng trình duyệt khác! 🌟",
+        "server_error": "🔧 Dịch vụ âm thanh đang bảo trì. Hãy thử lại sau 5-10 phút nhé! 🌈",
+    }
+    
+    # Xử lý lỗi có prefix
+    if error_code.startswith("unknown_error:"):
+        return "🎵 Có lỗi nhỏ khi tạo âm thanh. Bạn có thể đọc nội dung ở trên hoặc thử lại sau nhé! ✨"
+    
+    return error_messages.get(error_code, "🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé! 💕")
+
 def create_audio_file(text):
+    """Tạo file âm thanh với xử lý lỗi chi tiết"""
     # Kiểm tra text đầu vào
     if not text or not text.strip():
-        return None
+        return None, "empty_text"
+    
+    text = text.strip()
+    if len(text) < 2:
+        return None, "text_too_short"
+    
     try:
-        tts = gTTS(text=text.strip(), lang='vi', slow=False)
+        tts = gTTS(text=text, lang='vi', slow=False)
         with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
             tts.save(tmp_file.name)
-            return tmp_file.name
-    except Exception:
-        # Không hiển thị lỗi đỏ, chỉ trả về None
-        return None
+            return tmp_file.name, "success"
+    except Exception as e:
+        # Phân loại lỗi để đưa ra thông báo phù hợp
+        error_str = str(e).lower()
+        if "connection" in error_str or "network" in error_str or "failed to connect" in error_str:
+            return None, "network_error"
+        elif "timeout" in error_str:
+            return None, "timeout_error"  
+        elif "forbidden" in error_str or "403" in error_str:
+            return None, "access_blocked"
+        elif "503" in error_str or "502" in error_str or "500" in error_str:
+            return None, "server_error"
+        else:
+            # Log chi tiết cho developer
+            print(f"TTS Error: {e}")
+            return None, f"unknown_error: {str(e)}"
 
 if 'selected_emotion' not in st.session_state:
     st.session_state.selected_emotion = None
@@ -311,17 +346,20 @@ with col1:
 with col2:
     if st.button("🔊 Đọc to", help="Nghe lời động viên"):
         with st.spinner("Đang tạo âm thanh..."):
-            audio_file = create_audio_file(encouragement['message'])
-            if audio_file:
+            audio_file, result_code = create_audio_file(encouragement['message'])
+            if audio_file and result_code == "success":
                 try:
                     with open(audio_file, 'rb') as f:
                         audio_bytes = f.read()
                     st.audio(audio_bytes, format='audio/mp3', autoplay=True)
                     os.unlink(audio_file)
-                except Exception:
+                except Exception as e:
+                    print(f"Audio playback error: {e}")  # Log cho developer
                     st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
             else:
-                st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
+                # Hiển thị thông báo lỗi thân thiện
+                error_msg = get_error_message(result_code)
+                st.info(error_msg)
 
 st.markdown("""
 <div class="suggestion-box">
@@ -346,17 +384,20 @@ with col_guide2:
                         "Có thể là nụ cười của bạn bè, bữa ăn ngon, hay cảm giác được yêu thương. "
                         "Không cần hoàn hảo, chỉ cần chân thành từ trái tim.")
         with st.spinner("Đang tạo âm thanh..."):
-            audio_file = create_audio_file(guidance_text)
-            if audio_file:
+            audio_file, result_code = create_audio_file(guidance_text)
+            if audio_file and result_code == "success":
                 try:
                     with open(audio_file, 'rb') as f:
                         audio_bytes = f.read()
                     st.audio(audio_bytes, format='audio/mp3', autoplay=True)
                     os.unlink(audio_file)
-                except Exception:
+                except Exception as e:
+                    print(f"Audio playback error: {e}")  # Log cho developer
                     st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
             else:
-                st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
+                # Hiển thị thông báo lỗi thân thiện
+                error_msg = get_error_message(result_code)
+                st.info(error_msg)
 
 current_suggestion = GRATITUDE_SUGGESTIONS[st.session_state.suggestion_index]
 st.markdown(f"""<div class="suggestion-box"><strong>💡 Gợi ý cho bạn:</strong><br>{current_suggestion}</div>""", unsafe_allow_html=True)
@@ -414,17 +455,20 @@ if gratitude_notes:
             col1, col2, col3 = st.columns([2, 2, 1])
             with col1:
                 if st.button("🔊 Đọc to", key=f"tts_{note_id}", help="Nghe ghi chú này"):
-                    audio_file = create_audio_file(note_content)
-                    if audio_file:
+                    audio_file, result_code = create_audio_file(note_content)
+                    if audio_file and result_code == "success":
                         try:
                             with open(audio_file, 'rb') as f:
                                 audio_bytes = f.read()
                             st.audio(audio_bytes, format='audio/mp3', autoplay=True)
                             os.unlink(audio_file)
-                        except Exception:
+                        except Exception as e:
+                            print(f"Audio playback error: {e}")  # Log cho developer
                             st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
                     else:
-                        st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
+                        # Hiển thị thông báo lỗi thân thiện
+                        error_msg = get_error_message(result_code)
+                        st.info(error_msg)
             with col2:
                 if st.button("💝 Thích", key=f"like_{note_id}", help="Tôi thích ghi chú này!"):
                     st.markdown("💕 Cảm ơn bạn đã thích kỷ niệm này!")
