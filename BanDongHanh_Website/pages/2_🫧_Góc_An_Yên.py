@@ -46,6 +46,36 @@ ASSISTANT_AVATARS = ["🤖", "😊", "🌟", "💙", "🌸", "✨"]
 
 # --- HÀM TEXT-TO-SPEECH CẢI TIẾN ---
 
+def validate_text_input(text):
+    """
+    Kiểm tra và chuẩn hóa text input để tránh AttributeError
+    Returns: (is_valid: bool, cleaned_text: str, error_code: str)
+    """
+    # Kiểm tra text có phải None không
+    if text is None:
+        return False, "", "text_is_none"
+    
+    # Kiểm tra text có phải string không
+    if not isinstance(text, str):
+        # Log chi tiết cho dev
+        print(f"[TTS Error] Text input type error: {type(text).__name__} = {text}")
+        return False, "", "text_not_string"
+    
+    # Kiểm tra text có rỗng không sau khi strip
+    try:
+        cleaned_text = text.strip()
+        if not cleaned_text:
+            return False, "", "text_empty_after_strip"
+        
+        if len(cleaned_text) < 2:
+            return False, "", "text_too_short"
+            
+        return True, cleaned_text, "valid"
+    except Exception as e:
+        # Log chi tiết cho dev
+        print(f"[TTS Error] Unexpected error during text validation: {e}")
+        return False, "", "text_validation_error"
+
 def check_network_connectivity():
     """Kiểm tra kết nối mạng để sử dụng TTS online"""
     try:
@@ -61,13 +91,19 @@ def gtts_with_diagnostics(text):
     if not GTTS_AVAILABLE:
         return None, "gTTS không có sẵn trong hệ thống"
     
+    # Kiểm tra và validate text input trước
+    is_valid, cleaned_text, validation_error = validate_text_input(text)
+    if not is_valid:
+        print(f"[gTTS] Input validation failed: {validation_error}")
+        return None, validation_error
+    
     # Kiểm tra kết nối mạng trước
     if not check_network_connectivity():
         return None, "network_error"
     
     try:
         audio_bytes = BytesIO()
-        tts = gTTS(text=text.strip(), lang='vi', slow=False)
+        tts = gTTS(text=cleaned_text, lang='vi', slow=False)
         tts.write_to_fp(audio_bytes)
         audio_bytes.seek(0)
         audio_data = audio_bytes.read()
@@ -79,6 +115,7 @@ def gtts_with_diagnostics(text):
             
     except Exception as e:
         error_str = str(e).lower()
+        print(f"[gTTS] Exception occurred: {str(e)}")
         if "connection" in error_str or "network" in error_str:
             return None, "network_error"
         elif "timeout" in error_str:
@@ -140,23 +177,21 @@ def edge_tts_with_diagnostics(text, voice="vi-VN-HoaiMyNeural", rate=0):
 @st.cache_data
 def text_to_speech_enhanced(text):
     """Chuyển văn bản thành giọng nói với hệ thống chẩn đoán và fallback"""
-    # Kiểm tra text đầu vào
-    if not text or not text.strip():
-        return None, "empty_text"
-    
-    text = text.strip()
-    if len(text) < 2:
-        return None, "text_too_short"
+    # Kiểm tra và validate text đầu vào
+    is_valid, cleaned_text, validation_error = validate_text_input(text)
+    if not is_valid:
+        print(f"[TTS Enhanced] Input validation failed: {validation_error} for input: {repr(text)}")
+        return None, validation_error
     
     # Thử Edge TTS trước (không cần internet)
     if EDGE_TTS_AVAILABLE:
-        audio_data, error_code = edge_tts_with_diagnostics(text)
+        audio_data, error_code = edge_tts_with_diagnostics(cleaned_text)
         if audio_data:
             return audio_data, "success_edge_tts"
     
     # Fallback sang gTTS (cần internet)
     if GTTS_AVAILABLE:
-        audio_data, error_code = gtts_with_diagnostics(text)
+        audio_data, error_code = gtts_with_diagnostics(cleaned_text)
         if audio_data:
             return audio_data, "success_gtts"
         else:
@@ -167,8 +202,12 @@ def text_to_speech_enhanced(text):
 def get_error_message(error_code):
     """Trả về thông báo lỗi thân thiện cho user"""
     error_messages = {
-        "empty_text": "💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!",
+        "text_is_none": "💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!",
+        "text_not_string": "💭 Nội dung không hợp lệ. Vui lòng nhập văn bản để tạo âm thanh!",
+        "text_empty_after_strip": "💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!",
         "text_too_short": "💭 Nội dung quá ngắn để tạo âm thanh. Hãy thêm vài từ nữa nhé!",
+        "text_validation_error": "💭 Có lỗi khi xử lý văn bản. Hãy thử lại với nội dung khác!",
+        "empty_text": "💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!",
         "network_error": "🌐 Không thể kết nối internet để tạo âm thanh. Hãy kiểm tra kết nối mạng và thử lại sau nhé!",
         "timeout_error": "⏰ Kết nối quá chậm. Hãy thử lại sau vài giây hoặc kiểm tra tốc độ mạng!",
         "access_blocked": "🚫 Dịch vụ tạo âm thanh tạm thời bị chặn. Hãy thử lại sau hoặc dùng trình duyệt khác!",
@@ -193,8 +232,11 @@ def get_error_message(error_code):
 # --- HÀM TẠO NÚT ĐỌC TO CẢI TIẾN ---
 def create_tts_button_enhanced(text, key_suffix, button_text="🔊 Đọc to"):
     """Tạo nút đọc to với xử lý lỗi chi tiết và UX tối ưu"""
-    # Kiểm tra text trước khi hiện nút
-    if not text or not text.strip() or len(text.strip()) < 2:
+    # Kiểm tra và validate text trước khi hiện nút
+    is_valid, cleaned_text, validation_error = validate_text_input(text)
+    if not is_valid:
+        # Log chi tiết cho dev nhưng không hiển thị nút
+        print(f"[TTS Button] Not showing button due to invalid text: {validation_error} for input: {repr(text)}")
         # Không hiển thị nút nếu không có nội dung hợp lệ
         return
     
@@ -227,6 +269,11 @@ def create_tts_button_enhanced(text, key_suffix, button_text="🔊 Đọc to"):
                 elif "server" in result_code.lower():
                     st.warning(error_msg)
                     st.info("💡 **Cách khắc phục**: Đợi 10 phút → Thử lại → Lỗi từ nhà cung cấp dịch vụ")
+                elif result_code in ["text_is_none", "text_not_string", "text_empty_after_strip", "text_validation_error"]:
+                    # Lỗi kiểu dữ liệu - báo lỗi thân thiện cho user
+                    st.info(error_msg)
+                    # Log chi tiết cho dev
+                    print(f"[TTS Button] Data type error during playback - error: {result_code}, input: {repr(text)}")
                 else:
                     st.info(error_msg)
 
