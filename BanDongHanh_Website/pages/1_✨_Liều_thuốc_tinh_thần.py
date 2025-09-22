@@ -4,9 +4,24 @@ import pandas as pd
 from datetime import datetime
 import os
 import tempfile
+import subprocess
+import requests
 from gtts import gTTS
 from io import BytesIO
 import time
+
+# Check TTS availability
+try:
+    from gtts import gTTS
+    GTTS_AVAILABLE = True
+except ImportError:
+    GTTS_AVAILABLE = False
+
+try:
+    import edge_tts
+    EDGE_TTS_AVAILABLE = True
+except ImportError:
+    EDGE_TTS_AVAILABLE = False
 
 # --- PAGE CONFIG ---
 st.set_page_config(
@@ -338,44 +353,269 @@ if 'saved_encouragements' not in st.session_state:
 if 'show_effects' not in st.session_state:
     st.session_state.show_effects = False
 
-# --- TTS FUNCTIONS ---
-@st.cache_data
-def create_audio_with_tts(text):
-    """Tạo audio từ text bằng gTTS với xử lý lỗi nhẹ nhang"""
-    if not text or text.strip() == "":
-        return None
+# --- ENHANCED TTS FUNCTIONS ---
+
+def check_network_connectivity():
+    """Kiểm tra kết nối mạng để sử dụng TTS online"""
+    try:
+        response = requests.get("https://translate.google.com", timeout=3)
+        return response.status_code == 200
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        return False
+    except Exception:
+        return False
+
+def check_file_permissions():
+    """Kiểm tra quyền ghi file tạm thời"""
+    try:
+        # Thử tạo file tạm trong thư mục temp
+        with tempfile.NamedTemporaryFile(delete=True) as tmp_file:
+            tmp_file.write(b"test")
+            return True
+    except Exception:
+        return False
+
+def gtts_with_diagnostics(text):
+    """Tạo âm thanh bằng gTTS với chẩn đoán lỗi chi tiết và logging"""
+    if not GTTS_AVAILABLE:
+        print(f"[DEBUG - TTS] gTTS không có sẵn trong hệ thống")  # Log cho dev/admin
+        return None, "gtts_not_available"
+    
+    # Kiểm tra kết nối mạng trước
+    if not check_network_connectivity():
+        print(f"[DEBUG - TTS] Không thể kết nối internet")  # Log cho dev/admin
+        return None, "network_error"
+    
+    # Kiểm tra quyền ghi file
+    if not check_file_permissions():
+        print(f"[DEBUG - TTS] Không có quyền ghi file tạm thời")  # Log cho dev/admin
+        return None, "file_permission_error"
     
     try:
-        # Kiểm tra text có ký tự tiếng Việt không
-        cleaned_text = text.strip()
-        if len(cleaned_text) < 3:  # Text quá ngắn
-            return None
-            
-        tts = gTTS(text=cleaned_text, lang='vi', slow=False)
         audio_bytes = BytesIO()
+        tts = gTTS(text=text.strip(), lang='vi', slow=False)
         tts.write_to_fp(audio_bytes)
         audio_bytes.seek(0)
-        return audio_bytes.read()
+        audio_data = audio_bytes.read()
+        
+        if audio_data and len(audio_data) > 0:
+            print(f"[DEBUG - TTS] Tạo âm thanh thành công với gTTS, kích thước: {len(audio_data)} bytes")  # Log cho dev/admin
+            return audio_data, "success"
+        else:
+            print(f"[DEBUG - TTS] gTTS không tạo được dữ liệu âm thanh")  # Log cho dev/admin
+            return None, "no_audio_generated"
+            
     except Exception as e:
-        # Không hiển thị lỗi đỏ, chỉ thông báo nhẹ
-        st.info(f"🔇 Không thể tạo âm thanh lúc này. Hãy thử lại sau nhé!")
-        return None
+        error_str = str(e).lower()
+        print(f"[DEBUG - TTS] Lỗi gTTS: {str(e)}")  # Log chi tiết cho dev/admin
+        
+        if "connection" in error_str or "network" in error_str:
+            return None, "network_error"
+        elif "timeout" in error_str:
+            return None, "timeout_error"
+        elif "forbidden" in error_str or "403" in error_str:
+            return None, "access_blocked"
+        elif "503" in error_str or "502" in error_str or "500" in error_str:
+            return None, "server_error"
+        else:
+            return None, f"unknown_error: {str(e)}"
+
+def edge_tts_with_diagnostics(text, voice="vi-VN-HoaiMyNeural", rate=0):
+    """Tạo âm thanh bằng Edge TTS với chẩn đoán lỗi chi tiết"""
+    if not EDGE_TTS_AVAILABLE:
+        print(f"[DEBUG - TTS] Edge TTS không có sẵn trong hệ thống")  # Log cho dev/admin
+        return None, "edge_tts_not_available"
+    
+    try:
+        # Tạo file tạm thời
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
+            temp_path = temp_file.name
+        
+        # Tạo lệnh Edge TTS
+        rate_str = f"{'+' if rate >= 0 else ''}{rate}%"
+        cmd = [
+            "edge-tts",
+            "--voice", voice,
+            "--rate", rate_str,
+            "--text", text,
+            "--write-media", temp_path
+        ]
+        
+        print(f"[DEBUG - TTS] Chạy lệnh Edge TTS: {' '.join(cmd)}")  # Log cho dev/admin
+        
+        # Chạy lệnh
+        result = subprocess.run(cmd, check=True, capture_output=True, timeout=10)
+        
+        # Đọc dữ liệu âm thanh
+        if os.path.exists(temp_path) and os.path.getsize(temp_path) > 0:
+            with open(temp_path, 'rb') as f:
+                audio_data = f.read()
+            
+            # Xóa file tạm thời
+            try:
+                os.unlink(temp_path)
+            except:
+                pass
+            
+            print(f"[DEBUG - TTS] Tạo âm thanh thành công với Edge TTS, kích thước: {len(audio_data)} bytes")  # Log cho dev/admin
+            return audio_data, "success"
+        else:
+            print(f"[DEBUG - TTS] Edge TTS không tạo được file âm thanh")  # Log cho dev/admin
+            return None, "no_audio_file_generated"
+            
+    except subprocess.TimeoutExpired:
+        print(f"[DEBUG - TTS] Edge TTS timeout")  # Log cho dev/admin
+        return None, "edge_tts_timeout"
+    except subprocess.CalledProcessError as e:
+        print(f"[DEBUG - TTS] Edge TTS command error: {e.returncode}")  # Log cho dev/admin
+        return None, f"edge_tts_command_error: {e.returncode}"
+    except FileNotFoundError:
+        print(f"[DEBUG - TTS] Edge TTS chưa được cài đặt")  # Log cho dev/admin
+        return None, "edge_tts_not_installed"
+    except Exception as e:
+        print(f"[DEBUG - TTS] Lỗi Edge TTS: {str(e)}")  # Log cho dev/admin
+        return None, f"edge_tts_error: {str(e)}"
+
+@st.cache_data
+def create_audio_with_tts_enhanced(text):
+    """Chuyển văn bản thành giọng nói với hệ thống chẩn đoán và fallback"""
+    # Kiểm tra text đầu vào
+    if not text or not text.strip():
+        print(f"[DEBUG - TTS] Text rỗng hoặc chỉ có khoảng trắng")  # Log cho dev/admin
+        return None, "empty_text"
+    
+    text = text.strip()
+    if len(text) < 3:  # Tăng độ dài tối thiểu lên 3 cho tiếng Việt
+        print(f"[DEBUG - TTS] Text quá ngắn: '{text}' (độ dài: {len(text)})")  # Log cho dev/admin
+        return None, "text_too_short"
+    
+    print(f"[DEBUG - TTS] Bắt đầu tạo âm thanh cho text: '{text[:50]}{'...' if len(text) > 50 else ''}'")  # Log cho dev/admin
+    
+    # Thử Edge TTS trước (không cần internet)
+    if EDGE_TTS_AVAILABLE:
+        print(f"[DEBUG - TTS] Thử Edge TTS trước...")  # Log cho dev/admin
+        audio_data, error_code = edge_tts_with_diagnostics(text)
+        if audio_data:
+            return audio_data, "success_edge_tts"
+    
+    # Fallback sang gTTS (cần internet)
+    if GTTS_AVAILABLE:
+        print(f"[DEBUG - TTS] Fallback sang gTTS...")  # Log cho dev/admin
+        audio_data, error_code = gtts_with_diagnostics(text)
+        if audio_data:
+            return audio_data, "success_gtts"
+        else:
+            return None, error_code
+    
+    print(f"[DEBUG - TTS] Không có TTS engine nào khả dụng")  # Log cho dev/admin
+    return None, "no_tts_available"
+
+def get_error_message(error_code):
+    """Trả về thông báo lỗi thân thiện cho học sinh"""
+    error_messages = {
+        "empty_text": "💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!",
+        "text_too_short": "💭 Nội dung quá ngắn để tạo âm thanh. Hãy thêm vài từ nữa nhé!",
+        "network_error": "🌐 Không thể kết nối internet để tạo âm thanh. Hãy kiểm tra kết nối mạng và thử lại sau nhé!",
+        "timeout_error": "⏰ Kết nối quá chậm. Hãy thử lại sau vài giây hoặc kiểm tra tốc độ mạng!",
+        "access_blocked": "🚫 Dịch vụ tạo âm thanh tạm thời bị chặn. Hãy thử lại sau hoặc dùng trình duyệt khác!",
+        "server_error": "🔧 Máy chủ tạo âm thanh đang bảo trì. Hãy thử lại sau 5-10 phút nhé!",
+        "file_permission_error": "📁 Không thể tạo file âm thanh tạm thời. Hãy thử lại hoặc liên hệ hỗ trợ!",
+        "no_tts_available": "🔊 Tính năng đọc to hiện không khả dụng. Bạn có thể đọc nội dung ở trên nhé!",
+        "gtts_not_available": "🎵 Dịch vụ tạo âm thanh Google không khả dụng.",
+        "edge_tts_not_available": "🎵 Edge TTS không có sẵn",
+        "edge_tts_timeout": "⏰ Tạo âm thanh mất quá nhiều thời gian. Hãy thử lại!",
+        "edge_tts_not_installed": "🔧 Chưa cài đặt công cụ tạo giọng nói. Hãy liên hệ quản trị viên!",
+        "no_audio_generated": "❌ Không thể tạo âm thanh. Hãy thử lại với nội dung khác!",
+        "no_audio_file_generated": "❌ Không thể tạo file âm thanh. Hãy thử lại!",
+    }
+    
+    # Xử lý lỗi có prefix
+    if error_code.startswith("unknown_error:"):
+        return "🔍 Có lỗi không xác định xảy ra. Hãy thử lại sau hoặc liên hệ hỗ trợ!"
+    elif error_code.startswith("edge_tts_error:"):
+        return "🎵 Có lỗi khi tạo giọng nói. Hãy thử lại sau!"
+    elif error_code.startswith("edge_tts_command_error:"):
+        return "🔧 Lệnh tạo giọng nói gặp lỗi. Hãy thử lại hoặc khởi động lại ứng dụng!"
+    
+    return error_messages.get(error_code, f"🔊 Hiện tại không thể tạo âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
+
+# Giữ lại hàm cũ để tương thích ngược
+@st.cache_data
+def create_audio_with_tts(text):
+    """Hàm TTS cũ - chuyển sang phiên bản cải tiến"""
+    audio_data, result_code = create_audio_with_tts_enhanced(text)
+    return audio_data if audio_data else None
+
+# Hàm debug đơn giản cho server admin
+def tts_debug_test():
+    """Hàm test đơn giản để debug TTS cho server admin"""
+    test_text = "Xin chào, đây là bài test âm thanh tiếng Việt."
+    
+    st.markdown("### 🔧 TTS Debug Test (Dành cho Admin)")
+    st.info("Công cụ này giúp admin kiểm tra tình trạng TTS system")
+    
+    if st.button("🧪 Chạy test TTS"):
+        st.markdown("#### Thông tin hệ thống:")
+        st.write(f"- gTTS khả dụng: {GTTS_AVAILABLE}")
+        st.write(f"- Edge TTS khả dụng: {EDGE_TTS_AVAILABLE}")
+        st.write(f"- Kết nối mạng: {check_network_connectivity()}")
+        st.write(f"- Quyền ghi file: {check_file_permissions()}")
+        
+        st.markdown("#### Test tạo âm thanh:")
+        with st.spinner("Đang test..."):
+            audio_data, result_code = create_audio_with_tts_enhanced(test_text)
+            
+            if audio_data:
+                st.success(f"✅ Tạo âm thanh thành công! ({result_code})")
+                st.audio(audio_data, format="audio/mp3")
+            else:
+                st.error(f"❌ Lỗi: {result_code}")
+                st.info(get_error_message(result_code))
 
 def play_encouragement_audio(message_data):
-    """Phát âm thanh cho lời động viên"""
+    """Phát âm thanh cho lời động viên với xử lý lỗi chi tiết"""
     full_text = f"{message_data['name']} nói: {message_data['text']}"
     
     with st.spinner("🎵 Bee đang chuẩn bị âm thanh cho bạn..."):
-        audio_data = create_audio_with_tts(full_text)
-        if audio_data:
+        audio_data, result_code = create_audio_with_tts_enhanced(full_text)
+        
+        if audio_data and result_code.startswith("success"):
+            # Hiển thị thông tin thành công nhẹ nhàng
+            if "edge_tts" in result_code:
+                st.success("🎵 Đã tạo âm thanh bằng giọng nói tự nhiên!")
+            else:
+                st.success("🎵 Đã tạo âm thanh cho bạn!")
+            
+            # Phát âm thanh
             st.audio(audio_data, format="audio/mp3")
+            
             # Thêm hiệu ứng vui vẻ
             st.session_state.show_effects = True
             time.sleep(0.5)
             if random.random() < 0.7:  # 70% khả năng có hiệu ứng
                 st.balloons()
         else:
-            st.info("🤗 Âm thanh đang bận, nhưng Bee vẫn yêu bạn!")
+            # Hiển thị lỗi thân thiện với hướng dẫn khắc phục
+            error_msg = get_error_message(result_code)
+            
+            # Sử dụng st.info hoặc st.warning thay vì st.error để không làm học sinh sợ hãi
+            if "network" in result_code.lower():
+                st.warning(error_msg)
+                st.info("💡 **Gợi ý**: Kiểm tra kết nối WiFi/4G → Tải lại trang → Thử lại")
+            elif "timeout" in result_code.lower():
+                st.info(error_msg)  
+                st.info("💡 **Gợi ý**: Đợi 5 giây → Thử lại → Hoặc sử dụng mạng khác")
+            elif "blocked" in result_code.lower() or "403" in result_code:
+                st.info(error_msg)
+                st.info("💡 **Gợi ý**: Thử trình duyệt khác (Chrome/Firefox) → Tắt VPN → Thử lại")
+            elif "server" in result_code.lower():
+                st.info(error_msg)
+                st.info("💡 **Gợi ý**: Đợi 10 phút → Thử lại → Lỗi từ nhà cung cấp dịch vụ")
+            else:
+                st.info(error_msg)
+            
+            # Thêm thông điệp động viên khi gặp lỗi
+            st.info("🤗 Âm thanh đang bận, nhưng Bee vẫn yêu bạn! Bạn có thể đọc nội dung ở trên nhé!")
 
 # --- HIỆU ỨNG ANIMATIONS ---
 def show_floating_effects():
@@ -800,3 +1040,21 @@ if st.session_state.show_journal:
 # Reset hiệu ứng sau khi hiển thị
 if st.session_state.show_effects:
     st.session_state.show_effects = False
+
+# --- ADMIN DEBUG SECTION (Ẩn cho học sinh) ---
+if 'show_debug' not in st.session_state:
+    st.session_state.show_debug = False
+
+# Chỉ hiển thị debug khi admin muốn
+st.write("---")
+with st.expander("🔧 Khu vực Admin/Debug (Chỉ dành cho quản trị viên)", expanded=False):
+    st.markdown("""
+    **Lưu ý**: Khu vực này dành cho giáo viên và quản trị viên hệ thống để kiểm tra tình trạng TTS.
+    Học sinh có thể bỏ qua phần này.
+    """)
+    
+    if st.button("🧪 Hiển thị Debug Console", key="show_debug_btn"):
+        st.session_state.show_debug = not st.session_state.show_debug
+
+    if st.session_state.show_debug:
+        tts_debug_test()
