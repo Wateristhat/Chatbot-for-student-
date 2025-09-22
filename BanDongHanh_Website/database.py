@@ -209,5 +209,275 @@ def get_mood_entries(exercise_filter=None):
     
     return entries
 
+# ====== BỔ SUNG CHO GÓC NHỎ - QUẢN LÝ KẾ HOẠCH CÁ NHÂN ======
+def ensure_goc_nho_tables():
+    """Tạo các bảng cần thiết cho chức năng Góc nhỏ."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    # Bảng lưu trữ người dùng đơn giản (chỉ cần username)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        created_date DATE DEFAULT (DATE('now'))
+    )
+    """)
+    
+    # Bảng lưu trữ kế hoạch hàng ngày của từng user
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS daily_plans (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        plan_date DATE NOT NULL,
+        selected_actions TEXT NOT NULL,  -- JSON string of selected actions
+        completed_actions TEXT DEFAULT '[]',  -- JSON string of completed actions
+        created_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id),
+        UNIQUE(user_id, plan_date)
+    )
+    """)
+    
+    # Bảng lịch sử hành động (30 ngày)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS action_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        action_date DATE NOT NULL,
+        action_name TEXT NOT NULL,
+        completed_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id)
+    )
+    """)
+    
+    # Bảng thông báo/nhắc nhở
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS user_reminders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        reminder_date DATE NOT NULL,
+        reminder_type TEXT NOT NULL,  -- 'incomplete_plan', 'new_day', etc.
+        message TEXT NOT NULL,
+        is_shown BOOLEAN DEFAULT FALSE,
+        created_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id)
+    )
+    """)
+    
+    conn.commit()
+    conn.close()
+
+def get_or_create_user(username):
+    """Lấy hoặc tạo user mới, trả về user_id."""
+    if not username or not username.strip():
+        return None
+        
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    # Tìm user hiện tại
+    cursor.execute("SELECT id FROM users WHERE username = ?", (username.strip(),))
+    user = cursor.fetchone()
+    
+    if user:
+        user_id = user[0]
+    else:
+        # Tạo user mới
+        cursor.execute("INSERT INTO users (username) VALUES (?)", (username.strip(),))
+        user_id = cursor.lastrowid
+    
+    conn.commit()
+    conn.close()
+    return user_id
+
+def save_daily_plan(user_id, selected_actions, plan_date=None):
+    """Lưu kế hoạch hàng ngày của user."""
+    if plan_date is None:
+        from datetime import date
+        plan_date = date.today()
+    
+    import json
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    # Kiểm tra xem đã có plan cho ngày này chưa
+    cursor.execute(
+        "SELECT id, completed_actions FROM daily_plans WHERE user_id = ? AND plan_date = ?", 
+        (user_id, plan_date)
+    )
+    existing = cursor.fetchone()
+    
+    if existing:
+        # Cập nhật plan hiện tại (giữ lại completed_actions)
+        cursor.execute(
+            """UPDATE daily_plans 
+               SET selected_actions = ?, updated_timestamp = CURRENT_TIMESTAMP 
+               WHERE user_id = ? AND plan_date = ?""",
+            (json.dumps(selected_actions, ensure_ascii=False), user_id, plan_date)
+        )
+    else:
+        # Tạo plan mới
+        cursor.execute(
+            """INSERT INTO daily_plans (user_id, plan_date, selected_actions, completed_actions) 
+               VALUES (?, ?, ?, '[]')""",
+            (user_id, plan_date, json.dumps(selected_actions, ensure_ascii=False))
+        )
+    
+    conn.commit()
+    conn.close()
+
+def get_daily_plan(user_id, plan_date=None):
+    """Lấy kế hoạch hàng ngày của user."""
+    if plan_date is None:
+        from datetime import date
+        plan_date = date.today()
+    
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT selected_actions, completed_actions FROM daily_plans WHERE user_id = ? AND plan_date = ?",
+        (user_id, plan_date)
+    )
+    result = cursor.fetchone()
+    conn.close()
+    
+    if result:
+        import json
+        return {
+            'selected_actions': json.loads(result[0]) if result[0] else [],
+            'completed_actions': json.loads(result[1]) if result[1] else []
+        }
+    return {'selected_actions': [], 'completed_actions': []}
+
+def update_completed_actions(user_id, completed_actions, plan_date=None):
+    """Cập nhật danh sách hành động đã hoàn thành."""
+    if plan_date is None:
+        from datetime import date
+        plan_date = date.today()
+    
+    import json
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    cursor.execute(
+        """UPDATE daily_plans 
+           SET completed_actions = ?, updated_timestamp = CURRENT_TIMESTAMP 
+           WHERE user_id = ? AND plan_date = ?""",
+        (json.dumps(completed_actions, ensure_ascii=False), user_id, plan_date)
+    )
+    
+    # Thêm vào lịch sử hành động
+    for action in completed_actions:
+        cursor.execute(
+            "INSERT OR IGNORE INTO action_history (user_id, action_date, action_name) VALUES (?, ?, ?)",
+            (user_id, plan_date, action)
+        )
+    
+    conn.commit()
+    conn.close()
+
+def get_action_history(user_id, days=30):
+    """Lấy lịch sử hành động của user trong N ngày gần nhất."""
+    from datetime import date, timedelta
+    
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    start_date = date.today() - timedelta(days=days)
+    cursor.execute(
+        """SELECT action_date, action_name, completed_timestamp 
+           FROM action_history 
+           WHERE user_id = ? AND action_date >= ? 
+           ORDER BY action_date DESC, completed_timestamp DESC""",
+        (user_id, start_date)
+    )
+    
+    history = cursor.fetchall()
+    conn.close()
+    
+    return [{'date': row[0], 'action': row[1], 'timestamp': row[2]} for row in history]
+
+def create_reminder(user_id, reminder_type, message, reminder_date=None):
+    """Tạo nhắc nhở cho user."""
+    if reminder_date is None:
+        from datetime import date
+        reminder_date = date.today()
+    
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO user_reminders (user_id, reminder_date, reminder_type, message) VALUES (?, ?, ?, ?)",
+        (user_id, reminder_date, reminder_type, message)
+    )
+    conn.commit()
+    conn.close()
+
+def get_pending_reminders(user_id):
+    """Lấy các nhắc nhở chưa hiển thị của user."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        """SELECT id, reminder_type, message, reminder_date, created_timestamp 
+           FROM user_reminders 
+           WHERE user_id = ? AND is_shown = FALSE 
+           ORDER BY created_timestamp ASC""",
+        (user_id,)
+    )
+    
+    reminders = cursor.fetchall()
+    conn.close()
+    
+    return [{
+        'id': row[0],
+        'type': row[1], 
+        'message': row[2],
+        'date': row[3],
+        'timestamp': row[4]
+    } for row in reminders]
+
+def mark_reminder_shown(reminder_id):
+    """Đánh dấu nhắc nhở đã được hiển thị."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE user_reminders SET is_shown = TRUE WHERE id = ?", (reminder_id,))
+    conn.commit()
+    conn.close()
+
+def check_incomplete_plans():
+    """Kiểm tra các kế hoạch chưa hoàn thành và tạo nhắc nhở."""
+    from datetime import date, timedelta
+    import json
+    
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    yesterday = date.today() - timedelta(days=1)
+    cursor.execute(
+        """SELECT dp.user_id, u.username, dp.selected_actions, dp.completed_actions 
+           FROM daily_plans dp
+           JOIN users u ON dp.user_id = u.id
+           WHERE dp.plan_date = ?""",
+        (yesterday,)
+    )
+    
+    incomplete_users = []
+    for row in cursor.fetchall():
+        user_id, username, selected_str, completed_str = row
+        selected = json.loads(selected_str) if selected_str else []
+        completed = json.loads(completed_str) if completed_str else []
+        
+        if len(selected) > len(completed):  # Có kế hoạch chưa hoàn thành
+            incomplete_users.append((user_id, username, len(selected) - len(completed)))
+    
+    # Tạo nhắc nhở cho ngày hôm nay
+    today = date.today()
+    for user_id, username, incomplete_count in incomplete_users:
+        message = f"🐝 Bee nhắc {username} lên kế hoạch chăm sóc bản thân hôm nay nhé! Hôm qua bạn còn {incomplete_count} việc chưa hoàn thành."
+        create_reminder(user_id, 'incomplete_plan', message, today)
+    
+    conn.close()
+
 # --- KHỞI TẠO BAN ĐẦU ---
 create_tables()
+ensure_goc_nho_tables()
