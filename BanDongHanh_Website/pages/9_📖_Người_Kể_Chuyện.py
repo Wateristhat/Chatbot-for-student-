@@ -53,14 +53,18 @@ STORIES = load_stories()
 # --- CÁC HÀM HỖ TRỢ ---
 @st.cache_data
 def text_to_speech(text):
+    # Kiểm tra text đầu vào
+    if not text or not text.strip():
+        return None
+    
     try:
         audio_bytes = BytesIO()
-        tts = gTTS(text=text, lang='vi', slow=False)
+        tts = gTTS(text=text.strip(), lang='vi', slow=False)
         tts.write_to_fp(audio_bytes)
         audio_bytes.seek(0)
         return audio_bytes.read()
     except Exception as e:
-        st.error(f"Lỗi tạo âm thanh: {e}")
+        # Không hiển thị lỗi đỏ, chỉ trả về None
         return None
 
 # --- GIAO DIỆN CHÍNH ---
@@ -94,4 +98,4 @@ if selected_category:
                     if audio_data:
                         st.audio(audio_data, format="audio/mp3")
                     else:
-                        st.warning("Không thể tạo file âm thanh cho truyện này.")
+                        st.info("🎵 Hiện tại không thể tạo âm thanh cho truyện này. Bạn có thể đọc truyện ở trên nhé!")
