@@ -58,8 +58,13 @@ def get_random_encouragement():
     return random.choice(ENCOURAGING_MESSAGES)
 
 def create_audio_file(text):
+    """Tạo file âm thanh từ văn bản với kiểm tra đầu vào."""
+    # Kiểm tra đầu vào text
+    if not text or not text.strip():
+        return None
+    
     try:
-        tts = gTTS(text=text, lang='vi', slow=False)
+        tts = gTTS(text=text.strip(), lang='vi', slow=False)
         with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
             tts.save(tmp_file.name)
             return tmp_file.name
@@ -317,6 +322,8 @@ with col2:
                     os.unlink(audio_file)
                 except Exception as e:
                     st.error(f"Không thể phát âm thanh: {e}")
+            else:
+                st.warning("⚠️ Không có nội dung để đọc to.")
 
 st.markdown("""
 <div class="suggestion-box">
@@ -350,6 +357,8 @@ with col_guide2:
                     os.unlink(audio_file)
                 except Exception as e:
                     st.error(f"Không thể phát âm thanh: {e}")
+            else:
+                st.warning("⚠️ Không có nội dung để đọc to.")
 
 current_suggestion = GRATITUDE_SUGGESTIONS[st.session_state.suggestion_index]
 st.markdown(f"""<div class="suggestion-box"><strong>💡 Gợi ý cho bạn:</strong><br>{current_suggestion}</div>""", unsafe_allow_html=True)
@@ -416,6 +425,8 @@ if gratitude_notes:
                             os.unlink(audio_file)
                         except Exception as e:
                             st.error(f"Không thể phát âm thanh: {e}")
+                    else:
+                        st.warning("⚠️ Không có nội dung để đọc to.")
             with col2:
                 if st.button("💝 Thích", key=f"like_{note_id}", help="Tôi thích ghi chú này!"):
                     st.markdown("💕 Cảm ơn bạn đã thích kỷ niệm này!")
