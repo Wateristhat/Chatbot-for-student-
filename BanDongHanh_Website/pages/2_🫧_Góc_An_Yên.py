@@ -4,10 +4,26 @@ import random
 import pandas as pd
 import sys
 import os
+import tempfile
+import subprocess
+import requests
 from gtts import gTTS
 from io import BytesIO
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database import add_mood_entry, get_mood_entries
+
+# Check TTS availability
+try:
+    from gtts import gTTS
+    GTTS_AVAILABLE = True
+except ImportError:
+    GTTS_AVAILABLE = False
+
+try:
+    import edge_tts
+    EDGE_TTS_AVAILABLE = True
+except ImportError:
+    EDGE_TTS_AVAILABLE = False
 
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Góc An Yên - Dành cho học sinh hòa nhập", page_icon="🫧", layout="centered")
@@ -28,39 +44,203 @@ ENCOURAGEMENT_MESSAGES = [
 
 ASSISTANT_AVATARS = ["🤖", "😊", "🌟", "💙", "🌸", "✨"]
 
-# --- HÀM TEXT-TO-SPEECH ---
-@st.cache_data
-def text_to_speech(text):
-    """Chuyển văn bản thành giọng nói."""
-    # Kiểm tra text đầu vào
-    if not text or not text.strip():
-        return None
+# --- HÀM TEXT-TO-SPEECH CẢI TIẾN ---
+
+def check_network_connectivity():
+    """Kiểm tra kết nối mạng để sử dụng TTS online"""
+    try:
+        response = requests.get("https://translate.google.com", timeout=3)
+        return response.status_code == 200
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        return False
+    except Exception:
+        return False
+
+def gtts_with_diagnostics(text):
+    """Tạo âm thanh bằng gTTS với chẩn đoán lỗi chi tiết"""
+    if not GTTS_AVAILABLE:
+        return None, "gTTS không có sẵn trong hệ thống"
+    
+    # Kiểm tra kết nối mạng trước
+    if not check_network_connectivity():
+        return None, "network_error"
     
     try:
         audio_bytes = BytesIO()
         tts = gTTS(text=text.strip(), lang='vi', slow=False)
         tts.write_to_fp(audio_bytes)
         audio_bytes.seek(0)
-        return audio_bytes.read()
-    except Exception as e:
-        # Không hiển thị lỗi đỏ, chỉ trả về None để xử lý nhẹ nhàng
-        return None
-
-# --- HÀM TẠO NÚT ĐỌC TO ---
-def create_tts_button(text, key_suffix, button_text="🔊 Đọc to"):
-    """Tạo nút đọc to cho văn bản."""
-    if st.button(button_text, key=f"tts_{key_suffix}", help="Nhấn để nghe hướng dẫn"):
-        # Kiểm tra text đầu vào
-        if not text or not text.strip():
-            st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
-            return
+        audio_data = audio_bytes.read()
         
-        with st.spinner("Đang chuẩn bị âm thanh..."):
-            audio_data = text_to_speech(text)
-            if audio_data:
+        if audio_data and len(audio_data) > 0:
+            return audio_data, "success"
+        else:
+            return None, "no_audio_generated"
+            
+    except Exception as e:
+        error_str = str(e).lower()
+        if "connection" in error_str or "network" in error_str:
+            return None, "network_error"
+        elif "timeout" in error_str:
+            return None, "timeout_error"
+        elif "forbidden" in error_str or "403" in error_str:
+            return None, "access_blocked"
+        elif "503" in error_str or "502" in error_str or "500" in error_str:
+            return None, "server_error"
+        else:
+            return None, f"unknown_error: {str(e)}"
+
+def edge_tts_with_diagnostics(text, voice="vi-VN-HoaiMyNeural", rate=0):
+    """Tạo âm thanh bằng Edge TTS (offline/local)"""
+    if not EDGE_TTS_AVAILABLE:
+        return None, "edge_tts_not_available"
+    
+    try:
+        # Tạo file tạm thời
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
+            temp_path = temp_file.name
+        
+        # Tạo lệnh Edge TTS
+        rate_str = f"{'+' if rate >= 0 else ''}{rate}%"
+        cmd = [
+            "edge-tts",
+            "--voice", voice,
+            "--rate", rate_str,
+            "--text", text,
+            "--write-media", temp_path
+        ]
+        
+        # Chạy lệnh
+        result = subprocess.run(cmd, check=True, capture_output=True, timeout=10)
+        
+        # Đọc dữ liệu âm thanh
+        if os.path.exists(temp_path) and os.path.getsize(temp_path) > 0:
+            with open(temp_path, 'rb') as f:
+                audio_data = f.read()
+            
+            # Xóa file tạm thời
+            try:
+                os.unlink(temp_path)
+            except:
+                pass
+                
+            return audio_data, "success"
+        else:
+            return None, "no_audio_file_generated"
+            
+    except subprocess.TimeoutExpired:
+        return None, "edge_tts_timeout"
+    except subprocess.CalledProcessError as e:
+        return None, f"edge_tts_command_error: {e.returncode}"
+    except FileNotFoundError:
+        return None, "edge_tts_not_installed"
+    except Exception as e:
+        return None, f"edge_tts_error: {str(e)}"
+
+@st.cache_data
+def text_to_speech_enhanced(text):
+    """Chuyển văn bản thành giọng nói với hệ thống chẩn đoán và fallback"""
+    # Kiểm tra text đầu vào
+    if not text or not text.strip():
+        return None, "empty_text"
+    
+    text = text.strip()
+    if len(text) < 2:
+        return None, "text_too_short"
+    
+    # Thử Edge TTS trước (không cần internet)
+    if EDGE_TTS_AVAILABLE:
+        audio_data, error_code = edge_tts_with_diagnostics(text)
+        if audio_data:
+            return audio_data, "success_edge_tts"
+    
+    # Fallback sang gTTS (cần internet)
+    if GTTS_AVAILABLE:
+        audio_data, error_code = gtts_with_diagnostics(text)
+        if audio_data:
+            return audio_data, "success_gtts"
+        else:
+            return None, error_code
+    
+    return None, "no_tts_available"
+
+def get_error_message(error_code):
+    """Trả về thông báo lỗi thân thiện cho user"""
+    error_messages = {
+        "empty_text": "💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!",
+        "text_too_short": "💭 Nội dung quá ngắn để tạo âm thanh. Hãy thêm vài từ nữa nhé!",
+        "network_error": "🌐 Không thể kết nối internet để tạo âm thanh. Hãy kiểm tra kết nối mạng và thử lại sau nhé!",
+        "timeout_error": "⏰ Kết nối quá chậm. Hãy thử lại sau vài giây hoặc kiểm tra tốc độ mạng!",
+        "access_blocked": "🚫 Dịch vụ tạo âm thanh tạm thời bị chặn. Hãy thử lại sau hoặc dùng trình duyệt khác!",
+        "server_error": "🔧 Máy chủ tạo âm thanh đang bảo trì. Hãy thử lại sau 5-10 phút nhé!",
+        "no_tts_available": "🔊 Tính năng đọc to hiện không khả dụng. Bạn có thể đọc nội dung ở trên nhé!",
+        "edge_tts_not_available": "🎵 Edge TTS không có sẵn",
+        "edge_tts_timeout": "⏰ Tạo âm thanh mất quá nhiều thời gian. Hãy thử lại!",
+        "edge_tts_not_installed": "🔧 Chưa cài đặt công cụ tạo giọng nói. Hãy liên hệ quản trị viên!",
+        "no_audio_generated": "❌ Không thể tạo âm thanh. Hãy thử lại với nội dung khác!",
+    }
+    
+    # Xử lý lỗi có prefix
+    if error_code.startswith("unknown_error:"):
+        return "🔍 Có lỗi không xác định xảy ra. Hãy thử lại sau hoặc liên hệ hỗ trợ!"
+    elif error_code.startswith("edge_tts_error:"):
+        return "🎵 Có lỗi khi tạo giọng nói. Hãy thử lại sau!"
+    elif error_code.startswith("edge_tts_command_error:"):
+        return "🔧 Lệnh tạo giọng nói gặp lỗi. Hãy thử lại hoặc khởi động lại ứng dụng!"
+    
+    return error_messages.get(error_code, f"🔊 Hiện tại không thể tạo âm thanh ({error_code}). Bạn có thể đọc nội dung ở trên nhé!")
+
+# --- HÀM TẠO NÚT ĐỌC TO CẢI TIẾN ---
+def create_tts_button_enhanced(text, key_suffix, button_text="🔊 Đọc to"):
+    """Tạo nút đọc to với xử lý lỗi chi tiết và UX tối ưu"""
+    # Kiểm tra text trước khi hiện nút
+    if not text or not text.strip() or len(text.strip()) < 2:
+        # Không hiển thị nút nếu không có nội dung hợp lệ
+        return
+    
+    if st.button(button_text, key=f"tts_enhanced_{key_suffix}", help="Nhấn để nghe nội dung"):
+        with st.spinner("🎵 Đang tạo âm thanh..."):
+            audio_data, result_code = text_to_speech_enhanced(text)
+            
+            if audio_data and result_code.startswith("success"):
+                # Hiển thị thông tin thành công
+                if "edge_tts" in result_code:
+                    st.success("🎵 Đã tạo âm thanh bằng Edge TTS (giọng nói tự nhiên)")
+                else:
+                    st.success("🎵 Đã tạo âm thanh bằng Google TTS")
+                
+                # Phát âm thanh
                 st.audio(audio_data, format="audio/mp3")
             else:
-                st.info("🎵 Hiện tại không thể tạo âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
+                # Hiển thị lỗi cụ thể với hướng dẫn khắc phục
+                error_msg = get_error_message(result_code)
+                
+                if "network" in result_code.lower():
+                    st.error(error_msg)
+                    st.info("💡 **Cách khắc phục**: Kiểm tra kết nối WiFi/4G → Tải lại trang → Thử lại")
+                elif "timeout" in result_code.lower():
+                    st.warning(error_msg)  
+                    st.info("💡 **Cách khắc phục**: Đợi 5 giây → Thử lại → Hoặc sử dụng mạng khác")
+                elif "blocked" in result_code.lower() or "403" in result_code:
+                    st.warning(error_msg)
+                    st.info("💡 **Cách khắc phục**: Thử trình duyệt khác (Chrome/Firefox) → Tắt VPN → Thử lại")
+                elif "server" in result_code.lower():
+                    st.warning(error_msg)
+                    st.info("💡 **Cách khắc phục**: Đợi 10 phút → Thử lại → Lỗi từ nhà cung cấp dịch vụ")
+                else:
+                    st.info(error_msg)
+
+# Giữ lại hàm cũ để tương thích ngược (alias)
+def create_tts_button(text, key_suffix, button_text="🔊 Đọc to"):
+    """Alias cho hàm TTS cũ - chuyển sang phiên bản cải tiến"""
+    create_tts_button_enhanced(text, key_suffix, button_text)
+
+# Giữ lại hàm TTS cũ để tương thích
+@st.cache_data  
+def text_to_speech(text):
+    """Hàm TTS cũ - chuyển sang phiên bản cải tiến"""
+    audio_data, result_code = text_to_speech_enhanced(text)
+    return audio_data if audio_data else None
 
 # --- CSS CHO GIAO DIỆN THÂN THIỆN ---
 st.markdown("""

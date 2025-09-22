@@ -6,3 +6,4 @@ streamlit-drawable-canvas
 google-cloud-texttospeech
 google-cloud-aiplatform
 bcrypt
+edge-tts
