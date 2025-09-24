@@ -20,7 +20,7 @@ RO_ACTIONS = [
     {"text": "Mỉm cười với chính mình trong gương", "icon": "😊"},
 ]
 
-# --- Loại trùng, GIỮ THỨ TỰ ---
+# --- LOẠI TRÙNG LẶP GIỮ NGUYÊN THỨ TỰ ---
 unique_ro_actions = []
 seen = set()
 for act in RO_ACTIONS:
@@ -29,52 +29,23 @@ for act in RO_ACTIONS:
         unique_ro_actions.append(act)
         seen.add(key)
 
-st.markdown("""
-<style>
-.goc-nho-assist-box {background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
-    border-radius: 28px; box-shadow: 0 4px 24px rgba(124,77,255,.10);
-    padding: 2.2rem 2.3rem 1.3rem 2.3rem; margin-bottom:2rem; margin-top:1rem;
-    text-align: center; border: 3px solid #e1bee7;}
-.goc-nho-assist-icon {font-size:2.4rem; margin-bottom:0.7rem;}
-.goc-nho-assist-text {font-size:1.25rem; font-weight:700; color:#6d28d9;}
-.goc-nho-assist-btn-row {display:flex; justify-content: center; gap: 32px; margin-top:1.05rem;}
-.goc-nho-assist-action-btn {
-    background: #fff; border: 2.5px solid #e1bee7; border-radius: 15px;
-    font-size:1.13rem; font-weight:600; color:#6d28d9;
-    padding: 0.8rem 1.3rem; cursor:pointer; box-shadow:0 2px 8px rgba(124,77,255,.10); transition:all 0.17s;}
-.goc-nho-assist-action-btn:hover {background:#f3e8ff;}
-.goc-nho-title {font-size:1.45rem; font-weight:700; color:#7c4dff; text-align:center; margin-bottom:1.1rem;}
-.goc-nho-btn {background:#fff; border:2.2px solid #ececec; border-radius:14px; font-size:1.11rem; font-weight:500; 
-    padding:0.7rem 1rem; box-shadow:0 2px 8px rgba(100,100,100,0.03); transition:all 0.14s; width:100%; cursor:pointer; margin-bottom:10px;}
-.goc-nho-btn.selected {border:2.5px solid #7c4dff; background:#ede7f6; color:#222;}
-.goc-nho-btn:hover {border:2.5px solid #4fc3f7; background:#e3f2fd;}
-.goc-nho-checklist-title {font-size:1.08rem;font-weight:600;color:#333;margin-top:1rem;margin-bottom:0.3rem;text-align:center;}
-.goc-nho-checklist-item {background:#f9f9fb; border-radius:10px; padding:0.6rem 0.9rem; margin-bottom:0.6rem; display:flex; align-items:center; font-size:1.01rem; border:1.4px solid #ede7f6;}
-.goc-nho-check-icon {font-size:1.08rem;margin-right:0.6rem;}
-.goc-nho-check-status {margin-left:auto;font-size:1.1rem;}
-.goc-nho-congrats {
-    background:#fffde7;border-radius:17px;padding:1.1rem 1rem;text-align:center;font-size:1.15rem;
-    margin:1.2rem 0;color:#333;border:2px solid #ffd54f;}
-.goc-nho-footer {background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:10px;padding:0.7rem 1rem;text-align:center;font-size:0.98rem;margin:0.3rem 0 1.1rem 0;color:#333;}
-</style>
-""", unsafe_allow_html=True)
+# --- CHIA ĐỀU 2 CỘT ---
+half = (len(unique_ro_actions)+1) // 2
+left_col_actions = unique_ro_actions[:half]
+right_col_actions = unique_ro_actions[half:]
 
-# --- Assistant box on top (like Góc An Yên) ---
-if "assistant_message" not in st.session_state:
-    st.session_state.assistant_message = ""
-if "assistant_mode" not in st.session_state:
-    st.session_state.assistant_mode = None
-
+# --- Assistant box giữ nguyên ---
 st.markdown("""
-<div class="goc-nho-assist-box">
-    <div class="goc-nho-assist-icon">🤖</div>
-    <div class="goc-nho-assist-text">Bạn cần gợi ý hoặc trợ giúp? Trợ lý ảo luôn sẵn sàng hỗ trợ bạn!</div>
-    <div class="goc-nho-assist-btn-row">
+<div style="background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
+    border-radius: 28px; box-shadow: 0 4px 24px rgba(124,77,255,.10); padding: 2.2rem 2.3rem 1.3rem 2.3rem; margin-bottom:2rem; margin-top:1rem; text-align: center; border: 3px solid #e1bee7;">
+    <div style="font-size:2.4rem; margin-bottom:0.7rem;">🤖</div>
+    <div style="font-size:1.25rem; font-weight:700; color:#6d28d9;">Bạn cần gợi ý hoặc trợ giúp? Trợ lý ảo luôn sẵn sàng hỗ trợ bạn!</div>
+    <div style="display:flex; justify-content: center; gap: 32px; margin-top:1.05rem;">
         <form method="post">
-            <button class="goc-nho-assist-action-btn" type="submit" name="ask_assist" formnovalidate>💬 Gợi ý hoạt động</button>
+            <button style="background: #fff; border: 2.5px solid #e1bee7; border-radius: 15px; font-size:1.13rem; font-weight:600; color:#6d28d9; padding: 0.8rem 1.3rem; cursor:pointer; box-shadow:0 2px 8px rgba(124,77,255,.10); transition:all 0.17s;" type="submit" name="ask_assist" formnovalidate>💬 Gợi ý hoạt động</button>
         </form>
         <form method="post">
-            <button class="goc-nho-assist-action-btn" type="submit" name="ask_motivation" formnovalidate>🔊 Động viên tinh thần</button>
+            <button style="background: #fff; border: 2.5px solid #e1bee7; border-radius: 15px; font-size:1.13rem; font-weight:600; color:#6d28d9; padding: 0.8rem 1.3rem; cursor:pointer; box-shadow:0 2px 8px rgba(124,77,255,.10); transition:all 0.17s;" type="submit" name="ask_motivation" formnovalidate>🔊 Động viên tinh thần</button>
         </form>
     </div>
 </div>
@@ -99,22 +70,17 @@ if st.button("🤖 Động viên tinh thần từ trợ lý ảo"):
     st.session_state.assistant_message = f"🤖 Trợ lý ảo: {motivation}"
     st.session_state.assistant_mode = "motivation"
 
-if st.session_state.assistant_message:
+if "assistant_message" in st.session_state and st.session_state.assistant_message:
     if st.session_state.assistant_mode == "suggestion":
         st.info(st.session_state.assistant_message)
     else:
         st.success(st.session_state.assistant_message)
 
 # --- Title & grid ---
-st.markdown('<div class="goc-nho-title">🌈 Chọn từ ngân hàng hoạt động:</div>', unsafe_allow_html=True)
+st.markdown('<div style="font-size:2rem;font-weight:700;color:#8e24aa;text-align:center;margin-bottom:1.1rem;">🌈 Chọn từ ngân hàng hoạt động:</div>', unsafe_allow_html=True)
 
 if "selected_actions" not in st.session_state:
     st.session_state.selected_actions = []
-
-# --- Chia đều 2 cột, chỉ dùng unique_ro_actions ---
-half = (len(unique_ro_actions)+1) // 2
-left_col_actions = unique_ro_actions[:half]
-right_col_actions = unique_ro_actions[half:]
 
 cols = st.columns(2)
 for idx, col_actions in enumerate([left_col_actions, right_col_actions]):
@@ -122,17 +88,15 @@ for idx, col_actions in enumerate([left_col_actions, right_col_actions]):
         for act in col_actions:
             is_selected = act["text"] in st.session_state.selected_actions
             btn_label = f'{act["icon"]} {act["text"]}'
-            btn_style = "goc-nho-btn selected" if is_selected else "goc-nho-btn"
             btn_key = f"action_{act['icon']}_{act['text']}"
             if st.button(btn_label, key=btn_key):
                 if not is_selected:
                     st.session_state.selected_actions.append(act["text"])
                 st.rerun()
-            st.markdown(f'<div class="{btn_style}">{btn_label}</div>', unsafe_allow_html=True)
 
 # --- Checklist: các hoạt động đã chọn ---
 if st.session_state.selected_actions:
-    st.markdown('<div class="goc-nho-checklist-title">📋 Danh sách việc đã chọn hôm nay:</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:1.08rem;font-weight:600;color:#333;margin-top:1rem;margin-bottom:0.3rem;text-align:center;">📋 Danh sách việc đã chọn hôm nay:</div>', unsafe_allow_html=True)
     all_done = True
     for i, action_text in enumerate(st.session_state.selected_actions):
         action_icon = next((a["icon"] for a in unique_ro_actions if a["text"] == action_text), "💝")
@@ -145,11 +109,11 @@ if st.session_state.selected_actions:
             new_state = st.checkbox("", value=is_done, key=f"cb_{action_text}_{i}")
         with cols_done[1]:
             st.markdown(
-                f'<div class="goc-nho-checklist-item"><span class="goc-nho-check-icon">{action_icon}</span><span style="font-weight:600;">{action_text}</span></div>',
+                f'<div style="background:#f9f9fb; border-radius:10px; padding:0.6rem 0.9rem; margin-bottom:0.6rem; display:flex; align-items:center; font-size:1.01rem; border:1.4px solid #ede7f6;"><span style="font-size:1.08rem;margin-right:0.6rem;">{action_icon}</span><span style="font-weight:600;">{action_text}</span></div>',
                 unsafe_allow_html=True
             )
         with cols_done[2]:
-            st.markdown(f"<span class='goc-nho-check-status'>{'✅' if is_done else '⬜'}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span style='margin-left:auto;font-size:1.1rem;'>{'✅' if is_done else '⬜'}</span>", unsafe_allow_html=True)
         if new_state != is_done:
             if new_state:
                 st.toast(f"🎉 Tuyệt vời! Bạn đã hoàn thành: {action_text}", icon="🌟")
@@ -162,10 +126,10 @@ if st.session_state.selected_actions:
 
     if all_done and st.session_state.selected_actions:
         st.markdown(
-            '<div class="goc-nho-congrats"><b>🎉 CHÚC MỪNG! 🎉</b><br>Bạn đã hoàn thành tất cả các mục tiêu tự chăm sóc cho hôm nay!<br>🌟 Bạn thật tuyệt vời! Hãy tự hào về bản thân nhé! 🌟</div>',
+            '<div style="background:#fffde7;border-radius:17px;padding:1.1rem 1rem;text-align:center;font-size:1.15rem;margin:1.2rem 0;color:#333;border:2px solid #ffd54f;"><b>🎉 CHÚC MỪNG! 🎉</b><br>Bạn đã hoàn thành tất cả các mục tiêu tự chăm sóc cho hôm nay!<br>🌟 Bạn thật tuyệt vời! Hãy tự hào về bản thân nhé! 🌟</div>',
             unsafe_allow_html=True
         )
         st.balloons()
 
 # --- Footer động viên ---
-st.markdown('<div class="goc-nho-footer">💜 <strong>Nhớ nhé:</strong> Mỗi hành động nhỏ đều là một bước tiến lớn trong việc chăm sóc bản thân. Hãy kiên nhẫn và yêu thương chính mình! 💜</div>', unsafe_allow_html=True)
+st.markdown('<div style="background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:10px;padding:0.7rem 1rem;text-align:center;font-size:0.98rem;margin:0.3rem 0 1.1rem 0;color:#333;">💜 <strong>Nhớ nhé:</strong> Mỗi hành động nhỏ đều là một bước tiến lớn trong việc chăm sóc bản thân. Hãy kiên nhẫn và yêu thương chính mình! 💜</div>', unsafe_allow_html=True)
