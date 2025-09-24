@@ -79,11 +79,9 @@ ENCOURAGING_MESSAGES = [
 ]
 
 def get_random_encouragement():
-    """Lấy một thông điệp động viên ngẫu nhiên"""
     return random.choice(ENCOURAGING_MESSAGES)
 
 def create_audio_file(text):
-    """Tạo file audio từ text sử dụng gTTS"""
     try:
         tts = gTTS(text=text, lang='vi', slow=False)
         with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
@@ -120,7 +118,7 @@ st.markdown("""
     background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
     border-radius: 38px; box-shadow: 0 8px 36px rgba(124,77,255,.13);
     padding: 3.2rem 2.8rem 2.1rem 2.8rem; margin-bottom:2.3rem; margin-top:0.2rem;
-    text-align: center; border: 3.5px solid #e1bee7; max-width:950px; margin-left:auto; margin-right:auto;
+    text-align: center; border: 3.5px solid #e1bee7; max-width:1400px; margin-left:auto; margin-right:auto;
 }
 .lo-assist-icon {font-size:3.1rem; margin-bottom:0.7rem;}
 .lo-assist-text {font-size:1.45rem; font-weight:700; color:#6d28d9; margin-bottom:1.2rem;}
@@ -131,7 +129,7 @@ st.markdown("""
     padding: 1rem 2.1rem; cursor:pointer; box-shadow:0 2px 8px rgba(124,77,255,.14); transition:all 0.17s;
 }
 .lo-assist-action-btn:hover {background:#f3e8ff;}
-.lo-box {
+.lo-box, .timeline-item, .lo-footer {
     background: #fffbe7;
     border-radius: 13px;
     padding: 1rem 1.2rem;
@@ -139,18 +137,17 @@ st.markdown("""
     color: #333;
     border-left: 5px solid #ffd54f;
     text-align:center;
-    max-width:670px;
-    margin: auto;
-    margin-bottom:1.2rem;
+    max-width:1200px;
+    margin-left:auto; margin-right:auto; margin-bottom:1.2rem;
     box-shadow:0 2px 10px rgba(255, 223, 186, 0.09);
 }
 .timeline-item {
-    background:linear-gradient(135deg,#FFF8DC,#FFFACD);border-radius:15px;padding:1.3rem;max-width:700px;margin:auto;margin-bottom:1.2rem;box-shadow:0 4px 12px rgba(255,215,0,0.2);border-left:6px solid #FFD700;
+    background:linear-gradient(135deg,#FFF8DC,#FFFACD);border-radius:15px;padding:1.3rem;max-width:1200px;margin:auto;margin-bottom:1.2rem;box-shadow:0 4px 12px rgba(255,215,0,0.2);border-left:6px solid #FFD700;
 }
 .timeline-content {font-size:1.17rem;color:#8B4513;margin-bottom:0.5rem;line-height:1.4;}
 .timeline-date {font-size:0.99rem;color:#CD853F;font-weight:700;}
-.lo-footer {background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:10px;padding:0.9rem 1.2rem;text-align:center;font-size:1.09rem;margin:0.7rem 0 1.2rem 0;color:#333;max-width:700px;margin-left:auto;margin-right:auto;}
-@media (max-width: 1100px) {.lo-assist-bigbox{padding:2rem 1rem 1rem 1rem;}}
+.lo-footer {background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:10px;padding:0.9rem 1.2rem;text-align:center;font-size:1.09rem;margin:0.7rem 0 1.2rem 0;color:#333;}
+@media (max-width: 1100px) {.lo-assist-bigbox{padding:2rem 1rem 1rem 1rem; max-width:100vw;}}
 </style>
 """, unsafe_allow_html=True)
 
