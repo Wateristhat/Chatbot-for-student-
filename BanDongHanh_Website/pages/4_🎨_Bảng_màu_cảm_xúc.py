@@ -1,453 +1,224 @@
 import streamlit as st
-import sys
+import random
+import pandas as pd
 import os
-import base64
-import io
 from datetime import datetime
-import tempfile
 from gtts import gTTS
 from io import BytesIO
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import database as db
-import html
-import time
-import random
 
-GRATITUDE_SUGGESTIONS = [
-    "Hôm nay bạn đã nụ cười với ai? Điều gì khiến bạn cảm thấy vui vẻ?",
-    "Có món ăn nào ngon khiến bạn nhớ mãi không? Kể cho mình nghe nhé!",
-    "Bạn đã học được điều gì mới mẻ hôm nay? Dù là điều nhỏ nhất!",
-    "Ai là người đã giúp đỡ bạn gần đây? Bạn biết ơn họ điều gì?",
-    "Thiên nhiên có gì đẹp khiến bạn thích thú? Trời xanh, cây lá, hay tiếng chim hót?",
-    "Bạn đã làm được việc gì khiến bản thân tự hào? Dù nhỏ nhất cũng được!",
-    "Có khoảnh khắc nào hôm nay khiến bạn cảm thấy bình yên và hạnh phúc?",
-    "Điều gì trong ngôi nhà của bạn khiến bạn cảm thấy ấm áp và an toàn?"
-]
+st.set_page_config(page_title="🎨 Bảng Màu Cảm Xúc", page_icon="🎨", layout="centered")
 
-ASSISTANT_MESSAGES = [
-    "Chào bạn! Mình là Bee - bạn đồng hành nhỏ của bạn! 🐝✨",
-    "Hôm nay bạn có muốn chia sẻ điều gì đặc biệt không? 💫",
-    "Mỗi điều biết ơn nhỏ đều là kho báu quý giá lắm! 💎",
-    "Bạn làm rất tốt khi ghi lại những khoảnh khắc đẹp! 🌟",
-    "Cảm ơn bạn đã tin tương và chia sẻ với mình! 🤗"
-]
-
-GRATITUDE_RESPONSES = [
-    "Thật tuyệt vời! Lời biết ơn của bạn đã được thêm vào lọ! 🌟",
-    "Cảm ơn bạn đã chia sẻ! Điều này sẽ làm sáng cả ngày của bạn! ✨", 
-    "Tuyệt quá! Bạn vừa tạo ra một kỷ niệm đẹp! 💝",
-    "Mình cảm thấy ấm lòng khi đọc lời biết ơn của bạn! 🤗",
-    "Bạn đã làm cho thế giới này tích cực hơn một chút! 🦋"
-]
-
-AVATAR_OPTIONS = ["🐝", "🦋", "🌟", "💫", "🌸", "🦄", "🧚‍♀️", "🌻"]
-AVATAR_NAMES = ["Ong Bee", "Bướm xinh", "Sao sáng", "Ánh sáng", "Hoa đào", "Kỳ lân", "Tiên nhỏ", "Hoa hướng dương"]
-
-ENCOURAGING_MESSAGES = [
-    {"avatar": "🌸", "message": "Thật tuyệt vời khi bạn dành thời gian để cảm ơn! Mỗi lời biết ơn là một hạt giống hạnh phúc được gieo vào trái tim bạn."},
-    {"avatar": "🌟", "message": "Hãy nhớ rằng, những điều nhỏ bé nhất cũng có thể mang lại niềm vui lớn. Bạn đã làm rất tốt rồi!"},
-    {"avatar": "💖","message": "Mỗi khi bạn viết lời biết ơn, bạn đang nuôi dưỡng một tâm hồn tích cực. Điều này thật đáng quý!"},
-    {"avatar": "🦋","message": "Biết ơn giống như ánh nắng ấm áp, nó không chỉ sưởi ấm trái tim bạn mà còn lan tỏa đến những người xung quanh."},
-    {"avatar": "🌈","message": "Bạn có biết không? Khi chúng ta biết ơn, não bộ sẽ tiết ra những hormone hạnh phúc. Bạn đang chăm sóc bản thân thật tốt!"},
-    {"avatar": "🌺","message": "Mỗi lời cảm ơn bạn viết ra đều là một món quà bạn tặng cho chính mình. Hãy tiếp tục nuôi dưỡng lòng biết ơn nhé!"},
-    {"avatar": "✨","message": "Đôi khi những điều đơn giản nhất lại mang đến hạnh phúc lớn nhất. Bạn đã nhận ra điều này rồi đấy!"},
-    {"avatar": "🍀","message": "Lòng biết ơn là chìa khóa mở ra cánh cửa hạnh phúc. Bạn đang trên đúng con đường rồi!"}
-]
-
-def get_random_encouragement():
-    return random.choice(ENCOURAGING_MESSAGES)
-
-def create_audio_file(text):
-    # Kiểm tra text đầu vào
-    if not text or not text.strip():
-        return None
-    try:
-        tts = gTTS(text=text.strip(), lang='vi', slow=False)
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
-            tts.save(tmp_file.name)
-            return tmp_file.name
-    except Exception:
-        # Không hiển thị lỗi đỏ, chỉ trả về None
-        return None
-
-if 'selected_emotion' not in st.session_state:
-    st.session_state.selected_emotion = None
-if 'suggestion_index' not in st.session_state:
-    st.session_state.suggestion_index = random.randint(0, 4)
-if 'selected_avatar' not in st.session_state:
-    st.session_state.selected_avatar = "🐝"
-if 'current_assistant_message' not in st.session_state:
-    st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
-if 'show_gratitude_response' not in st.session_state:
-    st.session_state.show_gratitude_response = False
-
+# --- CSS giao diện pastel trải ngang, đồng bộ Góc An Yên ---
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
-.main-title,
-.assistant-message,
-.suggestion-box,
-.gratitude-input,
-.timeline-content,
-.timeline-date,
-.footer-message,
-.empty-state-message,
-.empty-state-subtitle,
-.emotion-selection,
-.timeline-count,
-.guidance-section h4,
-.guidance-section p {
-    font-family: 'Comic Neue', Arial, sans-serif !important;
+.bmcx-title-feature {
+    font-size:2.6rem; font-weight:700; color:#5d3fd3; text-align:center; margin-bottom:1.4rem; margin-top:0.7rem;
+    letter-spacing:0.1px; display: flex; align-items: center; justify-content: center; gap: 1.1rem;
 }
-.main-title {
-    font-size: 3rem;
-    text-align: center;
-    background: linear-gradient(45deg, #FFD700, #FFA500, #FF69B4);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 1rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-    font-weight: 700;
+.bmcx-palette-box {
+    background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
+    border-radius: 36px; box-shadow: 0 8px 36px rgba(124,77,255,.11);
+    padding: 3.2rem 2.2rem 2.1rem 2.2rem; margin-bottom:2.3rem; margin-top:0.2rem;
+    text-align: center; border: 3.5px solid #b39ddb; max-width:1300px; margin-left:auto; margin-right:auto;
 }
-.assistant-box {
-    background: linear-gradient(135deg, #FFE4E1, #F0F8FF);
-    border: 3px solid #FFB6C1;
-    border-radius: 20px;
-    padding: 1.5rem;
-    margin: 1rem 0;
-    box-shadow: 0 4px 15px rgba(255, 182, 193, 0.3);
-    animation: gentle-pulse 3s ease-in-out infinite;
+.bmcx-emotion-circle {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 120px; height: 120px; border-radius: 50%; color: #fff; font-size: 2.3rem; font-weight:700;
+    margin: 0 18px 2rem 18px; box-shadow:0 3px 18px rgba(100,100,100,0.13); cursor: pointer;
+    transition: all 0.22s; border:4px solid #fff;
 }
-@keyframes gentle-pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.02); }
+.bmcx-emotion-circle.selected {
+    border: 5px solid #5d3fd3; box-shadow: 0 6px 20px rgba(77,36,175,0.18); transform: scale(1.08);
 }
-.assistant-avatar {
-    font-size: 3rem;
-    text-align: center;
-    margin-bottom: 0.5rem;
-    animation: bounce 2s ease-in-out infinite;
+.bmcx-emotion-label {font-size:1.15rem; font-weight:600; color:#222; margin-top:0.6rem;}
+.bmcx-note-box {
+    background: #f2fcfa; border-radius: 16px; padding: 1.3rem 1.5rem; font-size:1.1rem; color:#555;
+    max-width:900px; margin-left:auto; margin-right:auto; margin-bottom:1.1rem; border-left:5px solid #80deea;
 }
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-10px); }
-    60% { transform: translateY(-5px); }
+.bmcx-history-box {
+    background: #e3f2fd; border-radius: 14px; padding: 1.05rem 1.2rem; font-size: 1.05rem; color: #333;
+    border-left: 5px solid #2196f3; text-align:left; max-width:1200px; margin-left:auto; margin-right:auto; margin-bottom:1rem;
 }
-.assistant-message {
-    font-size: 1.4rem;
-    font-weight: 700;
-    text-align: center;
-    color: #4169E1;
-    line-height: 1.5;
+.bmcx-footer {
+    background:#f3e5f5; border-left:5px solid #ba68c8; border-radius:15px; padding:1rem 1.3rem;
+    text-align:center; font-size:1.12rem; margin:0.7rem 0 1rem 0; color:#333; max-width:1200px; margin-left:auto; margin-right:auto;
 }
-.suggestion-box {
-    font-size: 1.2rem;
-    color: #4B0082;
-    background: linear-gradient(135deg, #E6E6FA, #F5F5DC);
-    border: 2px solid #9370DB;
-    border-radius: 15px;
-    padding: 1.5rem;
-    margin: 1rem 0;
-    text-align: center;
-    box-shadow: 0 3px 10px rgba(147, 112, 219, 0.2);
-    line-height: 1.6;
+.bmcx-encourage-box {
+    background: linear-gradient(120deg,#fffde7 0%,#e0f7fa 100%);
+    border-radius: 16px; padding:1.2rem 1.5rem; font-size:1.18rem; color:#6d28d9;
+    font-weight:600; margin-bottom:1.2rem; max-width:1200px; margin-left:auto; margin-right:auto;
+    box-shadow:0 2px 10px rgba(100,100,100,0.05);
 }
-.gratitude-input {
-    font-size: 1.1rem;
-    border: 3px solid #DDA0DD;
-    border-radius: 15px;
-    padding: 1rem;
+.bmcx-btn {
+    background:#fff; color:#222; font-size:1.05rem; font-weight:500; border-radius:13px;
+    padding:0.7rem 1rem; margin:0.6rem 0; border:2px solid #ececec;
+    box-shadow: 0 2px 10px rgba(100,100,100,0.05); transition:all 0.18s; width:100%; text-align:center; outline:none;
 }
-.timeline-item {
-    background: linear-gradient(135deg, #FFF8DC, #FFFACD);
-    border-left: 6px solid #FFD700;
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin: 1rem 0;
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
-    transition: all 0.3s ease;
-}
-.timeline-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
-}
-.timeline-content {
-    font-size: 1.2rem;
-    color: #8B4513;
-    margin-bottom: 0.8rem;
-    line-height: 1.6;
-}
-.timeline-date {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #CD853F;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.success-animation {
-    animation: rainbow 2s ease-in-out;
-}
-@keyframes rainbow {
-    0% { background: #ff0000; }
-    16.66% { background: #ff8000; }
-    33.33% { background: #ffff00; }
-    50% { background: #80ff00; }
-    66.66% { background: #00ffff; }
-    83.33% { background: #8000ff; }
-    100% { background: #ff0080; }
-}
-.stButton > button {
-    font-size: 1.2rem;
-    font-weight: 700;
-    border-radius: 25px;
-    border: 3px solid #32CD32;
-    background: linear-gradient(45deg, #98FB98, #90EE90);
-    color: #006400;
-    padding: 0.8rem 2rem;
-    transition: all 0.3s ease;
-    font-family: 'Comic Neue', Arial, sans-serif !important;
-}
-.stButton > button:hover {
-    background: linear-gradient(45deg, #90EE90, #7FFFD4);
-    transform: scale(1.05);
-    box-shadow: 0 4px 15px rgba(50, 205, 50, 0.3);
-}
-button:focus {
-    outline: 2px solid #4facfe;
-    outline-offset: 2px;
-}
-.timeline-item:focus-within {
-    outline: 2px solid #FFD700;
-    outline-offset: 2px;
-}
-.guidance-section {
-    background: linear-gradient(135deg, #F0F8FF, #E6E6FA);
-    border: 2px solid #9370DB;
-    border-radius: 15px;
-    padding: 1.5rem;
-    margin: 1rem 0;
-    box-shadow: 0 3px 10px rgba(147, 112, 219, 0.2);
-}
-.guidance-section h4 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #4B0082;
-    margin-bottom: 1rem;
-    text-align: center;
-}
-.guidance-section p {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #4B0082;
-    line-height: 1.6;
-    margin-bottom: 0.8rem;
-}
-.footer-message {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #8B4513;
-    line-height: 1.6;
-}
-.empty-state-message {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #9370DB;
-    line-height: 1.6;
-}
-.empty-state-subtitle {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #DDA0DD;
-    line-height: 1.5;
-}
-.emotion-selection {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #FF69B4;
-    line-height: 1.5;
-}
-.timeline-count {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #8B4513;
-    line-height: 1.5;
+.bmcx-btn.selected {border:2.5px solid #5d3fd3; background:#ede7f6; color:#222;}
+.bmcx-btn:hover, .bmcx-btn:focus-visible {border:2.5px solid #4fc3f7; background:#e3f2fd;}
+@media (max-width:900px) {
+    .bmcx-palette-box, .bmcx-history-box, .bmcx-note-box, .bmcx-footer {max-width:96vw;}
+    .bmcx-title-feature { font-size:1.6rem; }
+    .bmcx-emotion-circle {width:90px;height:90px;font-size:1.4rem;}
 }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<h1 class="main-title">🍯 Lọ Biết Ơn Của Bạn</h1>', unsafe_allow_html=True)
-st.markdown("⬅️ [Quay về Trang chủ](../0_💖_Trang_chủ.py)")
+# --- Data cảm xúc & màu & động viên ---
+EMOTIONS = [
+    {
+        "label": "Vui vẻ",
+        "emoji": "😊",
+        "color": "#FFD600",
+        "encourage": "Hãy lan tỏa nụ cười của bạn tới mọi người xung quanh nhé!"
+    },
+    {
+        "label": "Buồn",
+        "emoji": "😢",
+        "color": "#64B5F6",
+        "encourage": "Bạn có thể chia sẻ với Bee hoặc bạn bè để cảm thấy nhẹ lòng hơn."
+    },
+    {
+        "label": "Lo lắng",
+        "emoji": "😰",
+        "color": "#FF8A65",
+        "encourage": "Thử hít thở thật sâu hoặc nhắm mắt lại một chút nhé!"
+    },
+    {
+        "label": "Tức giận",
+        "emoji": "😡",
+        "color": "#FF1744",
+        "encourage": "Hãy thử đếm đến 10 và thở thật đều, Bee luôn ở bên bạn!"
+    },
+    {
+        "label": "Bình yên",
+        "emoji": "😌",
+        "color": "#81C784",
+        "encourage": "Bạn đang làm rất tốt! Hãy giữ tâm trạng thư thái này nhé!"
+    },
+    {
+        "label": "Hào hứng",
+        "emoji": "🎉",
+        "color": "#AB47BC",
+        "encourage": "Hãy tận dụng năng lượng tích cực để sáng tạo và vui chơi!"
+    },
+    {
+        "label": "Ngạc nhiên",
+        "emoji": "😲",
+        "color": "#FFB300",
+        "encourage": "Cuộc sống luôn đầy bất ngờ, hãy tận hưởng nhé!"
+    }
+]
 
-current_message = random.choice(ASSISTANT_MESSAGES)
-st.markdown(f"""<div class="assistant-box"><div class="assistant-avatar">🐝</div><div class="assistant-message">{current_message}</div></div>""", unsafe_allow_html=True)
+# --- Session state ---
+if "selected_emotion_idx" not in st.session_state:
+    st.session_state.selected_emotion_idx = None
+if "emotion_note" not in st.session_state:
+    st.session_state.emotion_note = ""
+if "emotion_history" not in st.session_state:
+    st.session_state.emotion_history = []
+if "show_history" not in st.session_state:
+    st.session_state.show_history = False
 
-st.markdown("### 💝 Hôm nay bạn cảm thấy thế nào?")
-emotion_cols = st.columns(5)
-emotions = ["😊", "😃", "🥰", "😌", "🤗"]
-emotion_names = ["Vui vẻ", "Hạnh phúc", "Yêu thương", "Bình yên", "Ấm áp"]
-
-for i, (col, emotion, name) in enumerate(zip(emotion_cols, emotions, emotion_names)):
-    with col:
-        if st.button(emotion, key=f"emotion_{i}", help=name):
-            st.session_state.selected_emotion = emotion
-            st.rerun()
-
-if st.session_state.selected_emotion:
-    st.markdown(f"<div class='emotion-selection' style='text-align: center; margin: 1rem 0;'>Bạn đang cảm thấy {st.session_state.selected_emotion} - Thật tuyệt vời!</div>", unsafe_allow_html=True)
-
-st.write("---")
-
-if 'current_encouragement' not in st.session_state:
-    st.session_state.current_encouragement = get_random_encouragement()
-encouragement = st.session_state.current_encouragement
-st.markdown(f"""<div class="assistant-box"><div class="assistant-avatar">{encouragement['avatar']}</div><div class="assistant-message">{encouragement['message']}</div></div>""", unsafe_allow_html=True)
-
-col1, col2 = st.columns([3, 1])
-with col1:
-    if st.button("🎲 Nhận lời động viên mới", help="Nhận một thông điệp động viên khác"):
-        st.session_state.current_encouragement = get_random_encouragement()
-        st.rerun()
-with col2:
-    if st.button("🔊 Đọc to", help="Nghe lời động viên"):
-        with st.spinner("Đang tạo âm thanh..."):
-            audio_file = create_audio_file(encouragement['message'])
-            if audio_file:
-                try:
-                    with open(audio_file, 'rb') as f:
-                        audio_bytes = f.read()
-                    st.audio(audio_bytes, format='audio/mp3', autoplay=True)
-                    os.unlink(audio_file)
-                except Exception:
-                    st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
-            else:
-                st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
-
-st.markdown("""
-<div class="suggestion-box">
-    <strong>💡 Gợi ý cho bạn:</strong><br>
-    Hôm nay có điều gì khiến bạn mỉm cười không?
-</div>
-""", unsafe_allow_html=True)
-st.markdown("""
-<div class="guidance-section">
-    <h4>💡 Hướng dẫn sử dụng Lọ Biết Ơn</h4>
-    <p>🌟 Hãy viết về những điều nhỏ bé mà bạn biết ơn hôm nay</p>
-    <p>💝 Có thể là nụ cười của bạn bè, bữa ăn ngon, hay cảm giác được yêu thương</p>
-    <p>🌈 Không cần hoàn hảo, chỉ cần chân thành từ trái tim</p>
-</div>
-""", unsafe_allow_html=True)
-
-col_guide1, col_guide2 = st.columns([3, 1])
-with col_guide2:
-    if st.button("🔊 Đọc hướng dẫn", help="Nghe hướng dẫn sử dụng", key="guidance_tts"):
-        guidance_text = ("Hướng dẫn sử dụng Lọ Biết Ơn. "
-                        "Hãy viết về những điều nhỏ bé mà bạn biết ơn hôm nay. "
-                        "Có thể là nụ cười của bạn bè, bữa ăn ngon, hay cảm giác được yêu thương. "
-                        "Không cần hoàn hảo, chỉ cần chân thành từ trái tim.")
-        with st.spinner("Đang tạo âm thanh..."):
-            audio_file = create_audio_file(guidance_text)
-            if audio_file:
-                try:
-                    with open(audio_file, 'rb') as f:
-                        audio_bytes = f.read()
-                    st.audio(audio_bytes, format='audio/mp3', autoplay=True)
-                    os.unlink(audio_file)
-                except Exception:
-                    st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
-            else:
-                st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
-
-current_suggestion = GRATITUDE_SUGGESTIONS[st.session_state.suggestion_index]
-st.markdown(f"""<div class="suggestion-box"><strong>💡 Gợi ý cho bạn:</strong><br>{current_suggestion}</div>""", unsafe_allow_html=True)
-
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
-    if st.button("🔄 Gợi ý khác", use_container_width=True):
-        st.session_state.suggestion_index = (st.session_state.suggestion_index + 1) % len(GRATITUDE_SUGGESTIONS)
-        st.rerun()
-
-st.markdown("### ✍️ Viết điều bạn biết ơn:")
-note_text = st.text_area(
-    "",
-    height=120,
-    key="gratitude_input",
-    placeholder="Hãy viết về điều làm bạn cảm thấy biết ơn... Mỗi từ đều có ý nghĩa! 💕",
-    label_visibility="collapsed"
+# --- Tiêu đề ---
+st.markdown(
+    '<div class="bmcx-title-feature">'
+    ' <span style="font-size:2.3rem;">🎨</span> Bảng Màu Cảm Xúc'
+    '</div>',
+    unsafe_allow_html=True
 )
 
-if st.button("🌟 Thêm vào lọ biết ơn", type="primary", use_container_width=True):
-    if note_text:
-        db.add_gratitude_note(note_text)
-        success_stickers = ["🎉", "⭐", "🌟", "✨", "💫", "🎊", "🦋", "🌈", "🎁", "💝"]
-        selected_stickers = random.sample(success_stickers, 3)
-        st.markdown(f"""<div style="text-align: center; font-size: 3rem; margin: 1rem 0; animation: bounce 1s ease-in-out;">{''.join(selected_stickers)}</div>""", unsafe_allow_html=True)
-        st.success("🌱 Đã thêm một hạt mầm biết ơn vào lọ! Cảm ơn bạn đã chia sẻ!")
+st.markdown("⬅️ [Quay về Trang chủ](../0_💖_Trang_chủ.py)")
+
+# --- Khung chọn cảm xúc (palette) ---
+st.markdown('<div class="bmcx-palette-box">', unsafe_allow_html=True)
+st.markdown("#### Hãy chọn cảm xúc của bạn hôm nay:")
+
+emotion_cols = st.columns(len(EMOTIONS))
+for idx, emo in enumerate(EMOTIONS):
+    with emotion_cols[idx]:
+        selected = st.session_state.selected_emotion_idx == idx
+        if st.button(f"{emo['emoji']}", key=f"emo_{idx}", help=emo["label"]):
+            st.session_state.selected_emotion_idx = idx
+            st.session_state.emotion_note = ""
+            st.rerun()
+        st.markdown(
+            f"""
+            <div class="bmcx-emotion-circle{' selected' if selected else ''}" style="background:{emo['color']};">
+                {emo['emoji']}
+            </div>
+            <div class="bmcx-emotion-label">{emo['label']}</div>
+            """,
+            unsafe_allow_html=True
+        )
+st.markdown('</div>', unsafe_allow_html=True)
+
+# --- Động viên theo cảm xúc đã chọn ---
+if st.session_state.selected_emotion_idx is not None:
+    emo = EMOTIONS[st.session_state.selected_emotion_idx]
+    st.markdown(f"""
+    <div class="bmcx-encourage-box">
+        <span style="font-size:2.1rem;">{emo['emoji']}</span> <strong>{emo['encourage']}</strong>
+    </div>
+    """, unsafe_allow_html=True)
+    col1, col2 = st.columns([2,2])
+    with col1:
+        if st.button("🔊 Nghe động viên", key="tts_encourage"):
+            audio_bytes = BytesIO()
+            tts = gTTS(text=emo['encourage'], lang='vi', slow=False)
+            tts.write_to_fp(audio_bytes)
+            audio_bytes.seek(0)
+            st.audio(audio_bytes.read(), format="audio/mp3")
+
+# --- Nhập ghi chú cảm xúc ---
+if st.session_state.selected_emotion_idx is not None:
+    st.markdown('<div class="bmcx-note-box">', unsafe_allow_html=True)
+    st.markdown("#### 📝 Bạn muốn chia sẻ thêm về cảm xúc của mình không?")
+    st.session_state.emotion_note = st.text_area(
+        "",
+        value=st.session_state.emotion_note,
+        height=80,
+        placeholder="Bạn có thể mô tả lý do, hoàn cảnh hoặc ai ở bên bạn lúc này..."
+    )
+    st.markdown('</div>', unsafe_allow_html=True)
+    if st.button("💾 Lưu cảm xúc hôm nay", type="primary", use_container_width=True):
+        now = datetime.now().strftime("%d/%m/%Y %H:%M")
+        st.session_state.emotion_history.append({
+            "emoji": emo["emoji"], "emotion": emo["label"], "note": st.session_state.emotion_note, "time": now
+        })
+        st.success("✅ Đã lưu cảm xúc vào lịch sử của bạn!")
         st.balloons()
-        time.sleep(2)
+        st.session_state.selected_emotion_idx = None
+        st.session_state.emotion_note = ""
         st.rerun()
-    else:
-        st.warning("💛 Bạn hãy viết gì đó để chia sẻ nhé! Mình đang chờ đây!")
 
 st.write("---")
 
-st.markdown("### 📖 Timeline - Những Kỷ Niệm Biết Ơn")
-gratitude_notes = db.get_gratitude_notes()
+# --- Lịch sử cảm xúc ---
+st.markdown("### 📖 Lịch sử cảm xúc của bạn")
+if st.button("📖 Xem lịch sử", key="show_history_btn"):
+    st.session_state.show_history = not st.session_state.show_history
+if st.session_state.show_history:
+    if st.session_state.emotion_history:
+        for item in reversed(st.session_state.emotion_history):
+            st.markdown(
+                f"""
+                <div class="bmcx-history-box">
+                    <div style='font-size:2rem;display:inline-block;'>{item['emoji']}</div>
+                    <span style='font-size:1.13rem;font-weight:700;margin-left:8px;color:#5d3fd3;'>{item['emotion']}</span>
+                    <span style='font-size:1rem;color:#888;margin-left:12px;'>{item['time']}</span>
+                    <div style='margin-top:0.6rem;'>{item['note'] if item['note'] else "<i>(Không có ghi chú)</i>"}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+    else:
+        st.info("Bạn chưa lưu cảm xúc nào hôm nay. Hãy chọn và lưu cảm xúc nhé!")
 
-if gratitude_notes:
-    st.markdown(f"<div class='timeline-count' style='text-align: center; margin-bottom: 1.5rem;'>Bạn đã có <strong>{len(gratitude_notes)}</strong> kỷ niệm đẹp! 💎</div>", unsafe_allow_html=True)
-    for note_id, note_content, timestamp in gratitude_notes:
-        try:
-            dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
-            formatted_date = dt.strftime("%d/%m/%Y lúc %H:%M")
-            day_name = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"][dt.weekday()]
-            full_date = f"{day_name}, {formatted_date}"
-        except:
-            full_date = timestamp
-        with st.container():
-            st.markdown(f"""
-            <div class="timeline-item">
-                <div class="timeline-content">{html.escape(note_content)}</div>
-                <div class="timeline-date">📅 {full_date}</div>
-            </div>
-            """, unsafe_allow_html=True)
-            col1, col2, col3 = st.columns([2, 2, 1])
-            with col1:
-                if st.button("🔊 Đọc to", key=f"tts_{note_id}", help="Nghe ghi chú này"):
-                    audio_file = create_audio_file(note_content)
-                    if audio_file:
-                        try:
-                            with open(audio_file, 'rb') as f:
-                                audio_bytes = f.read()
-                            st.audio(audio_bytes, format='audio/mp3', autoplay=True)
-                            os.unlink(audio_file)
-                        except Exception:
-                            st.info("🎵 Hiện tại không thể phát âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
-                    else:
-                        st.info("💭 Chưa có nội dung để đọc. Hãy thử lại khi có văn bản!")
-            with col2:
-                if st.button("💝 Thích", key=f"like_{note_id}", help="Tôi thích ghi chú này!"):
-                    st.markdown("💕 Cảm ơn bạn đã thích kỷ niệm này!")
-            with col3:
-                if st.button("🗑️", key=f"delete_{note_id}", help="Xóa ghi chú này"):
-                    db.delete_gratitude_note(note_id)
-                    st.success("🌸 Đã xóa ghi chú!")
-                    time.sleep(1)
-                    st.rerun()
-else:
-    st.markdown("""
-    <div style="text-align: center; padding: 3rem;">
-        <div style="font-size: 4rem; margin-bottom: 1rem;">🍯</div>
-        <div class="empty-state-message">Chiếc lọ biết ơn của bạn đang chờ những điều tuyệt vời đầu tiên!</div>
-        <div class="empty-state-subtitle" style="margin-top: 1rem;">Hãy bắt đầu bằng việc chia sẻ một điều nhỏ nhất mà bạn biết ơn hôm nay ❤️</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("---")
+# --- Footer ---
 st.markdown("""
-<div class="footer-message" style="text-align: center; padding: 1rem;">
+<div class="bmcx-footer">
     <strong>💫 Lời nhắn từ Bee:</strong><br>
-    "Mỗi ngày là một món quà, mỗi khoảnh khắc biết ơn là một viên ngọc quý. 
-    Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
+    "Mỗi cảm xúc đều đáng trân trọng. Bạn hãy tự tin chia sẻ và chăm sóc cảm xúc của mình nhé! 🎨"
 </div>
 """, unsafe_allow_html=True)
