@@ -1,3 +1,6 @@
+from BanDongHanh_Website.sidebar import render_sidebar
+
+render_sidebar(active_index=3)
 import streamlit as st
 import sys
 import os
@@ -530,3 +533,4 @@ st.markdown("""
     Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
 </div>
 """, unsafe_allow_html=True)
+
