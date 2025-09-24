@@ -8,81 +8,16 @@ from io import BytesIO
 
 st.set_page_config(page_title="✨ Liều Thuốc Tinh Thần", page_icon="✨", layout="centered")
 
-# ---- SIDEBAR ĐẸP VÀ ĐỒNG BỘ ----
+# ---- SIDEBAR ĐỒNG NHẤT GÓC AN YÊN ----
+# KHÔNG CSS sidebar trực tiếp để giữ nguyên giao diện mặc định của Streamlit
+# Sidebar của Góc An Yên sử dụng mặc định Streamlit: nền #f5f8fa, font Quicksand, không viền, cột xám nhẹ, icon và chữ nhẹ nhàng
+# Nếu muốn tối ưu font cho toàn bộ app, dùng font Quicksand cho toàn bộ app
+
 st.markdown("""
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-/* Sidebar custom - giống giao diện tổng */
-[data-testid="stSidebar"] {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%) !important;
-    min-width: 280px !important;
-    max-width: 280px !important;
-    width: 280px !important;
-    border-right: 2px solid #e0e0e0;
-}
-
-[data-testid="stSidebarNav"] > ul {
-    font-family: 'Quicksand', Arial, sans-serif;
-    font-size: 1.16rem;
-    padding-left: 6px;
-}
-
-[data-testid="stSidebarNav"] li {
-    margin-bottom: 10px;
-    border-radius: 12px;
-    transition: background 0.2s;
-    padding: 4px 10px;
-}
-
-[data-testid="stSidebarNav"] li:hover {
-    background: #e3f2fd !important;
-}
-
-[data-testid="stSidebarNav"] li span {
-    font-weight: 500;
-}
-
-[data-testid="stSidebarNav"] li.active {
-    background: linear-gradient(90deg,#ffd6e0 0%,#b3e5fc 100%) !important;
-    color: #d81b60 !important;
-}
-
-.sidebar-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #1976d2;
-    margin-bottom: 0.7rem;
-    margin-top: 0.1rem;
-    letter-spacing: 0.5px;
-    text-align: left;
-}
-</style>
-""", unsafe_allow_html=True)
-
-with st.sidebar:
-    st.markdown('<div class="sidebar-title">✨ Liều Thuốc Tinh Thần</div>', unsafe_allow_html=True)
-    st.markdown("Hãy chọn một loại động viên phù hợp với bạn!")
-
-    st.markdown("""
-    <hr style="margin-top:0.4rem;margin-bottom:0.7rem;">
-    <a href="0_💖_Trang_chủ.py" style="text-decoration:none;display:block;font-size:1.04rem;color:#1976d2;background:#e3f2fd;padding:0.5rem 0.9rem;border-radius:10px;border:1px solid #b3e5fc;font-weight:600;margin-bottom:0.5rem;">
-        🏠 Quay về Trang chủ
-    </a>
-    <div style="font-size:1.06rem;color:#555;margin-top:1rem;">
-        <b>Gợi ý:</b> <br>
-        <ul style="margin-left:-0.8rem;">
-          <li>Chọn loại động viên phù hợp</li>
-          <li>Nghe lời động viên bằng nút 🔊</li>
-          <li>Lưu lại vào lọ cá nhân hoặc nhật ký cảm xúc</li>
-          <li>Xem lại lịch sử đã lưu</li>
-        </ul>
-    </div>
-    <hr>
-    """, unsafe_allow_html=True)
-
-# ---- STYLE MAIN ----
-st.markdown("""
-<style>
-body, html, [class*="css"] { font-family: 'Quicksand', Arial, sans-serif; font-size: 1.15rem; background:#f7fafc;}
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
+html, body, [class*="css"] { font-family: 'Quicksand', Arial, sans-serif; font-size: 1.15rem; }
 .page-title {
     font-size:2.1rem; font-weight:700; color:#e53935; text-align:center; margin-bottom:1.2rem; margin-top:1rem;
     letter-spacing:0.5px;
