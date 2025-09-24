@@ -1,6 +1,3 @@
-from BanDongHanh_Website.sidebar import render_sidebar
-
-render_sidebar(active_index=5)
 import streamlit as st
 import os
 import sys
