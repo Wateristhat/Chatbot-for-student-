@@ -76,4 +76,4 @@ def render_sidebar(active_index=None):
         class_active = "active" if idx == active_index else ""
         menu_html += f"<li><a class='{class_active}' href='{link}'>{title}</a></li>"
     menu_html += "</ul></div>"
-st.sidebar.markdown(menu_html, unsafe_allow_html=True)
+    st.sidebar.markdown(menu_html, unsafe_allow_html=True)
