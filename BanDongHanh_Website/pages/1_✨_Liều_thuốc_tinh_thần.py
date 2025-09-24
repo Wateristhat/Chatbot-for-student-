@@ -36,16 +36,6 @@ st.markdown("""
     max-width: 320px !important;
     width: 320px !important;
 }
-/* Chỉnh font và kích thước chữ sidebar */
-[data-testid="stSidebar"] .css-1v0mbdj, 
-[data-testid="stSidebar"] .css-1wv5c7b, 
-[data-testid="stSidebar"] .css-1v8zqwd, 
-[data-testid="stSidebar"] .css-1xcwr2u, 
-[data-testid="stSidebar"] .css-15zrgzn {
-    font-size: 1.18rem !important;
-    font-family: 'Comic Neue', Arial, sans-serif !important;
-    font-weight: 700 !important;
-}
 </style>
 """, unsafe_allow_html=True)
 st.markdown("""
