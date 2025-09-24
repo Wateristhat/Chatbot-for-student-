@@ -31,9 +31,8 @@ st.markdown("""
 }
 .goc-nho-assist-action-btn:hover {background:#f3e8ff;}
 .goc-nho-title {font-size:1.45rem; font-weight:700; color:#7c4dff; text-align:center; margin-bottom:1.1rem;}
-.goc-nho-grid {display:grid; grid-template-columns: 1fr 1fr; gap: 16px; justify-content:center; margin-bottom:1.2rem;}
 .goc-nho-btn {background:#fff; border:2.2px solid #ececec; border-radius:14px; font-size:1.11rem; font-weight:500; 
-    padding:0.7rem 1rem; box-shadow:0 2px 8px rgba(100,100,100,0.03); transition:all 0.14s; width:100%; cursor:pointer;}
+    padding:0.7rem 1rem; box-shadow:0 2px 8px rgba(100,100,100,0.03); transition:all 0.14s; width:100%; cursor:pointer; margin-bottom:10px;}
 .goc-nho-btn.selected {border:2.5px solid #7c4dff; background:#ede7f6; color:#222;}
 .goc-nho-btn:hover {border:2.5px solid #4fc3f7; background:#e3f2fd;}
 .goc-nho-checklist-title {font-size:1.08rem;font-weight:600;color:#333;margin-top:1rem;margin-bottom:0.3rem;text-align:center;}
@@ -45,7 +44,6 @@ st.markdown("""
     margin:1.2rem 0;color:#333;border:2px solid #ffd54f;
 }
 .goc-nho-footer {background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:10px;padding:0.7rem 1rem;text-align:center;font-size:0.98rem;margin:0.3rem 0 1.1rem 0;color:#333;}
-@media (max-width: 900px) {.goc-nho-grid{grid-template-columns:1fr;}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -102,19 +100,20 @@ if "selected_actions" not in st.session_state:
     st.session_state.selected_actions = []
 
 # --- Only one button per action, 2 columns, click to confirm ---
-st.markdown('<div class="goc-nho-grid">', unsafe_allow_html=True)
+cols = st.columns(2)
 for i, action in enumerate(MICRO_ACTIONS):
-    is_selected = action["text"] in st.session_state.selected_actions
-    btn_label = f'{action["icon"]} {action["text"]}'
-    btn_style = "goc-nho-btn selected" if is_selected else "goc-nho-btn"
-    btn_key = f"action_{i}"
-    if st.button(btn_label, key=btn_key):
-        # Chỉ cần nhấp là xác nhận, không cho bỏ chọn
-        if not is_selected:
-            st.session_state.selected_actions.append(action["text"])
-        st.rerun()
-    st.markdown(f'<div class="{btn_style}">{btn_label}</div>', unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
+    col = cols[i % 2]
+    with col:
+        is_selected = action["text"] in st.session_state.selected_actions
+        btn_label = f'{action["icon"]} {action["text"]}'
+        btn_style = "goc-nho-btn selected" if is_selected else "goc-nho-btn"
+        btn_key = f"action_{i}"
+        if st.button(btn_label, key=btn_key):
+            # Chỉ cần nhấp là xác nhận, không cho bỏ chọn
+            if not is_selected:
+                st.session_state.selected_actions.append(action["text"])
+            st.rerun()
+        st.markdown(f'<div class="{btn_style}">{btn_label}</div>', unsafe_allow_html=True)
 
 # --- Checklist: các hoạt động đã chọn ---
 if st.session_state.selected_actions:
