@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import os
 import sys
 from gtts import gTTS
@@ -76,7 +77,7 @@ st.markdown(
     """, unsafe_allow_html=True
 )
 
-# Hướng dẫn chi tiết với HTML được chuẩn hóa
+# Hướng dẫn chi tiết với HTML được chuẩn hóa - Header
 st.markdown(
     """
     <div style='
@@ -94,23 +95,37 @@ st.markdown(
             <h3 style='color: #4169E1; font-size: 1.5rem; margin: 10px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);'> 📖 Hướng dẫn chơi game chi tiết </h3>
             <span style='font-size: 2rem;'>✨🎈</span>
         </div>
-        
+    """, unsafe_allow_html=True
+)
+
+# Game objectives section
+st.markdown(
+    """
         <div style='color: #2E8B57; text-align: left; max-width: 600px; margin: 0 auto;'>
-            
             <div style='background: rgba(255, 255, 255, 0.8); padding: 15px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #FF6347;'>
                 <h4 style='color: #FF6347; margin: 0 0 10px 0;'>🎯 Mục tiêu game:</h4>
                 <p style='margin: 5px 0;'>• Điều khiển chú ong Bee bay qua các quả bóng bay màu sắc</p>
                 <p style='margin: 5px 0;'>• Tránh va chạm với chướng ngại vật để duy trì cuộc chơi</p>
                 <p style='margin: 5px 0;'>• Thu thập điểm số cao nhất có thể</p>
             </div>
-            
+    """, unsafe_allow_html=True
+)
+
+# Controls section  
+st.markdown(
+    """
             <div style='background: rgba(255, 255, 255, 0.8); padding: 15px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #4169E1;'>
                 <h4 style='color: #4169E1; margin: 0 0 10px 0;'>🎮 Cách điều khiển:</h4>
                 <p style='margin: 5px 0;'>• <strong>Máy tính:</strong> Nhấn phím <span style='background: #4169E1; color: white; padding: 3px 8px; border-radius: 5px; font-weight: bold;'>SPACE</span> để Bee nhảy lên cao</p>
                 <p style='margin: 5px 0;'>• <strong>Điện thoại/Tablet:</strong> Chạm vào màn hình game để Bee nhảy</p>
                 <p style='margin: 5px 0;'>• <strong>Lưu ý:</strong> Bee sẽ rơi xuống do trọng lực, hãy tính toán thời điểm nhảy</p>
             </div>
-            
+    """, unsafe_allow_html=True
+)
+
+# Game modes section
+st.markdown(
+    """
             <div style='background: rgba(255, 255, 255, 0.8); padding: 15px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #32CD32;'>
                 <h4 style='color: #32CD32; margin: 0 0 10px 0;'>🌟 Chế độ chơi:</h4>
                 <p style='margin: 5px 0;'><strong>🌟 Siêu Dễ:</strong></p>
@@ -126,7 +141,12 @@ st.markdown(
                     <li>Dành cho người đã quen thuộc</li>
                 </ul>
             </div>
-            
+    """, unsafe_allow_html=True
+)
+
+# Features section
+st.markdown(
+    """
             <div style='background: rgba(255, 255, 255, 0.8); padding: 15px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #9370DB;'>
                 <h4 style='color: #9370DB; margin: 0 0 10px 0;'>🔧 Tính năng hỗ trợ:</h4>
                 <p style='margin: 5px 0;'>• <strong>Điều khiển âm thanh:</strong> Bật/tắt hiệu ứng âm thanh và nhạc nền</p>
@@ -134,7 +154,12 @@ st.markdown(
                 <p style='margin: 5px 0;'>• <strong>Lời động viên:</strong> Tin nhắn khích lệ khi kết thúc game</p>
                 <p style='margin: 5px 0;'>• <strong>Debug mode:</strong> Nhấn Ctrl + D để xem thông tin kỹ thuật (dành cho giáo viên)</p>
             </div>
-            
+    """, unsafe_allow_html=True
+)
+
+# Bee tips section and close the container
+st.markdown(
+    """
             <div style='background: linear-gradient(135deg, #FFE4E1, #FFF8DC); padding: 15px; border-radius: 10px; margin: 15px 0; text-align: center; border: 2px solid #FF69B4;'>
                 <h4 style='color: #FF1493; margin: 0 0 10px 0;'>💖 Lời khuyên từ Bee:</h4>
                 <p style='margin: 5px 0; font-style: italic;'>"Đừng nản lòng nếu không đạt điểm cao ngay lần đầu!"</p>
@@ -174,8 +199,8 @@ try:
     with open(game_file_path, "r", encoding="utf-8") as file:
         game_html_content = file.read()
     
-    # Hiển thị game với kích thước lớn hơn
-    st.components.v1.html(game_html_content, height=650, scrolling=False)
+    # Hiển thị game với kích thước lớn hơn để đảm bảo hiển thị đầy đủ
+    st.components.v1.html(game_html_content, height=720, scrolling=False)
     
 except FileNotFoundError:
     st.error("Không tìm thấy file game.html. Vui lòng kiểm tra lại đường dẫn file.")
@@ -225,72 +250,6 @@ col1, col2, col3 = st.columns([1, 1, 1])
 with col2:
     create_tts_button(encouragement_text, "encouragement", "🔊 Nghe lời động viên")
 
-# --- MẸO CHƠI GAME VÀ HƯỚNG DẪN CHI TIẾT ---
-with st.expander("🎯 Mẹo chơi game và kỹ thuật nâng cao", expanded=False):
-    st.markdown(
-        """
-        <div style='font-size: 1.1rem; line-height: 1.7;'>
-            
-            <div style='background: linear-gradient(135deg, #E8F5E8, #F0FFF0); padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #32CD32;'>
-                <h4 style='color: #228B22; margin: 0 0 10px 0;'>🧘 Kỹ thuật thư giãn:</h4>
-                <ul style='margin: 5px 0;'>
-                    <li><strong>Thở sâu:</strong> Hít vào 4 giây, thở ra 4 giây trước khi bắt đầu</li>
-                    <li><strong>Tư thế:</strong> Ngồi thẳng lưng, vai thư giãn</li>
-                    <li><strong>Tập trung:</strong> Chỉ chú ý vào game, tạm quên các lo lắng khác</li>
-                </ul>
-            </div>
-            
-            <div style='background: linear-gradient(135deg, #E8F4FD, #F0F8FF); padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #4169E1;'>
-                <h4 style='color: #4169E1; margin: 0 0 10px 0;'>⏱️ Kỹ thuật thời gian:</h4>
-                <ul style='margin: 5px 0;'>
-                    <li><strong>Quan sát trước:</strong> Nhìn trước 2-3 chướng ngại vật sắp tới</li>
-                    <li><strong>Nhảy sớm:</strong> Nhấn SPACE khi bóng bay còn cách xa khoảng 1/3 màn hình</li>
-                    <li><strong>Nhịp độ:</strong> Tìm nhịp đều đặn, không nhấn liên tục</li>
-                </ul>
-            </div>
-            
-            <div style='background: linear-gradient(135deg, #FFF8DC, #FFFFE0); padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #FFD700;'>
-                <h4 style='color: #B8860B; margin: 0 0 10px 0;'>👁️ Kỹ thuật quan sát:</h4>
-                <ul style='margin: 5px 0;'>
-                    <li><strong>Tầm nhìn rộng:</strong> Không chỉ nhìn Bee mà quan sát toàn cảnh</li>
-                    <li><strong>Dự đoán:</strong> Học cách đoán vị trí chướng ngại vật tiếp theo</li>
-                    <li><strong>Điểm tham chiếu:</strong> Sử dụng ground và clouds làm điểm chuẩn</li>
-                </ul>
-            </div>
-            
-            <div style='background: linear-gradient(135deg, #F0E8FF, #E6E6FA); padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #9370DB;'>
-                <h4 style='color: #9370DB; margin: 0 0 10px 0;'>🎯 Chiến lược luyện tập:</h4>
-                <ul style='margin: 5px 0;'>
-                    <li><strong>Bắt đầu dễ:</strong> Chơi chế độ "Siêu Dễ" để làm quen</li>
-                    <li><strong>Từ từ tiến bộ:</strong> Chỉ chuyển sang "Bình Thường" khi đã tự tin</li>
-                    <li><strong>Đặt mục tiêu nhỏ:</strong> Cố gắng cải thiện từng chút một (5 điểm, 10 điểm...)</li>
-                    <li><strong>Nghỉ ngơi:</strong> Chơi 10-15 phút rồi nghỉ để tránh mỏi mắt</li>
-                </ul>
-            </div>
-            
-            <div style='background: linear-gradient(135deg, #FFE4E1, #FFF0F5); padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #FF69B4;'>
-                <h4 style='color: #C71585; margin: 0 0 10px 0;'>💪 Xây dựng tâm lý tích cực:</h4>
-                <ul style='margin: 5px 0;'>
-                    <li><strong>Kiên trì:</strong> Đừng nản lòng khi không đạt điểm cao ngay lần đầu</li>
-                    <li><strong>Học hỏi:</strong> Mỗi lần "Game Over" là cơ hội rút kinh nghiệm</li>
-                    <li><strong>Vui vẻ:</strong> Nhớ rằng mục đích chính là giải trí và thư giãn</li>
-                    <li><strong>Chia sẻ:</strong> Khoe kỷ lục với bạn bè để tăng động lực</li>
-                </ul>
-            </div>
-            
-            <div style='background: linear-gradient(135deg, #E0FFFF, #F0FFFF); padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #48D1CC;'>
-                <h4 style='color: #008B8B; margin: 0 0 10px 0;'>🔊 Sử dụng âm thanh hiệu quả:</h4>
-                <ul style='margin: 5px 0;'>
-                    <li><strong>Hiệu ứng âm:</strong> Bật để nghe tín hiệu nhảy và ghi điểm</li>
-                    <li><strong>Nhạc nền:</strong> Có thể bật để tạo không khí vui tươi</li>
-                    <li><strong>Tùy chọn:</strong> Tắt nếu cảm thấy bị phân tâm</li>
-                    <li><strong>Đọc to:</strong> Sử dụng tính năng đọc lời động viên khi cần</li>
-                </ul>
-            </div>
-        </div>
-        """, unsafe_allow_html=True
-    )
-
 # CSS để làm đẹp thêm
 st.markdown(
     """
@@ -308,11 +267,6 @@ st.markdown(
         .stButton > button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        
-        .stExpander > div > div > div > div {
-            background: linear-gradient(135deg, #F0F8FF, #E6E6FA);
-            border-radius: 10px;
         }
     </style>
     """, unsafe_allow_html=True
