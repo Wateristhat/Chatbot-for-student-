@@ -26,7 +26,7 @@ except ImportError:
     EDGE_TTS_AVAILABLE = False
 
 # --- CẤU HÌNH TRANG ---
-st.set_page_config(page_title="Góc An Yên - Dành cho học sinh hòa nhập", page_icon="🫧", layout="wide")
+st.set_page_config(page_title="Góc An Yên", page_icon="🫧", layout="wide")
 st.markdown("""
 <style>
 [data-testid="stSidebar"] {
@@ -567,7 +567,7 @@ with tab1:
         with col1:
             if st.button("💾 Lưu vào nhật ký", key="save_breathing", use_container_width=True):
                 if feeling_content.strip():
-                    add_mood_entry("Hơi Thở Nhiệm Màu - Hòa Nhập", feeling_content.strip())
+                    add_mood_entry("Hơi Thở Nhiệm Màu", feeling_content.strip())
                     st.success("✅ Đã lưu cảm nhận vào nhật ký!")
                     st.session_state.show_breathing_sharing = False
                     time.sleep(1)
@@ -772,9 +772,9 @@ if st.session_state.get("show_history", False):
     # Lấy entries từ phiên bản hòa nhập
     all_entries = get_mood_entries()
     inclusive_exercises = [
-        "Hơi Thở Nhiệm Màu - Hòa Nhập", 
-        "Chạm Vào Hiện Tại (5-4-3-2-1) - Hòa Nhập", 
-        "Ô Cửa Sổ Thần Kỳ - Hòa Nhập"
+        "Hơi Thở Nhiệm Màu", 
+        "Chạm Vào Hiện Tại (5-4-3-2-1)", 
+        "Ô Cửa Sổ Thần Kỳ"
     ]
     
     # Lọc entries từ phiên bản hòa nhập
