@@ -35,7 +35,9 @@ st.markdown("""
     min-width: 220px !important;
     max-width: 220px !important;
     width: 220px !important;
-# --- CSS CHUNG + NÚT BACK ---
+}
+</style>
+""", unsafe_allow_html=True)
 st.markdown("""
 <style>
     .back-btn {
