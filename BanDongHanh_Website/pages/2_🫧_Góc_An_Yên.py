@@ -436,7 +436,7 @@ def show_virtual_assistant():
         create_tts_button(st.session_state.current_message, "assistant_msg", "🔊 Nghe động viên")
 
 # --- GIAO DIỆN CHÍNH ---
-st.title("🫧 Góc An Yên - Dành cho học sinh hòa nhập")
+st.title("🫧 Góc An Yên")
 
 # Nút quay về trang chủ
 st.markdown("⬅️ [Quay về Trang chủ](../0_💖_Trang_chủ.py)")
