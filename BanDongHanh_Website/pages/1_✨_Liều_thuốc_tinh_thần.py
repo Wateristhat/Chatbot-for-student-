@@ -18,12 +18,14 @@ st.markdown("""
 .lttt-assist-bigbox {
     background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
     border-radius: 38px; box-shadow: 0 8px 36px rgba(124,77,255,.13);
-    padding: 3.2rem 2.8rem 2.1rem 2.8rem; margin-bottom:2.3rem; margin-top:0.2rem;
-    text-align: center; border: 3.5px solid #e1bee7; max-width:1400px; margin-left:auto; margin-right:auto;
+    padding: 3.6rem 2.8rem 2.4rem 2.8rem; margin-bottom:2.3rem; margin-top:0.2rem;
+    text-align: center; border: 3.5px solid #e1bee7; max-width:1700px; margin-left:auto; margin-right:auto;
 }
 .lttt-assist-icon {font-size:3.2rem; margin-bottom:0.7rem;}
-.lttt-assist-text {font-size:1.65rem; font-weight:700; color:#6d28d9; margin-bottom:1.2rem;}
-.lttt-assist-btn-row {display:flex; justify-content: center; gap: 56px; margin-top:1.5rem;}
+.lttt-assist-text {font-size:1.8rem; font-weight:700; color:#6d28d9; margin-bottom:1.2rem;}
+.lttt-assist-btn-row {
+    display:flex; justify-content: center; gap: 56px; margin-top:1.5rem;
+}
 .lttt-assist-action-btn {
     background: #fff; border: 2.5px solid #e1bee7; border-radius: 17px;
     font-size:1.25rem; font-weight:600; color:#6d28d9;
@@ -289,8 +291,8 @@ if st.session_state.current_message and st.session_state.message_category:
     msg = st.session_state.current_message
     st.markdown(
         f'<div class="lttt-card"><div class="lttt-avatar">{msg["avatar"]}</div>'
-        f'<div style="font-size:1.23rem;font-weight:600;margin-bottom:0.3rem;">{msg["text"]}</div>'
-        f'<div style="font-size:1.05rem;color:#7f8c8d;margin-top:0.4rem;">💝 Từ {msg["name"]} gửi bạn</div></div>',
+        f'<div style="font-size:1.35rem;font-weight:700;margin-bottom:0.3rem;color:#6d28d9;">{msg["text"]}</div>'
+        f'<div style="font-size:1.07rem;color:#7f8c8d;margin-top:0.4rem;">💝 Từ {msg["name"]} gửi bạn</div></div>',
         unsafe_allow_html=True
     )
     col1, col2, col3 = st.columns(3)
