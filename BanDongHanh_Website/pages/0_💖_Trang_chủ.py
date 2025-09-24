@@ -1,6 +1,3 @@
-from BanDongHanh_Website.sidebar import render_sidebar
-
-render_sidebar(active_index=0)  # Số thứ tự menu cho "Trang chủ" là 0
 import streamlit as st
 from datetime import datetime
 
@@ -338,4 +335,5 @@ else:
         </div>
         """, unsafe_allow_html=True
     )
+
 
