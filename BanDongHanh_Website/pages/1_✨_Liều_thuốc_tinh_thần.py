@@ -8,101 +8,89 @@ from io import BytesIO
 
 st.set_page_config(page_title="✨ Liều Thuốc Tinh Thần", page_icon="✨", layout="centered")
 
-# ---- SIDEBAR ĐỒNG NHẤT GÓC AN YÊN ----
-# KHÔNG CSS sidebar trực tiếp để giữ nguyên giao diện mặc định của Streamlit
-# Sidebar của Góc An Yên sử dụng mặc định Streamlit: nền #f5f8fa, font Quicksand, không viền, cột xám nhẹ, icon và chữ nhẹ nhàng
-# Nếu muốn tối ưu font cho toàn bộ app, dùng font Quicksand cho toàn bộ app
-
+# --- CSS cho trợ lý ảo ở đầu trang ---
 st.markdown("""
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
-html, body, [class*="css"] { font-family: 'Quicksand', Arial, sans-serif; font-size: 1.15rem; }
-.page-title {
-    font-size:2.1rem; font-weight:700; color:#e53935; text-align:center; margin-bottom:1.2rem; margin-top:1rem;
-    letter-spacing:0.5px;
+.lttt-title-feature {
+    font-size:2.2rem; font-weight:700; color:#e53935; text-align:center; margin-bottom:1.3rem; margin-top:0.5rem;
+    letter-spacing:0.2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
 }
-.lttt-box {
-    background: #fffbe7;
-    border-radius: 13px;
-    padding: 1rem 1.2rem;
-    font-size: 1.07rem;
-    color: #333;
-    border-left: 5px solid #ffd54f;
-    text-align:center;
-    max-width:670px;
-    margin: auto;
-    margin-bottom:1.2rem;
-    box-shadow:0 2px 10px rgba(255, 223, 186, 0.09);
+.lttt-assist-bigbox {
+    background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
+    border-radius: 38px; box-shadow: 0 8px 36px rgba(124,77,255,.13);
+    padding: 3.2rem 2.8rem 2.1rem 2.8rem; margin-bottom:2.3rem; margin-top:0.1rem;
+    text-align: center; border: 3.5px solid #e1bee7; max-width:950px; margin-left:auto; margin-right:auto;
 }
-.lttt-btn {
-    background:#fff;
-    color:#222;
-    font-size:1.05rem;
-    font-weight:500;
-    border-radius:13px;
-    padding:0.7rem 1rem;
-    margin:0.6rem 0;
-    border:2px solid #ececec;
-    box-shadow: 0 2px 10px rgba(100,100,100,0.05);
-    transition:all 0.18s;
-    width:100%;
-    text-align:left;
-    outline:none;
+.lttt-assist-icon {font-size:3.1rem; margin-bottom:0.7rem;}
+.lttt-assist-text {font-size:1.45rem; font-weight:700; color:#6d28d9; margin-bottom:1.2rem;}
+.lttt-assist-btn-row {display:flex; justify-content: center; gap: 50px; margin-top:1.25rem;}
+.lttt-assist-action-btn {
+    background: #fff; border: 2.5px solid #e1bee7; border-radius: 18px;
+    font-size:1.19rem; font-weight:600; color:#6d28d9;
+    padding: 1rem 2.1rem; cursor:pointer; box-shadow:0 2px 8px rgba(124,77,255,.14); transition:all 0.17s;
 }
-.lttt-btn.selected {
-    border:2.5px solid #6c63ff;
-    background:#f3f2fd;
-    color:#222;
-}
-.lttt-btn:hover, .lttt-btn:focus-visible {
-    border:2.5px solid #4fc3f7;
-    background:#e3f2fd;
-}
-.lttt-card {
-    background:#fffde7;
-    border-radius:15px;
-    padding:1.3rem 1.1rem;
-    text-align:center;
-    font-size:1.11rem;
-    margin:1.2rem 0;
-    color:#333;
-    border:2px solid #ffd54f;
-    box-shadow:0 2px 10px rgba(255, 223, 186, 0.08);
-}
-.lttt-footer {
-    background:#f3e5f5;
-    border-left:5px solid #ba68c8;
-    border-radius:12px;
-    padding:0.9rem 1.1rem;
-    text-align:center;
-    font-size:1.03rem;
-    margin:0.5rem 0 1rem 0;
-    color:#333;
-}
-.lttt-avatar {
-    font-size:2.3rem; margin-bottom:0.7rem; animation:bounce 2s infinite; display:inline-block;
-}
-@keyframes bounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-7px);} }
-.lttt-history-box {
-    background: #e3f2fd;
-    border-radius: 12px;
-    padding: 0.8rem 1rem;
-    font-size: 1.01rem;
-    color: #333;
-    border-left: 5px solid #2196f3;
-    text-align:left;
-    max-width:650px;
-    margin: auto;
-    margin-bottom:1rem;
-}
-::-webkit-scrollbar {width: 9px; background: #e3f2fd;}
-::-webkit-scrollbar-thumb {background: #b3e5fc; border-radius: 8px;}
-@media (max-width:700px) {
-    .page-title { font-size:1.3rem; }
-}
+.lttt-assist-action-btn:hover {background:#f3e8ff;}
+.page-title {display:none;}
 </style>
 """, unsafe_allow_html=True)
+
+# --- Trợ lý ảo đầu trang ---
+ASSISTANT_MESSAGES = [
+    ("🤖", "🌟 Bạn đang làm rất tốt! Hãy tiếp tục nhé!"),
+    ("🤖", "✨ Mỗi người đều cần được động viên. Bee luôn bên bạn!"),
+    ("🤖", "🌈 Khó khăn chỉ là thử thách nhỏ, bạn sẽ vượt qua được!"),
+    ("🤖", "💙 Mỗi hơi thở đều là một món quà cho bản thân."),
+    ("🤖", "🦋 Từng bước nhỏ đều đưa bạn đến gần hơn với sự bình an."),
+    ("🤖", "🌺 Bạn xứng đáng được yêu thương và quan tâm.")
+]
+
+if "current_assistant_message" not in st.session_state:
+    st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
+
+# --- Tiêu đề tính năng ---
+st.markdown(
+    '<div class="lttt-title-feature">'
+    ' <span style="font-size:2.2rem;">✨</span> Liều Thuốc Tinh Thần'
+    '</div>',
+    unsafe_allow_html=True
+)
+
+# --- Khung trợ lý ảo (đồng bộ Góc An Yên) ---
+avatar, msg = st.session_state.current_assistant_message
+st.markdown(f"""
+<div class="lttt-assist-bigbox">
+    <div class="lttt-assist-icon">{avatar}</div>
+    <div class="lttt-assist-text">{msg}</div>
+    <div class="lttt-assist-btn-row">
+        <form method="post">
+            <button class="lttt-assist-action-btn" type="submit" name="new_message" formnovalidate>🔄 Thông điệp mới</button>
+        </form>
+        <form method="post">
+            <button class="lttt-assist-action-btn" type="submit" name="tts_message" formnovalidate>🔊 Nghe động viên</button>
+        </form>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+col1, col2 = st.columns([2,2])
+with col1:
+    if st.button("🔄 Thông điệp mới", key="new_msg_top"):
+        st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
+        st.rerun()
+with col2:
+    if st.button("🔊 Nghe động viên", key="tts_msg_top"):
+        audio_bytes = BytesIO()
+        tts = gTTS(text=msg, lang='vi', slow=False)
+        tts.write_to_fp(audio_bytes)
+        audio_bytes.seek(0)
+        st.audio(audio_bytes.read(), format="audio/mp3")
+
+# --- Giao diện chính ---
+st.markdown('<div class="lttt-box">🐝 Chọn điều bạn cần nhất, Bee sẽ gửi động viên phù hợp! Bạn có thể nghe hoặc lưu lại nhé! 🌈</div>', unsafe_allow_html=True)
 
 # --- DATA ---
 LTTT_CATEGORIES = {
@@ -149,7 +137,7 @@ if 'saved_encouragements' not in st.session_state:
 if 'show_journal' not in st.session_state:
     st.session_state.show_journal = False
 
-# --- TTS ---
+# --- TTS động viên dưới ---
 @st.cache_data
 def create_audio_with_tts(text):
     if not text or not text.strip():
@@ -159,10 +147,6 @@ def create_audio_with_tts(text):
     tts.write_to_fp(audio_bytes)
     audio_bytes.seek(0)
     return audio_bytes.read()
-
-def create_tts_button(text, key_suffix, button_text="🔊 Đọc to"):
-    if st.button(button_text, key=f"tts_{key_suffix}"):
-        st.audio(create_audio_with_tts(text), format="audio/mp3")
 
 def play_encouragement_audio(message_data):
     full_text = f"{message_data['name']} nói: {message_data['text']}"
@@ -232,10 +216,6 @@ def show_journal_history():
             st.dataframe(filtered_df, use_container_width=True, hide_index=True)
     except Exception as e:
         st.error(f"❌ Có lỗi khi đọc nhật ký: {str(e)}")
-
-# --- Giao diện chính ---
-st.markdown('<div class="page-title">✨ Liều Thuốc Tinh Thần Cho Bạn ✨</div>', unsafe_allow_html=True)
-st.markdown('<div class="lttt-box">🐝 Chọn điều bạn cần nhất, Bee sẽ gửi động viên phù hợp! Bạn có thể nghe hoặc lưu lại nhé! 🌈</div>', unsafe_allow_html=True)
 
 # --- Chọn loại thông điệp ---
 st.markdown("### 🌟 Bạn đang cần điều gì lúc này?")
