@@ -8,98 +8,97 @@ from io import BytesIO
 
 st.set_page_config(page_title="✨ Liều Thuốc Tinh Thần", page_icon="✨", layout="centered")
 
-# --- CSS cho trợ lý ảo ở đầu trang và giao diện đồng bộ ---
+# --- CSS: các khung trải dài như Góc An Yên ---
 st.markdown("""
 <style>
 .lttt-title-feature {
-    font-size:2.2rem; font-weight:700; color:#e53935; text-align:center; margin-bottom:1.3rem; margin-top:0.5rem;
-    letter-spacing:0.2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
+    font-size:2.6rem; font-weight:700; color:#e53935; text-align:center; margin-bottom:1.7rem; margin-top:0.7rem;
+    letter-spacing:0.2px; display: flex; align-items: center; justify-content: center; gap: 1.1rem;
 }
 .lttt-assist-bigbox {
     background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
     border-radius: 38px; box-shadow: 0 8px 36px rgba(124,77,255,.13);
-    padding: 3.2rem 2.8rem 2.1rem 2.8rem; margin-bottom:2.3rem; margin-top:0.1rem;
-    text-align: center; border: 3.5px solid #e1bee7; max-width:950px; margin-left:auto; margin-right:auto;
+    padding: 3.2rem 2.8rem 2.1rem 2.8rem; margin-bottom:2.3rem; margin-top:0.2rem;
+    text-align: center; border: 3.5px solid #e1bee7; max-width:1400px; margin-left:auto; margin-right:auto;
 }
-.lttt-assist-icon {font-size:3.1rem; margin-bottom:0.7rem;}
-.lttt-assist-text {font-size:1.45rem; font-weight:700; color:#6d28d9; margin-bottom:1.2rem;}
-.lttt-assist-btn-row {display:flex; justify-content: center; gap: 50px; margin-top:1.25rem;}
+.lttt-assist-icon {font-size:3.2rem; margin-bottom:0.7rem;}
+.lttt-assist-text {font-size:1.65rem; font-weight:700; color:#6d28d9; margin-bottom:1.2rem;}
+.lttt-assist-btn-row {display:flex; justify-content: center; gap: 56px; margin-top:1.5rem;}
 .lttt-assist-action-btn {
-    background: #fff; border: 2.5px solid #e1bee7; border-radius: 18px;
-    font-size:1.19rem; font-weight:600; color:#6d28d9;
-    padding: 1rem 2.1rem; cursor:pointer; box-shadow:0 2px 8px rgba(124,77,255,.14); transition:all 0.17s;
+    background: #fff; border: 2.5px solid #e1bee7; border-radius: 17px;
+    font-size:1.25rem; font-weight:600; color:#6d28d9;
+    padding: 1.1rem 2.5rem; cursor:pointer; box-shadow:0 2px 8px rgba(124,77,255,.14); transition:all 0.18s;
 }
 .lttt-assist-action-btn:hover {background:#f3e8ff;}
-.lttt-box {
+.lttt-box, .lttt-card, .lttt-footer {
     background: #fffbe7;
-    border-radius: 13px;
-    padding: 1rem 1.2rem;
-    font-size: 1.07rem;
+    border-radius: 16px;
+    padding: 1.2rem 1.5rem;
+    font-size: 1.12rem;
     color: #333;
     border-left: 5px solid #ffd54f;
     text-align:center;
-    max-width:670px;
-    margin: auto;
-    margin-bottom:1.2rem;
+    max-width:1200px;
+    margin-left:auto; margin-right:auto; margin-bottom:1.2rem;
     box-shadow:0 2px 10px rgba(255, 223, 186, 0.09);
 }
 .lttt-card {
     background:#fffde7;
-    border-radius:15px;
-    padding:1.3rem 1.1rem;
+    border-radius:17px;
+    padding:1.6rem 1.1rem;
     text-align:center;
-    font-size:1.11rem;
+    font-size:1.21rem;
     margin:1.2rem 0;
     color:#333;
     border:2px solid #ffd54f;
     box-shadow:0 2px 10px rgba(255, 223, 186, 0.08);
+    max-width:1200px;
+    margin-left:auto; margin-right:auto;
 }
 .lttt-footer {
     background:#f3e5f5;
     border-left:5px solid #ba68c8;
-    border-radius:12px;
-    padding:0.9rem 1.1rem;
+    border-radius:15px;
+    padding:1rem 1.3rem;
     text-align:center;
-    font-size:1.03rem;
-    margin:0.5rem 0 1rem 0;
+    font-size:1.12rem;
+    margin:0.7rem 0 1rem 0;
     color:#333;
+    max-width:1200px;
+    margin-left:auto; margin-right:auto;
 }
 .lttt-avatar {
-    font-size:2.3rem; margin-bottom:0.7rem; animation:bounce 2s infinite; display:inline-block;
+    font-size:2.6rem; margin-bottom:0.7rem; animation:bounce 2s infinite; display:inline-block;
 }
 @keyframes bounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-7px);} }
 .lttt-history-box {
     background: #e3f2fd;
-    border-radius: 12px;
-    padding: 0.8rem 1rem;
-    font-size: 1.01rem;
+    border-radius: 14px;
+    padding: 1.1rem 1.2rem;
+    font-size: 1.09rem;
     color: #333;
     border-left: 5px solid #2196f3;
     text-align:left;
-    max-width:650px;
-    margin: auto;
-    margin-bottom:1rem;
+    max-width:1200px;
+    margin-left:auto; margin-right:auto; margin-bottom:1rem;
 }
 ::-webkit-scrollbar {width: 9px; background: #e3f2fd;}
 ::-webkit-scrollbar-thumb {background: #b3e5fc; border-radius: 8px;}
-@media (max-width:700px) {
-    .lttt-title-feature { font-size:1.3rem; }
+@media (max-width:900px) {
+    .lttt-assist-bigbox, .lttt-box, .lttt-card, .lttt-footer {max-width:96vw;}
+    .lttt-title-feature { font-size:1.6rem; }
 }
 </style>
 """, unsafe_allow_html=True)
 
 # --- Trợ lý ảo đầu trang ---
 ASSISTANT_MESSAGES = [
-    ("🤖", "🌟 Bạn đang làm rất tốt! Hãy tiếp tục nhé!"),
+    ("🤖", "🌸 Bạn xứng đáng được yêu thương và quan tâm."),
     ("🤖", "✨ Mỗi người đều cần được động viên. Bee luôn bên bạn!"),
+    ("🤖", "🌟 Bạn đang làm rất tốt! Hãy tiếp tục nhé!"),
     ("🤖", "🌈 Khó khăn chỉ là thử thách nhỏ, bạn sẽ vượt qua được!"),
     ("🤖", "💙 Mỗi hơi thở đều là một món quà cho bản thân."),
-    ("🤖", "🦋 Từng bước nhỏ đều đưa bạn đến gần hơn với sự bình an."),
-    ("🤖", "🌺 Bạn xứng đáng được yêu thương và quan tâm.")
+    ("🤖", "🦋 Từng bước nhỏ đều đưa bạn đến gần hơn với sự bình an.")
 ]
 
 if "current_assistant_message" not in st.session_state or not isinstance(st.session_state.current_assistant_message, tuple):
@@ -108,12 +107,12 @@ if "current_assistant_message" not in st.session_state or not isinstance(st.sess
 # --- Tiêu đề tính năng ---
 st.markdown(
     '<div class="lttt-title-feature">'
-    ' <span style="font-size:2.2rem;">✨</span> Liều Thuốc Tinh Thần'
+    ' <span style="font-size:2.4rem;">✨</span> Liều Thuốc Tinh Thần'
     '</div>',
     unsafe_allow_html=True
 )
 
-# --- Khung trợ lý ảo (đồng bộ Góc An Yên) ---
+# --- Khung trợ lý ảo (trải dài, pastel) ---
 avatar, msg = st.session_state.current_assistant_message
 st.markdown(f"""
 <div class="lttt-assist-bigbox">
@@ -121,7 +120,7 @@ st.markdown(f"""
     <div class="lttt-assist-text">{msg}</div>
     <div class="lttt-assist-btn-row">
         <form method="post">
-            <button class="lttt-assist-action-btn" type="submit" name="new_message" formnovalidate>🔄 Thông điệp mới</button>
+            <button class="lttt-assist-action-btn" type="submit" name="new_message" formnovalidate>💬 Thông điệp mới</button>
         </form>
         <form method="post">
             <button class="lttt-assist-action-btn" type="submit" name="tts_message" formnovalidate>🔊 Nghe động viên</button>
@@ -132,7 +131,7 @@ st.markdown(f"""
 
 col1, col2 = st.columns([2,2])
 with col1:
-    if st.button("🔄 Thông điệp mới", key="new_msg_top"):
+    if st.button("💬 Thông điệp mới", key="new_msg_top"):
         st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
         st.rerun()
 with col2:
@@ -290,8 +289,8 @@ if st.session_state.current_message and st.session_state.message_category:
     msg = st.session_state.current_message
     st.markdown(
         f'<div class="lttt-card"><div class="lttt-avatar">{msg["avatar"]}</div>'
-        f'<div style="font-size:1.11rem;font-weight:600;margin-bottom:0.3rem;">{msg["text"]}</div>'
-        f'<div style="font-size:1rem;color:#7f8c8d;margin-top:0.4rem;">💝 Từ {msg["name"]} gửi bạn</div></div>',
+        f'<div style="font-size:1.23rem;font-weight:600;margin-bottom:0.3rem;">{msg["text"]}</div>'
+        f'<div style="font-size:1.05rem;color:#7f8c8d;margin-top:0.4rem;">💝 Từ {msg["name"]} gửi bạn</div></div>',
         unsafe_allow_html=True
     )
     col1, col2, col3 = st.columns(3)
@@ -334,10 +333,10 @@ if st.session_state.saved_encouragements:
         with st.container():
             col1, col2, col3 = st.columns([1,6,2])
             with col1:
-                st.markdown(f"<div style='font-size:2.1rem;text-align:center;'>{encouragement['avatar']}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='font-size:2.3rem;text-align:center;'>{encouragement['avatar']}</div>", unsafe_allow_html=True)
             with col2:
                 st.markdown(
-                    f"<div style='background:#f8f9fa;padding:1rem;border-radius:10px;margin:0.5rem 0;'>"
+                    f"<div style='background:#f8f9fa;padding:1.2rem;border-radius:12px;margin:0.65rem 0;'>"
                     f"<strong>{encouragement['name']}:</strong><br>{encouragement['text']}<br>"
                     f"<small style='color:#6c757d;'>💾 {encouragement['saved_time']}</small></div>", unsafe_allow_html=True)
             with col3:
