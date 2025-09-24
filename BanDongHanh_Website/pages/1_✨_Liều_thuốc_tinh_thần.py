@@ -27,9 +27,14 @@ except ImportError:
 st.set_page_config(
     page_title="✨ Liều Thuốc Tinh Thần",
     page_icon="✨",
-    layout="centered"
+    layout="wide"
 )
-
+st.markdown("""
+<style>
+[data-testid="stSidebar"] {
+    min-width: 220px !important;
+    max-width: 220px !important;
+    width: 220px !important;
 # --- CSS CHUNG + NÚT BACK ---
 st.markdown("""
 <style>
