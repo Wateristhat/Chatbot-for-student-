@@ -12,72 +12,45 @@ MICRO_ACTIONS = [
     {"text": "Mỉm cười với chính mình trong gương", "icon": "😊"}
 ]
 
-# --- Custom CSS for harmonious layout & assistant ---
+# --- Custom CSS for compact 3-column grid & assistant on top ---
 st.markdown("""
 <style>
-.goc-nho-title {font-size:2rem; font-weight:700; color:#7c4dff; text-align:center; margin-bottom:1.5rem;}
-.goc-nho-grid {display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; justify-content:center; margin-bottom:2rem;}
-.goc-nho-btn {background:#fff; border:2px solid #ececec; border-radius:13px; font-size:1.13rem; font-weight:500; 
-    padding:0.8rem 1.1rem; box-shadow:0 2px 8px rgba(100,100,100,0.04); transition:all 0.15s; width:100%; cursor:pointer;}
-.goc-nho-btn.selected {border:2.5px solid #7c4dff; background:#ede7f6; color:#222;}
-.goc-nho-btn:hover {border:2.5px solid #4fc3f7; background:#e3f2fd;}
 .goc-nho-assist-box {
     background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
-    border-radius: 26px; box-shadow: 0 4px 24px rgba(124,77,255,.08);
-    padding: 2.2rem 2.3rem 1.3rem 2.3rem; margin-bottom:2rem; margin-top:1rem;
-    text-align: center;
-    border: 3px solid #e1bee7;
+    border-radius: 24px; box-shadow: 0 4px 18px rgba(124,77,255,.08);
+    padding: 1.6rem 1.6rem 1.1rem 1.6rem; margin-bottom:1.5rem; margin-top:0.7rem;
+    text-align: center; border: 2px solid #e1bee7;
 }
-.goc-nho-assist-icon {font-size:2.7rem; margin-bottom:0.8rem;}
-.goc-nho-assist-text {font-size:1.25rem; font-weight:700; color:#6d28d9;}
-.goc-nho-assist-btn-row {display:flex; justify-content: center; gap: 40px; margin-top:1.1rem;}
+.goc-nho-assist-icon {font-size:2.3rem; margin-bottom:0.6rem;}
+.goc-nho-assist-text {font-size:1.14rem; font-weight:700; color:#6d28d9;}
+.goc-nho-assist-btn-row {display:flex; justify-content: center; gap: 22px; margin-top:0.7rem;}
 .goc-nho-assist-action-btn {
-    background: #fff;
-    border: 2px solid #e1bee7;
-    border-radius: 12px;
-    font-size:1.09rem; font-weight:600; color:#6d28d9;
-    padding: 0.7rem 1.1rem;
-    cursor:pointer;
-    box-shadow:0 2px 8px rgba(124,77,255,.08);
-    transition:all 0.15s;
+    background: #fff; border: 2px solid #e1bee7; border-radius: 10px;
+    font-size:1.01rem; font-weight:600; color:#6d28d9;
+    padding: 0.55rem 0.9rem; cursor:pointer; box-shadow:0 2px 8px rgba(124,77,255,.08); transition:all 0.14s;
 }
 .goc-nho-assist-action-btn:hover {background:#f3e8ff;}
-.goc-nho-checklist-title {font-size:1.18rem;font-weight:600;color:#333;margin-top:1rem;margin-bottom:0.5rem;text-align:center;}
-.goc-nho-checklist-item {background:#f9f9fb; border-radius:10px; padding:0.7rem 0.9rem; margin-bottom:0.5rem; display:flex; align-items:center; font-size:1.08rem; border:1.5px solid #ede7f6;}
-.goc-nho-check-icon {font-size:1.3rem;margin-right:0.7rem;}
-.goc-nho-check-status {margin-left:auto;font-size:1.2rem;}
+.goc-nho-title {font-size:1.48rem; font-weight:700; color:#7c4dff; text-align:center; margin-bottom:1.15rem;}
+.goc-nho-grid {display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; justify-content:center; margin-bottom:1.2rem;}
+.goc-nho-btn {background:#fff; border:1.6px solid #ececec; border-radius:11px; font-size:1rem; font-weight:500; 
+    padding:0.60rem 0.7rem; box-shadow:0 1px 5px rgba(100,100,100,0.03); transition:all 0.13s; width:100%; cursor:pointer;}
+.goc-nho-btn.selected {border:2.2px solid #7c4dff; background:#ede7f6; color:#222;}
+.goc-nho-btn:hover {border:2.2px solid #4fc3f7; background:#e3f2fd;}
+.goc-nho-checklist-title {font-size:1.08rem;font-weight:600;color:#333;margin-top:1rem;margin-bottom:0.3rem;text-align:center;}
+.goc-nho-checklist-item {background:#f9f9fb; border-radius:8px; padding:0.5rem 0.7rem; margin-bottom:0.4rem; display:flex; align-items:center; font-size:0.98rem; border:1.2px solid #ede7f6;}
+.goc-nho-check-icon {font-size:1.08rem;margin-right:0.6rem;}
+.goc-nho-check-status {margin-left:auto;font-size:1.1rem;}
 .goc-nho-congrats {
-    background:#fffde7;border-radius:17px;padding:1.4rem 1.2rem;text-align:center;font-size:1.15rem;
-    margin:1.5rem 0;color:#333;border:2px solid #ffd54f;
+    background:#fffde7;border-radius:13px;padding:1rem 0.85rem;text-align:center;font-size:1.01rem;
+    margin:1rem 0;color:#333;border:2px solid #ffd54f;
 }
-.goc-nho-footer {background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:13px;padding:0.9rem 1.1rem;text-align:center;font-size:1.07rem;margin:0.5rem 0 1.5rem 0;color:#333;}
+.goc-nho-footer {background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:10px;padding:0.7rem 1rem;text-align:center;font-size:0.98rem;margin:0.3rem 0 1.1rem 0;color:#333;}
 @media (max-width: 900px) {.goc-nho-grid{grid-template-columns:1fr 1fr;}}
 @media (max-width: 600px) {.goc-nho-grid{grid-template-columns:1fr;}}
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="goc-nho-title">🌈 Chọn từ ngân hàng hoạt động:</div>', unsafe_allow_html=True)
-
-if "selected_actions" not in st.session_state:
-    st.session_state.selected_actions = []
-
-# --- 3-column grid, harmonious, no repeat ---
-st.markdown('<div class="goc-nho-grid">', unsafe_allow_html=True)
-for i, action in enumerate(MICRO_ACTIONS):
-    is_selected = action["text"] in st.session_state.selected_actions
-    btn_label = f'{action["icon"]} {action["text"]}'
-    btn_style = "goc-nho-btn selected" if is_selected else "goc-nho-btn"
-    btn_key = f"action_{i}"
-    if st.button(btn_label, key=btn_key):
-        if is_selected:
-            st.session_state.selected_actions.remove(action["text"])
-        else:
-            st.session_state.selected_actions.append(action["text"])
-        st.rerun()
-    st.markdown(f'<div class="{btn_style}">{btn_label}</div>', unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
-
-# --- Assistant box: Trợ lý ảo ---
+# --- Assistant box on top ---
 if "assistant_message" not in st.session_state:
     st.session_state.assistant_message = ""
 if "assistant_mode" not in st.session_state:
@@ -123,9 +96,29 @@ if st.session_state.assistant_message:
     else:
         st.success(st.session_state.assistant_message)
 
+# --- Title ---
+st.markdown('<div class="goc-nho-title">🌈 Chọn từ ngân hàng hoạt động:</div>', unsafe_allow_html=True)
+
+# --- Compact 3-column grid, no repeat, only one button per action ---
+if "selected_actions" not in st.session_state:
+    st.session_state.selected_actions = []
+
+st.markdown('<div class="goc-nho-grid">', unsafe_allow_html=True)
+for i, action in enumerate(MICRO_ACTIONS):
+    is_selected = action["text"] in st.session_state.selected_actions
+    btn_label = f'{action["icon"]} {action["text"]}'
+    btn_style = "goc-nho-btn selected" if is_selected else "goc-nho-btn"
+    btn_key = f"action_{i}"
+    if st.button(btn_label, key=btn_key):
+        if not is_selected:
+            st.session_state.selected_actions.append(action["text"])
+        st.rerun()
+    st.markdown(f'<div class="{btn_style}">{btn_label}</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
+
 # --- Checklist: các hoạt động đã chọn ---
 if st.session_state.selected_actions:
-    st.markdown('<div class="goc-nho-checklist-title">📋 Danh sách việc cần làm hôm nay:</div>', unsafe_allow_html=True)
+    st.markdown('<div class="goc-nho-checklist-title">📋 Danh sách việc đã chọn hôm nay:</div>', unsafe_allow_html=True)
     all_done = True
     for i, action_text in enumerate(st.session_state.selected_actions):
         action_icon = next((a["icon"] for a in MICRO_ACTIONS if a["text"] == action_text), "💝")
@@ -153,7 +146,6 @@ if st.session_state.selected_actions:
         if not new_state:
             all_done = False
 
-    # Chúc mừng nếu hoàn thành hết
     if all_done and st.session_state.selected_actions:
         st.markdown(
             '<div class="goc-nho-congrats"><b>🎉 CHÚC MỪNG! 🎉</b><br>Bạn đã hoàn thành tất cả các mục tiêu tự chăm sóc cho hôm nay!<br>🌟 Bạn thật tuyệt vời! Hãy tự hào về bản thân nhé! 🌟</div>',
