@@ -757,7 +757,7 @@ with tab3:
 
 # --- PHẦN XEM LỊCH SỬ ---
 st.write("---")
-st.header("📖 Lịch Sử Góc An Yên - Hòa Nhập")
+st.header("📖 Lịch Sử Góc An Yên")
 
 history_description = "Xem lại những cảm nhận và trải nghiệm của bạn từ các bài tập trong Góc An Yên dành cho học sinh hòa nhập."
 st.markdown(f'<div class="inclusive-instruction">{history_description}</div>', unsafe_allow_html=True)
