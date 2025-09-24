@@ -30,9 +30,9 @@ st.set_page_config(page_title="Góc An Yên - Dành cho học sinh hòa nhập",
 st.markdown("""
 <style>
 [data-testid="stSidebar"] {
-    min-width: 220px !important;
-    max-width: 220px !important;
-    width: 220px !important;
+    min-width: 320px !important;
+    max-width: 320px !important;
+    width: 320px !important;
 }
 </style>
 """, unsafe_allow_html=True)
