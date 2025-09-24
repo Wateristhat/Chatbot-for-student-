@@ -26,8 +26,16 @@ except ImportError:
     EDGE_TTS_AVAILABLE = False
 
 # --- CẤU HÌNH TRANG ---
-st.set_page_config(page_title="Góc An Yên - Dành cho học sinh hòa nhập", page_icon="🫧", layout="centered")
-
+st.set_page_config(page_title="Góc An Yên - Dành cho học sinh hòa nhập", page_icon="🫧", layout="wide")
+st.markdown("""
+<style>
+[data-testid="stSidebar"] {
+    min-width: 220px !important;
+    max-width: 220px !important;
+    width: 220px !important;
+}
+</style>
+""", unsafe_allow_html=True)
 # --- CÁC THÔNG ĐIỆP ĐỘNG VIÊN NGẪU NHIÊN ---
 ENCOURAGEMENT_MESSAGES = [
     "🌟 Bạn đang làm rất tốt! Hãy tiếp tục nhé!",
