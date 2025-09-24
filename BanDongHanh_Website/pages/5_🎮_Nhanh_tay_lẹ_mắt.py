@@ -1,6 +1,7 @@
 import streamlit as st
 from gtts import gTTS
 from io import BytesIO
+import os
 
 st.set_page_config(page_title="🐝 Bee Bay Cùng Bạn - Nhanh Tay Lẹ Mắt", page_icon="🎮", layout="centered")
 
@@ -23,20 +24,19 @@ def create_tts_button(text, key_suffix, button_text="🔊 Đọc to"):
         if audio_data:
             st.audio(audio_data, format="audio/mp3")
 
-# --- GIAO DIỆN ---
+# --- HƯỚNG DẪN & ĐỘNG VIÊN ---
 st.markdown("""
     <div style='text-align: center; margin-bottom: 20px;'>
         <h1 style='color: #2E8B57; font-size: 2.7rem;'>
             🐝 Bee Bay Cùng Bạn!
         </h1>
-        <h2 style='color: #4169E1; font-size: 1.7rem;'>🎮 Vượt Chướng Ngại Vật</h2>
+        <h2 style='color: #4169E1; font-size: 1.7rem;'>🎮 Nhanh Tay Lẹ Mắt</h2>
         <div style='margin-top:8px; color:#444; font-size:1.1rem;'>Điều khiển bằng phím <b>SPACE</b> hoặc chạm màn hình điện thoại</div>
     </div>
 """, unsafe_allow_html=True)
 
-# --- Nút TTS hướng dẫn ---
 instructions_text = """
-Chào bạn! Đây là trò chơi Bee Bay Cùng Bạn - Vượt Chướng Ngại Vật.
+Chào bạn! Đây là trò chơi Bee Bay Cùng Bạn - Nhanh Tay Lẹ Mắt.
 Mục tiêu là giúp ong Bee bay qua các quả bóng mà không va chạm.
 Bạn hãy dùng phím SPACE để ong nhảy lên cao, hoặc chạm vào màn hình nếu dùng điện thoại.
 Chúc bạn chơi vui và luôn tự tin!
@@ -47,17 +47,15 @@ with col2:
 
 st.write("---")
 
-# --- NHÚNG GAME HTML5 ---
-game_url = "https://wateristhat.github.io/Chatbot-for-student-/BanDongHanh_Website/game.html"  # Đường dẫn game của bạn
-
-st.components.v1.html(
-    f"""
-    <iframe src="{game_url}" width="100%" height="600" frameborder="0" scrolling="no" style="border-radius: 15px; background: #F9F9FF;"></iframe>
-    """,
-    height=620
-)
-
-st.info("👉 Nhấn phím SPACE (trên máy tính) hoặc chạm vào màn hình (điện thoại) để ong Bee bay qua chướng ngại vật!")
+# --- GAME HTML NHÚNG TRỰC TIẾP ---
+game_file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "game.html")
+try:
+    with open(game_file_path, "r", encoding="utf-8") as file:
+        game_html_content = file.read()
+    st.components.v1.html(game_html_content, height=650, scrolling=False)
+    st.info("👉 Nhấn phím SPACE (máy tính) hoặc chạm vào màn hình (điện thoại) để chơi game!")
+except Exception as e:
+    st.error(f"Không thể tải game. Kiểm tra file game.html trong thư mục BanDongHanh_Website. Chi tiết lỗi: {e}")
 
 # --- ĐỘNG VIÊN KHI CHƠI GAME ---
 st.write("---")
@@ -88,15 +86,17 @@ with col2:
     create_tts_button(encouragement_text, "encouragement", "🔊 Nghe lời động viên")
 
 # --- MẸO CHƠI GAME ---
-with st.expander("🎯 Mẹo chơi game cho học sinh hòa nhập", expanded=False):
+with st.expander("🎯 Mẹo chơi game dành cho bạn", expanded=False):
     tips = """
-    1. **Thở sâu, thư giãn trước khi chơi.**
-    2. **Dùng SPACE hoặc chạm màn hình để điều khiển ong Bee nhảy qua bóng.**
-    3. **Đừng lo nếu chưa đạt điểm cao, mỗi lần chơi là một cơ hội học hỏi.**
-    4. **Nếu thấy mệt, hãy nghỉ ngơi rồi chơi lại sau nhé.**
-    5. **Hãy chia sẻ niềm vui và thành tích của mình với bạn bè, thầy cô!**
+    1. Thở sâu, thư giãn trước khi chơi.
+    2. Dùng SPACE hoặc chạm màn hình để điều khiển ong Bee nhảy qua bóng.
+    3. Đừng lo nếu chưa đạt điểm cao, mỗi lần chơi là một cơ hội học hỏi.
+    4. Nếu thấy mệt, hãy nghỉ ngơi rồi chơi lại sau nhé.
+    5. Hãy chia sẻ niềm vui và thành tích của mình với bạn bè, thầy cô!
     """
     st.markdown(tips)
+    tips_tts = "Mẹo chơi game dành cho bạn. Một, thở sâu và thư giãn trước khi chơi. Hai, dùng phím SPACE hoặc chạm màn hình để điều khiển ong Bee nhảy qua bóng. Ba, đừng lo nếu chưa đạt điểm cao, mỗi lần chơi là một cơ hội học hỏi. Bốn, nếu thấy mệt hãy nghỉ ngơi rồi chơi lại sau nhé. Năm, hãy chia sẻ niềm vui và thành tích của mình với bạn bè, thầy cô!"
+    create_tts_button(tips_tts, "tips", "🔊 Nghe mẹo chơi game")
 
 # --- Nút quay về trang chủ ---
 st.markdown(
@@ -117,7 +117,7 @@ st.markdown(
     """, unsafe_allow_html=True
 )
 
-# --- CSS làm đẹp thêm (không ảnh hưởng game) ---
+# --- CSS làm đẹp thêm ---
 st.markdown("""
     <style>
         .stButton > button {
