@@ -579,10 +579,13 @@
     function handlePlayerJump() {
       if (!gameRunning && !gameStarted) {
         startGame();
+        player.velocity = gameSettings[gameMode].jumpPower;
+        player.isJumping = true;
+        playSound(600, 0.15, 'square', 0.2);
         return;
       }
       
-      if (gameRunning && player.velocity >= 0) {
+      if (gameRunning) {
         player.velocity = gameSettings[gameMode].jumpPower;
         player.isJumping = true;
         playSound(600, 0.15, 'square', 0.2); // Enhanced jump sound
