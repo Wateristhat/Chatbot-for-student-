@@ -1,6 +1,3 @@
-from BanDongHanh_Website.sidebar import render_sidebar
-
-render_sidebar(active_index=2)
 import streamlit as st
 import time
 import random
