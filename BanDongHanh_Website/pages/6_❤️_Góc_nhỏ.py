@@ -9,8 +9,18 @@ MICRO_ACTIONS = [
     {"text": "Viết ra 1 điều bạn tự hào về bản thân", "icon": "✍️"},
     {"text": "Rửa mặt với nước mát", "icon": "🚿"},
     {"text": "Sắp xếp lại góc học tập/làm việc", "icon": "📚"},
-    {"text": "Mỉm cười với chính mình trong gương", "icon": "😊"}
+    {"text": "Mỉm cười với chính mình trong gương", "icon": "😊"},
+    # Nếu còn trùng, code dưới sẽ tự loại
 ]
+
+# --- LOẠI BỎ TRÙNG LẶP hoạt động (icon+text) ---
+unique_micro_actions = []
+seen = set()
+for act in MICRO_ACTIONS:
+    key = f"{act['icon']}_{act['text']}"
+    if key not in seen:
+        unique_micro_actions.append(act)
+        seen.add(key)
 
 # --- Custom CSS for assistant and compact 2-column grid ---
 st.markdown("""
@@ -99,9 +109,9 @@ st.markdown('<div class="goc-nho-title">🌈 Chọn từ ngân hàng hoạt đ�
 if "selected_actions" not in st.session_state:
     st.session_state.selected_actions = []
 
-# --- Only one button per action, 2 columns, click to confirm ---
+# --- Chỉ 1 nút cho mỗi hoạt động, 2 columns, click chọn xác nhận ---
 cols = st.columns(2)
-for i, action in enumerate(MICRO_ACTIONS):
+for i, action in enumerate(unique_micro_actions):
     col = cols[i % 2]
     with col:
         is_selected = action["text"] in st.session_state.selected_actions
@@ -120,7 +130,7 @@ if st.session_state.selected_actions:
     st.markdown('<div class="goc-nho-checklist-title">📋 Danh sách việc đã chọn hôm nay:</div>', unsafe_allow_html=True)
     all_done = True
     for i, action_text in enumerate(st.session_state.selected_actions):
-        action_icon = next((a["icon"] for a in MICRO_ACTIONS if a["text"] == action_text), "💝")
+        action_icon = next((a["icon"] for a in unique_micro_actions if a["text"] == action_text), "💝")
         done_key = f"done_{action_text}"
         if done_key not in st.session_state:
             st.session_state[done_key] = False
