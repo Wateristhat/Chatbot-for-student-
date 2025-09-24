@@ -8,46 +8,120 @@ from io import BytesIO
 
 st.set_page_config(page_title="✨ Liều Thuốc Tinh Thần", page_icon="✨", layout="centered")
 
-# --- CSS nhẹ, đồng bộ với Góc An Yên ---
+# ---- SIDEBAR ĐẸP VÀ ĐỒNG BỘ ----
 st.markdown("""
 <style>
-body, html, [class*="css"] { font-family: 'Quicksand', Arial, sans-serif; font-size: 1.15rem; }
+/* Sidebar custom - giống giao diện tổng */
+[data-testid="stSidebar"] {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%) !important;
+    min-width: 280px !important;
+    max-width: 280px !important;
+    width: 280px !important;
+    border-right: 2px solid #e0e0e0;
+}
+
+[data-testid="stSidebarNav"] > ul {
+    font-family: 'Quicksand', Arial, sans-serif;
+    font-size: 1.16rem;
+    padding-left: 6px;
+}
+
+[data-testid="stSidebarNav"] li {
+    margin-bottom: 10px;
+    border-radius: 12px;
+    transition: background 0.2s;
+    padding: 4px 10px;
+}
+
+[data-testid="stSidebarNav"] li:hover {
+    background: #e3f2fd !important;
+}
+
+[data-testid="stSidebarNav"] li span {
+    font-weight: 500;
+}
+
+[data-testid="stSidebarNav"] li.active {
+    background: linear-gradient(90deg,#ffd6e0 0%,#b3e5fc 100%) !important;
+    color: #d81b60 !important;
+}
+
+.sidebar-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1976d2;
+    margin-bottom: 0.7rem;
+    margin-top: 0.1rem;
+    letter-spacing: 0.5px;
+    text-align: left;
+}
+</style>
+""", unsafe_allow_html=True)
+
+with st.sidebar:
+    st.markdown('<div class="sidebar-title">✨ Liều Thuốc Tinh Thần</div>', unsafe_allow_html=True)
+    st.markdown("Hãy chọn một loại động viên phù hợp với bạn!")
+
+    st.markdown("""
+    <hr style="margin-top:0.4rem;margin-bottom:0.7rem;">
+    <a href="0_💖_Trang_chủ.py" style="text-decoration:none;display:block;font-size:1.04rem;color:#1976d2;background:#e3f2fd;padding:0.5rem 0.9rem;border-radius:10px;border:1px solid #b3e5fc;font-weight:600;margin-bottom:0.5rem;">
+        🏠 Quay về Trang chủ
+    </a>
+    <div style="font-size:1.06rem;color:#555;margin-top:1rem;">
+        <b>Gợi ý:</b> <br>
+        <ul style="margin-left:-0.8rem;">
+          <li>Chọn loại động viên phù hợp</li>
+          <li>Nghe lời động viên bằng nút 🔊</li>
+          <li>Lưu lại vào lọ cá nhân hoặc nhật ký cảm xúc</li>
+          <li>Xem lại lịch sử đã lưu</li>
+        </ul>
+    </div>
+    <hr>
+    """, unsafe_allow_html=True)
+
+# ---- STYLE MAIN ----
+st.markdown("""
+<style>
+body, html, [class*="css"] { font-family: 'Quicksand', Arial, sans-serif; font-size: 1.15rem; background:#f7fafc;}
 .page-title {
     font-size:2.1rem; font-weight:700; color:#e53935; text-align:center; margin-bottom:1.2rem; margin-top:1rem;
+    letter-spacing:0.5px;
 }
 .lttt-box {
     background: #fffbe7;
     border-radius: 13px;
     padding: 1rem 1.2rem;
-    font-size: 1.06rem;
+    font-size: 1.07rem;
     color: #333;
     border-left: 5px solid #ffd54f;
     text-align:center;
-    max-width:650px;
+    max-width:670px;
     margin: auto;
     margin-bottom:1.2rem;
+    box-shadow:0 2px 10px rgba(255, 223, 186, 0.09);
 }
 .lttt-btn {
     background:#fff;
     color:#222;
-    font-size:1rem;
+    font-size:1.05rem;
     font-weight:500;
-    border-radius:12px;
-    padding:0.6rem 0.9rem;
-    margin:0.5rem 0;
-    border:1.5px solid #ececec;
-    box-shadow: 0 2px 8px rgba(100,100,100,0.04);
-    transition:all 0.13s;
+    border-radius:13px;
+    padding:0.7rem 1rem;
+    margin:0.6rem 0;
+    border:2px solid #ececec;
+    box-shadow: 0 2px 10px rgba(100,100,100,0.05);
+    transition:all 0.18s;
     width:100%;
     text-align:left;
+    outline:none;
 }
 .lttt-btn.selected {
-    border:2px solid #6c63ff;
+    border:2.5px solid #6c63ff;
     background:#f3f2fd;
     color:#222;
 }
-.lttt-btn:hover {
-    border:2px solid #81d4fa;
+.lttt-btn:hover, .lttt-btn:focus-visible {
+    border:2.5px solid #4fc3f7;
     background:#e3f2fd;
 }
 .lttt-card {
@@ -55,29 +129,31 @@ body, html, [class*="css"] { font-family: 'Quicksand', Arial, sans-serif; font-s
     border-radius:15px;
     padding:1.3rem 1.1rem;
     text-align:center;
-    font-size:1.09rem;
+    font-size:1.11rem;
     margin:1.2rem 0;
     color:#333;
     border:2px solid #ffd54f;
+    box-shadow:0 2px 10px rgba(255, 223, 186, 0.08);
 }
 .lttt-footer {
     background:#f3e5f5;
     border-left:5px solid #ba68c8;
     border-radius:12px;
-    padding:0.8rem 1rem;
+    padding:0.9rem 1.1rem;
     text-align:center;
-    font-size:1rem;
+    font-size:1.03rem;
     margin:0.5rem 0 1rem 0;
     color:#333;
 }
 .lttt-avatar {
-    font-size:2.15rem; margin-bottom:0.6rem;
+    font-size:2.3rem; margin-bottom:0.7rem; animation:bounce 2s infinite; display:inline-block;
 }
+@keyframes bounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-7px);} }
 .lttt-history-box {
     background: #e3f2fd;
     border-radius: 12px;
     padding: 0.8rem 1rem;
-    font-size: 1rem;
+    font-size: 1.01rem;
     color: #333;
     border-left: 5px solid #2196f3;
     text-align:left;
@@ -85,6 +161,8 @@ body, html, [class*="css"] { font-family: 'Quicksand', Arial, sans-serif; font-s
     margin: auto;
     margin-bottom:1rem;
 }
+::-webkit-scrollbar {width: 9px; background: #e3f2fd;}
+::-webkit-scrollbar-thumb {background: #b3e5fc; border-radius: 8px;}
 @media (max-width:700px) {
     .page-title { font-size:1.3rem; }
 }
@@ -222,7 +300,6 @@ def show_journal_history():
 
 # --- Giao diện chính ---
 st.markdown('<div class="page-title">✨ Liều Thuốc Tinh Thần Cho Bạn ✨</div>', unsafe_allow_html=True)
-st.markdown('<a href="0_💖_Trang_chủ.py" style="text-decoration:none;color:#333;background:#e3f2fd;padding:0.5rem 1.3rem;border-radius:13px;border:2px solid #2196f3;font-weight:600;display:inline-block;margin-bottom:1.1rem;">⬅️ Quay về Trang chủ</a>', unsafe_allow_html=True)
 st.markdown('<div class="lttt-box">🐝 Chọn điều bạn cần nhất, Bee sẽ gửi động viên phù hợp! Bạn có thể nghe hoặc lưu lại nhé! 🌈</div>', unsafe_allow_html=True)
 
 # --- Chọn loại thông điệp ---
@@ -244,7 +321,7 @@ if st.session_state.current_message and st.session_state.message_category:
     msg = st.session_state.current_message
     st.markdown(
         f'<div class="lttt-card"><div class="lttt-avatar">{msg["avatar"]}</div>'
-        f'<div style="font-size:1.09rem;font-weight:600;margin-bottom:0.3rem;">{msg["text"]}</div>'
+        f'<div style="font-size:1.11rem;font-weight:600;margin-bottom:0.3rem;">{msg["text"]}</div>'
         f'<div style="font-size:1rem;color:#7f8c8d;margin-top:0.4rem;">💝 Từ {msg["name"]} gửi bạn</div></div>',
         unsafe_allow_html=True
     )
