@@ -15,11 +15,14 @@ def render_sidebar(active_index=None):
     ]
     st.markdown("""
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap');
         .custom-sidebar {
-            width: 230px;
+            width: 240px;
             min-height: 100vh;
             background: #F3F5FC;
-            padding: 40px 0 0 0;
+            padding: 36px 0 0 0;
+            font-family: 'Quicksand', Arial, sans-serif;
+            border-right: 0px solid #e6e6e6;
         }
         .custom-sidebar ul {
             list-style-type: none;
@@ -27,31 +30,48 @@ def render_sidebar(active_index=None):
             margin: 0;
         }
         .custom-sidebar li {
-            margin-bottom: 16px;
+            margin-bottom: 10px;
         }
         .custom-sidebar .active {
             background: #e2e6ef;
-            font-weight: bold;
-            border-radius: 15px;
+            font-weight: 700;
+            border-radius: 13px;
+            color: #444 !important;
+            box-shadow: 0 0 0 1.5px #e2e6ef;
         }
         .custom-sidebar a {
             color: #444;
             font-size: 17px;
             font-weight: 600;
             text-decoration: none;
-            display: block;
-            padding: 10px 18px;
-            border-radius: 15px;
-            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            padding: 11px 20px;
+            border-radius: 13px;
+            transition: background 0.18s, font-weight 0.18s;
+            margin: 0;
         }
         .custom-sidebar a:hover {
             background: #dde2ee;
+            font-weight: 700;
+        }
+        .custom-sidebar li:first-child {
+            margin-bottom: 20px;
+        }
+        .custom-sidebar span.menu-title {
+            color: #888;
+            font-size: 15px;
+            font-weight: 600;
+            margin-left: 18px;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            display: block;
         }
     </style>
     """, unsafe_allow_html=True)
 
     menu_html = "<div class='custom-sidebar'><ul>"
-    menu_html += "<li style='margin-bottom:18px;'><span style='color:#444; font-size:15px;'>app</span></li>"
+    menu_html += "<li><span class='menu-title'>app</span></li>"
     for idx, (title, link) in enumerate(menu):
         class_active = "active" if idx == active_index else ""
         menu_html += f"<li><a class='{class_active}' href='{link}'>{title}</a></li>"
