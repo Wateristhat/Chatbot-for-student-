@@ -6,9 +6,9 @@ import os
 from gtts import gTTS
 from io import BytesIO
 
-st.set_page_config(page_title="✨ Liều Thuốc Tinh Thần", page_icon="✨", layout="centered")
+st.set_page_config(page_title="✨ Liều Thuốc Tinh Thần", page_icon="✨", layout="wide")
 
-# --- CSS: các khung trải dài như Góc An Yên ---
+# --- CSS: khung trợ lý ảo trải dài như Góc An Yên ---
 st.markdown("""
 <style>
 .lttt-title-feature {
@@ -19,19 +19,10 @@ st.markdown("""
     background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
     border-radius: 38px; box-shadow: 0 8px 36px rgba(124,77,255,.13);
     padding: 3.6rem 2.8rem 2.4rem 2.8rem; margin-bottom:2.3rem; margin-top:0.2rem;
-    text-align: center; border: 3.5px solid #e1bee7; max-width:1700px; margin-left:auto; margin-right:auto;
+    text-align: center; border: 3.5px solid #e1bee7; max-width:1700px; width:100%; margin-left:auto; margin-right:auto;
 }
 .lttt-assist-icon {font-size:3.2rem; margin-bottom:0.7rem;}
 .lttt-assist-text {font-size:1.8rem; font-weight:700; color:#6d28d9; margin-bottom:1.2rem;}
-.lttt-assist-btn-row {
-    display:flex; justify-content: center; gap: 56px; margin-top:1.5rem;
-}
-.lttt-assist-action-btn {
-    background: #fff; border: 2.5px solid #e1bee7; border-radius: 17px;
-    font-size:1.25rem; font-weight:600; color:#6d28d9;
-    padding: 1.1rem 2.5rem; cursor:pointer; box-shadow:0 2px 8px rgba(124,77,255,.14); transition:all 0.18s;
-}
-.lttt-assist-action-btn:hover {background:#f3e8ff;}
 .lttt-box, .lttt-card, .lttt-footer {
     background: #fffbe7;
     border-radius: 16px;
@@ -102,7 +93,6 @@ ASSISTANT_MESSAGES = [
     ("🤖", "💙 Mỗi hơi thở đều là một món quà cho bản thân."),
     ("🤖", "🦋 Từng bước nhỏ đều đưa bạn đến gần hơn với sự bình an.")
 ]
-
 if "current_assistant_message" not in st.session_state or not isinstance(st.session_state.current_assistant_message, tuple):
     st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
 
@@ -114,20 +104,12 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- Khung trợ lý ảo (trải dài, pastel) ---
+# --- Khung trợ lý ảo trải dài, pastel, giống Góc An Yên ---
 avatar, msg = st.session_state.current_assistant_message
 st.markdown(f"""
 <div class="lttt-assist-bigbox">
     <div class="lttt-assist-icon">{avatar}</div>
     <div class="lttt-assist-text">{msg}</div>
-    <div class="lttt-assist-btn-row">
-        <form method="post">
-            <button class="lttt-assist-action-btn" type="submit" name="new_message" formnovalidate>💬 Thông điệp mới</button>
-        </form>
-        <form method="post">
-            <button class="lttt-assist-action-btn" type="submit" name="tts_message" formnovalidate>🔊 Nghe động viên</button>
-        </form>
-    </div>
 </div>
 """, unsafe_allow_html=True)
 
