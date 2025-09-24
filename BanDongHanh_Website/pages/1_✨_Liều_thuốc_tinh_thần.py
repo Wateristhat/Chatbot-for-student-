@@ -8,7 +8,7 @@ from io import BytesIO
 
 st.set_page_config(page_title="✨ Liều Thuốc Tinh Thần", page_icon="✨", layout="centered")
 
-# --- CSS cho trợ lý ảo ở đầu trang ---
+# --- CSS cho trợ lý ảo ở đầu trang và giao diện đồng bộ ---
 st.markdown("""
 <style>
 .lttt-title-feature {
@@ -34,7 +34,61 @@ st.markdown("""
     padding: 1rem 2.1rem; cursor:pointer; box-shadow:0 2px 8px rgba(124,77,255,.14); transition:all 0.17s;
 }
 .lttt-assist-action-btn:hover {background:#f3e8ff;}
-.page-title {display:none;}
+.lttt-box {
+    background: #fffbe7;
+    border-radius: 13px;
+    padding: 1rem 1.2rem;
+    font-size: 1.07rem;
+    color: #333;
+    border-left: 5px solid #ffd54f;
+    text-align:center;
+    max-width:670px;
+    margin: auto;
+    margin-bottom:1.2rem;
+    box-shadow:0 2px 10px rgba(255, 223, 186, 0.09);
+}
+.lttt-card {
+    background:#fffde7;
+    border-radius:15px;
+    padding:1.3rem 1.1rem;
+    text-align:center;
+    font-size:1.11rem;
+    margin:1.2rem 0;
+    color:#333;
+    border:2px solid #ffd54f;
+    box-shadow:0 2px 10px rgba(255, 223, 186, 0.08);
+}
+.lttt-footer {
+    background:#f3e5f5;
+    border-left:5px solid #ba68c8;
+    border-radius:12px;
+    padding:0.9rem 1.1rem;
+    text-align:center;
+    font-size:1.03rem;
+    margin:0.5rem 0 1rem 0;
+    color:#333;
+}
+.lttt-avatar {
+    font-size:2.3rem; margin-bottom:0.7rem; animation:bounce 2s infinite; display:inline-block;
+}
+@keyframes bounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-7px);} }
+.lttt-history-box {
+    background: #e3f2fd;
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    font-size: 1.01rem;
+    color: #333;
+    border-left: 5px solid #2196f3;
+    text-align:left;
+    max-width:650px;
+    margin: auto;
+    margin-bottom:1rem;
+}
+::-webkit-scrollbar {width: 9px; background: #e3f2fd;}
+::-webkit-scrollbar-thumb {background: #b3e5fc; border-radius: 8px;}
+@media (max-width:700px) {
+    .lttt-title-feature { font-size:1.3rem; }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -48,7 +102,7 @@ ASSISTANT_MESSAGES = [
     ("🤖", "🌺 Bạn xứng đáng được yêu thương và quan tâm.")
 ]
 
-if "current_assistant_message" not in st.session_state:
+if "current_assistant_message" not in st.session_state or not isinstance(st.session_state.current_assistant_message, tuple):
     st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
 
 # --- Tiêu đề tính năng ---
@@ -89,7 +143,7 @@ with col2:
         audio_bytes.seek(0)
         st.audio(audio_bytes.read(), format="audio/mp3")
 
-# --- Giao diện chính ---
+# --- Hộp chọn động viên ---
 st.markdown('<div class="lttt-box">🐝 Chọn điều bạn cần nhất, Bee sẽ gửi động viên phù hợp! Bạn có thể nghe hoặc lưu lại nhé! 🌈</div>', unsafe_allow_html=True)
 
 # --- DATA ---
