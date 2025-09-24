@@ -52,7 +52,7 @@ game_file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__
 try:
     with open(game_file_path, "r", encoding="utf-8") as file:
         game_html_content = file.read()
-    st.components.v1.html(game_html_content, height=650, scrolling=False)
+    st.components.v1.html(game_html_content, height=1000, scrolling=False)
     st.info("👉 Nhấn phím SPACE (máy tính) hoặc chạm vào màn hình (điện thoại) để chơi game!")
 except Exception as e:
     st.error(f"Không thể tải game. Kiểm tra file game.html trong thư mục BanDongHanh_Website. Chi tiết lỗi: {e}")
