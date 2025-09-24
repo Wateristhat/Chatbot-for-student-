@@ -1,3 +1,6 @@
+from BanDongHanh_Website.sidebar import render_sidebar
+
+render_sidebar(active_index=1)  # Số thứ tự menu cho "Liều thuốc tinh thần" là 1
 import streamlit as st
 import random
 import pandas as pd
