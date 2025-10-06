@@ -25,12 +25,12 @@ GRATITUDE_SUGGESTIONS = [
 
 # --- VIRTUAL ASSISTANT MESSAGES ---
 ASSISTANT_MESSAGES = [
-    ("🤖", "🌸 Mỗi điều biết ơn nhỏ đều là kho báu quý giá!"),
-    ("🤖", "✨ Bạn làm rất tốt khi ghi lại những khoảnh khắc đẹp!"),
-    ("🤖", "🌟 Cảm ơn bạn đã tin tưởng và chia sẻ với Bee!"),
-    ("🤖", "💝 Hôm nay bạn đã lan tỏa năng lượng tích cực!"),
-    ("🤖", "🦋 Biết ơn là ánh nắng ấm áp cho trái tim!"),
-    ("🤖", "🌻 Một lời biết ơn nhỏ - một niềm vui lớn!")
+    ("🤖", "Mỗi điều biết ơn nhỏ đều là kho báu quý giá!"),
+    ("🤖", "Bạn làm rất tốt khi ghi lại những khoảnh khắc đẹp!"),
+    ("🤖", "Cảm ơn bạn đã tin tưởng và chia sẻ với Bee!"),
+    ("🤖", "Hôm nay bạn đã lan tỏa năng lượng tích cực!"),
+    ("🤖", "Biết ơn là ánh nắng ấm áp cho trái tim!"),
+    ("🤖", "Một lời biết ơn nhỏ - một niềm vui lớn!")
 ]
 GRATITUDE_RESPONSES = [
     "Thật tuyệt vời! Lời biết ơn của bạn đã được thêm vào lọ! 🌟",
@@ -368,3 +368,4 @@ st.markdown("""
     Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
 </div>
 """, unsafe_allow_html=True)
+
