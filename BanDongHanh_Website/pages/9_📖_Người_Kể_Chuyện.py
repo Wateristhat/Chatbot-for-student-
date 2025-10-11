@@ -12,7 +12,7 @@ if not st.session_state.get('user_id'):
     st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
     st.stop()
 
-# --- CSS HOÀN CHỈNH VÀ ĐÃ SỬA LỖI ---
+# --- CSS HOÀN CHỈNH VÀ SẠCH SẼ ---
 st.markdown("""
 <style>
 /* CSS chung cho các nút bấm */
@@ -39,27 +39,28 @@ st.markdown("""
 .nkc-assist-icon { font-size: 3.2rem; margin-bottom: 0.7rem; }
 .nkc-assist-text { font-size: 1.7rem; font-weight: 700; color: #6d28d9; margin-bottom: 1.1rem; }
 
-/* --- CSS MỚI, MẠNH MẼ HƠN CHO Ô CHỌN --- */
-.selectbox-label {
+/* --- CSS CUỐI CÙNG CHO Ô CHỌN (SELECTBOX) --- */
+
+/* Làm to nhãn (chữ bên trên) */
+div[data-testid="stSelectbox"] > label {
     font-size: 1.3rem !important;
     font-weight: 700 !important;
     color: #333 !important;
     padding-bottom: 0.5rem !important;
 }
-/* Style cho cái hộp */
+
+/* Làm to cái hộp */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-    padding-top: 1rem !important;
-    padding-bottom: 1rem !important;
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
+    padding: 1rem !important;
     border-radius: 12px !important;
     border: 2px solid #b39ddb !important;
     background-color: #FFFFFF !important;
 }
-/* Style cho chữ bên trong hộp (selector mới mạnh hơn) */
-div[data-testid="stSelectbox"] div[role="combobox"] {
+
+/* Làm to và hiện chữ bên trong hộp */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] div[data-testid="stText"] {
     font-size: 1.3rem !important;
-    color: #333 !important;
+    color: #333 !important; /* DÒNG QUAN TRỌNG NHẤT ĐỂ HIỆN CHỮ */
 }
 </style>
 """, unsafe_allow_html=True)
@@ -141,12 +142,10 @@ with col2:
 st.markdown("⬅️ [Quay về Trang chủ](/)", unsafe_allow_html=True)
 st.write("---")
 
-# --- PHẦN CHỌN TRUYỆN ĐÃ SỬA ---
-st.markdown("<p class='selectbox-label'>Chọn thể loại truyện bạn muốn nghe:</p>", unsafe_allow_html=True)
+# --- PHẦN CHỌN TRUYỆN (SỬ DỤNG NHÃN MẶC ĐỊNH) ---
 selected_category = st.selectbox(
-    "selectbox_for_stories",
-    options=list(STORIES.keys()),
-    label_visibility="collapsed"
+    "Chọn thể loại truyện bạn muốn nghe:", # Sử dụng lại nhãn mặc định
+    options=list(STORIES.keys())
 )
 st.write("---")
 
