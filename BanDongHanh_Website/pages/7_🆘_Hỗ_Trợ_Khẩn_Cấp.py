@@ -52,10 +52,13 @@ st.markdown("""
     display: block;
     margin-bottom: 1rem;
 }
+/* --- Class mới để đổi màu và font chữ số 115 --- */
 .emergency-number {
     color: #D9534F;
     font-size: 1.8rem;
     font-weight: 900;
+    font-family: 'Courier New', Courier, monospace; /* Thêm font chữ khối */
+    letter-spacing: 3px; /* Thêm khoảng cách giống số 111 */
 }
 </style>
 """, unsafe_allow_html=True)
