@@ -15,22 +15,23 @@ st.markdown("""
     border: 2px solid #D9534F; /* Viền đỏ đậm */
     text-align: center;
 }
+/* --- CSS MỚI ĐỂ LÀM CHỮ TO HƠN GẤP NHIỀU LẦN --- */
 .hotline-title {
-    font-size: 1.5rem; /* Cỡ chữ lớn cho tên tổ chức */
-    font-weight: 700; /* In đậm */
+    font-size: 2.5rem; /* << TĂNG CỠ CHỮ */
+    font-weight: 700;
     color: #333;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 .hotline-number {
-    font-size: 3.5rem; /* Cỡ chữ RẤT LỚN cho số điện thoại */
-    font-weight: 900; /* In rất đậm */
-    color: #D9534F; /* Màu đỏ cảnh báo */
+    font-size: 6rem;   /* << TĂNG CỠ CHỮ RẤT LỚN */
+    font-weight: 900;
+    color: #D9534F;
     letter-spacing: 3px;
     line-height: 1.2;
 }
 .hotline-description {
-    font-size: 1.1rem;
-    margin-top: 5px;
+    font-size: 1.5rem; /* << TĂNG CỠ CHỮ */
+    margin-top: 10px;
     color: #555;
 }
 /* --- CSS CHO KHUNG CẢNH BÁO LỚN HƠN --- */
