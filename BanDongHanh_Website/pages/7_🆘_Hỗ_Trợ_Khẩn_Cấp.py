@@ -7,7 +7,7 @@ st.set_page_config(page_title="Hỗ Trợ Khẩn Cấp", page_icon="🆘", layou
 # --- CSS TÙY CHỈNH ---
 st.markdown("""
 <style>
-/* --- CSS CHO KHUNG HOTLINE VỚI KÍCH THƯỚC HÀI HÒA --- */
+/* --- CSS CHO KHUNG HOTLINE ĐỒNG BỘ VỚI KHUNG 115 --- */
 .hotline-container {
     background-color: #FFF0F0;
     border-radius: 15px;
@@ -15,23 +15,25 @@ st.markdown("""
     margin: 25px 0;
     border: 2px solid #D9534F;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 .hotline-title {
-    font-size: 1.5rem !important;
+    font-size: 1.5rem;
     font-weight: 700;
+    display: block;
+    margin-bottom: 1rem;
     color: #333;
-    margin-bottom: 15px;
 }
 .hotline-number {
-    font-size: 4rem !important;
+    font-size: 1.8rem;
     font-weight: 900;
     color: #D9534F;
-    letter-spacing: 3px;
-    line-height: 1.2;
 }
 .hotline-description {
-    font-size: 1.3rem !important;
-    margin-top: 15px;
+    font-size: 1.3rem;
+    margin-top: 1rem;
     color: #555;
 }
 
@@ -80,7 +82,7 @@ st.header("Các đường dây nóng hỗ trợ sức khỏe tinh thần tại V
 # --- HIỂN THỊ CÁC ĐƯỜNG DÂY NÓNG ---
 st.markdown("""
 <div class="hotline-container">
-    <p class="hotline-title">Tổng đài Quốc gia Bảo vệ Trẻ em</p>
+    <p class="hotline-title"><strong>Tổng đài Quốc gia Bảo vệ Trẻ em</strong></p>
     <p class="hotline-number">111</p>
     <p class="hotline-description">Miễn phí, hoạt động 24/7</p>
 </div>
@@ -88,7 +90,7 @@ st.markdown("""
 
 st.markdown("""
 <div class="hotline-container">
-    <p class="hotline-title">Đường dây nóng Ngày Mai</p>
+    <p class="hotline-title"><strong>Đường dây nóng Ngày Mai</strong></p>
     <p class="hotline-number">096 357 94 88</p>
     <p class="hotline-description">Hỗ trợ người trầm cảm và các vấn đề sức khỏe tinh thần</p>
 </div>
