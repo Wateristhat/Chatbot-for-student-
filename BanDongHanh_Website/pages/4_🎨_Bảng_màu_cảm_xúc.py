@@ -57,6 +57,23 @@ st.markdown("""
     background:#f3e5f5; border-left:5px solid #ba68c8; border-radius:15px; padding:1rem 1.3rem;
     text-align:center; font-size:1.13rem; margin:0.7rem 0 1rem 0; color:#333; max-width:1200px; margin-left:auto; margin-right:auto;
 }
+/* --- CSS ĐỂ LÀM CÁC NÚT BẤM TO HƠN --- */
+.stButton > button {
+    padding: 0.8rem 1.2rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    width: 100%;
+    margin-bottom: 0.7rem;
+    border-radius: 12px;
+    border: 2px solid #b39ddb;
+    background-color: #f9f9fb;
+    color: #6d28d9;
+}
+.stButton > button:hover {
+    background-color: #f3e8ff;
+    border-color: #5d3fd3;
+    color: #5d3fd3;
+}
 @media (max-width:900px) {
     .bmcx-assist-bigbox, .bmcx-palette-box, .bmcx-history-box, .bmcx-note-box, .bmcx-footer {max-width:96vw;}
     .bmcx-title-feature { font-size:1.3rem; }
