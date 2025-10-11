@@ -12,35 +12,73 @@ if not st.session_state.get('user_id'):
     st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
     st.stop()
 
-# --- CSS GIAO DIỆN ---
+# --- CSS GIAO DIỆN HOÀN CHỈNH ---
 st.markdown("""
 <style>
+/* --- CSS chung cho các nút bấm --- */
 .stButton > button {
-    padding: 0.8rem 1.2rem; font-size: 1.15rem; font-weight: 600; width: 100%;
-    margin-bottom: 0.7rem; border-radius: 12px; border: 2px solid #b39ddb;
-    background-color: #f9f9fb; color: #6d28d9;
+    padding: 0.8rem 1.2rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    width: 100%;
+    margin-bottom: 0.7rem;
+    border-radius: 12px;
+    border: 2px solid #b39ddb;
+    background-color: #f9f9fb;
+    color: #6d28d9;
 }
 .stButton > button:hover {
-    background-color: #f3e8ff; border-color: #5d3fd3; color: #5d3fd3;
+    background-color: #f3e8ff;
+    border-color: #5d3fd3;
+    color: #5d3fd3;
 }
+/* --- CSS cho tiêu đề và khung trợ lý ảo --- */
 .nkc-title-feature {
-    font-size: 2.6rem; font-weight: 700; color: #5d3fd3; text-align: center;
-    margin-bottom: 1.4rem; margin-top: 0.7rem; display: flex; align-items: center;
-    justify-content: center; gap: 1.1rem;
+    font-size: 2.6rem;
+    font-weight: 700;
+    color: #5d3fd3;
+    text-align: center;
+    margin-bottom: 1.4rem;
+    margin-top: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.1rem;
 }
 .nkc-assist-bigbox {
     background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
-    border-radius: 38px; box-shadow: 0 8px 36px rgba(124,77,255,.13);
-    padding: 3.2rem 2.8rem 2.1rem 2.8rem; margin-bottom: 2.3rem; margin-top: 0.2rem;
-    text-align: center; border: 3.5px solid #b39ddb; max-width: 1700px;
-    margin-left: auto; margin-right: auto;
+    border-radius: 38px;
+    box-shadow: 0 8px 36px rgba(124,77,255,.13);
+    padding: 3.2rem 2.8rem 2.1rem 2.8rem;
+    margin-bottom: 2.3rem;
+    margin-top: 0.2rem;
+    text-align: center;
+    border: 3.5px solid #b39ddb;
+    max-width: 1700px;
+    margin-left: auto;
+    margin-right: auto;
 }
-.nkc-assist-icon { font-size: 3.2rem; margin-bottom: 0.7rem; }
-.nkc-assist-text { font-size: 1.7rem; font-weight: 700; color: #6d28d9; margin-bottom: 1.1rem; }
+.nkc-assist-icon {
+    font-size: 3.2rem;
+    margin-bottom: 0.7rem;
+}
+.nkc-assist-text {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #6d28d9;
+    margin-bottom: 1.1rem;
+}
+/* --- CSS ĐỂ LÀM SELECTBOX (Ô CHỌN) TO HƠN --- */
+div[data-baseweb="select"] > div {
+    padding: 1rem !important;
+    font-size: 1.3rem !important;
+    border-radius: 12px !important;
+    border-color: #b39ddb !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# --- NỘI DUNG TRUYỆN (ĐÃ PHỤC HỒI ĐẦY ĐỦ) ---
+# --- NỘI DUNG TRUYỆN ---
 @st.cache_data
 def load_stories():
     return {
