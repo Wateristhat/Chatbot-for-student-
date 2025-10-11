@@ -201,6 +201,7 @@ if not st.session_state.user_name:
                 st.warning("⚠️ Bạn ơi, hãy cho mình biết tên của bạn nhé!")
             else:
                 st.session_state.user_name = name
+                st.session_state['user_id'] = name
                 st.session_state.user_info = {
                     "year": birth_year,
                     "school": school,
@@ -335,3 +336,4 @@ else:
         </div>
         """, unsafe_allow_html=True
     )
+
