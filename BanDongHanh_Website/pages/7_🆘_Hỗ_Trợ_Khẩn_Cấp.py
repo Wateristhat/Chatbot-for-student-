@@ -4,14 +4,10 @@ import streamlit as st
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Hỗ Trợ Khẩn Cấp", page_icon="🆘", layout="wide")
 
-# --- CSS TÙY CHỈNH ĐỂ TĂNG CỠ CHỮ VÀ TẠO SỰ CHÚ Ý ---
+# --- CSS TÙY CHỈNH ---
 st.markdown("""
 <style>
-/* --- CSS MỚI - CHỮ CỰC LỚN VÀ HÀI HÒA --- */
-/* --- CSS MỚI - KÍCH THƯỚC CUỐI CÙNG, LỚN NHẤT CÓ THỂ --- */
-/* --- CSS MỚI - GIỮ NGUYÊN KHUNG, CHỈ TĂNG CHỮ LỚN NHẤT --- */
-/* --- CSS MỚI - GIỮ NGUYÊN KHUNG, CHỮ TO NHẤT --- */
-/* --- CSS MỚI - CHỮ TO, RÕ RÀNG VÀ HOẠT ĐỘNG ỔN ĐỊNH --- */
+/* --- CSS CHO KHUNG HOTLINE VỚI CHỮ LỚN --- */
 .hotline-container {
     background-color: #FFF0F0;
     border-radius: 20px;
@@ -21,24 +17,25 @@ st.markdown("""
     text-align: center;
 }
 .hotline-title {
-    font-size: 2.5rem;   /* Kích thước lớn, dễ đọc */
+    font-size: 3rem !important;
     font-weight: 700;
     color: #333;
     margin-bottom: 20px;
 }
 .hotline-number {
-    font-size: 7rem;     /* Kích thước rất lớn, nổi bật nhất */
+    font-size: 8rem !important;
     font-weight: 900;
     color: #D9534F;
     letter-spacing: 4px;
     line-height: 1.1;
 }
 .hotline-description {
-    font-size: 1.7rem;   /* Kích thước lớn hơn cho mô tả */
+    font-size: 2rem !important;
     margin-top: 15px;
     color: #555;
 }
-/* --- CSS CHO KHUNG CẢNH BÁO LỚN HƠN --- */
+
+/* --- CSS CHO KHUNG CẢNH BÁO 115 --- */
 .emergency-warning-box {
     background-color: #FFF0F0;
     border: 2px solid #D9534F;
@@ -56,10 +53,9 @@ st.markdown("""
     display: block;
     margin-bottom: 1rem;
 }
-/* --- Class mới để đổi màu số 115 --- */
 .emergency-number {
-    color: #D9534F; /* Màu đỏ đậm */
-    font-size: 1.8rem; /* Cho số to và nổi bật hơn */
+    color: #D9534F;
+    font-size: 1.8rem;
     font-weight: 900;
 }
 </style>
@@ -67,10 +63,7 @@ st.markdown("""
 
 # --- GIAO DIỆN CHÍNH ---
 st.title("🆘 HỖ TRỢ KHẨN CẤP")
-
-# --- Liên kết quay về Trang chủ ---
 st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
-
 st.markdown("Khi bạn hoặc ai đó bạn biết đang gặp khủng hoảng, hãy tìm đến sự giúp đỡ ngay lập tức.")
 st.write("---")
 
@@ -84,7 +77,7 @@ st.markdown("""
 
 st.header("Các đường dây nóng hỗ trợ sức khỏe tinh thần tại Việt Nam")
 
-# --- HIỂN THỊ CÁC ĐƯỜNG DÂY NÓNG VỚI GIAO DIỆN MỚI ---
+# --- HIỂN THỊ CÁC ĐƯỜNG DÂY NÓNG ---
 st.markdown("""
 <div class="hotline-container">
     <p class="hotline-title">Tổng đài Quốc gia Bảo vệ Trẻ em</p>
