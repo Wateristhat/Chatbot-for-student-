@@ -15,24 +15,15 @@ if not st.session_state.get('user_id'):
 # --- CSS HOÀN CHỈNH VÀ ĐÃ SỬA LỖI ---
 st.markdown("""
 <style>
-/* --- CSS chung cho các nút bấm --- */
+/* CSS chung cho các nút bấm */
 .stButton > button {
-    padding: 0.8rem 1.2rem;
-    font-size: 1.15rem;
-    font-weight: 600;
-    width: 100%;
-    margin-bottom: 0.7rem;
-    border-radius: 12px;
-    border: 2px solid #b39ddb;
-    background-color: #f9f9fb;
-    color: #6d28d9;
+    padding: 0.8rem 1.2rem; font-size: 1.15rem; font-weight: 600; width: 100%;
+    margin-bottom: 0.7rem; border-radius: 12px; border: 2px solid #b39ddb;
+    background-color: #f9f9fb; color: #6d28d9;
 }
-.stButton > button:hover {
-    background-color: #f3e8ff;
-    border-color: #5d3fd3;
-    color: #5d3fd3;
-}
-/* --- CSS cho tiêu đề và khung trợ lý ảo --- */
+.stButton > button:hover { background-color: #f3e8ff; border-color: #5d3fd3; color: #5d3fd3; }
+
+/* CSS cho tiêu đề và khung trợ lý ảo */
 .nkc-title-feature {
     font-size: 2.6rem; font-weight: 700; color: #5d3fd3; text-align: center;
     margin-bottom: 1.4rem; margin-top: 0.7rem; display: flex; align-items: center;
@@ -73,11 +64,41 @@ div[data-testid="stSelectbox"] div[role="combobox"] {
 </style>
 """, unsafe_allow_html=True)
 
-# --- NỘI DUNG TRUYỆN ---
+# --- NỘI DUNG TRUYỆN (ĐÃ PHỤC HỒI ĐẦY ĐỦ) ---
 @st.cache_data
 def load_stories():
-    # ... (Toàn bộ nội dung truyện của bạn ở đây, đã được phục hồi đầy đủ) ...
-    return { "Truyện truyền cảm hứng": [...], "Truyện ngụ ngôn": [...], "Truyện chữa lành": [...] }
+    return {
+        "Truyện truyền cảm hứng": [
+            {
+                "title": "Câu chuyện về hai hạt giống",
+                "content": "Có hai hạt giống nằm cạnh nhau. Hạt giống thứ nhất nói: 'Tôi muốn vươn lên! Tôi muốn bén rễ sâu xuống lòng đất và đâm chồi nảy lộc trên mặt đất.' Và rồi, hạt giống đó vươn mình phát triển. Hạt giống thứ hai nói: 'Tôi sợ hãi. Nếu rễ của tôi đâm xuống lòng đất, tôi không biết sẽ gặp phải điều gì. Tốt hơn là tôi nên chờ đợi.' Một con gà đi qua, thấy hạt giống nằm trơ trọi trên mặt đất và mổ ăn mất. Bài học: Những ai không dám mạo hiểm và vươn lên sẽ bị cuộc đời đào thải."
+            },
+            {
+                "title": "Chuyện tảng đá",
+                "content": "Một chàng trai trẻ liên tục thất bại nên rất chán nản. Anh đến hỏi một ông lão thông thái. Ông lão đưa anh một hòn đá và nói: 'Cậu hãy mang hòn đá này ra chợ bán, nhưng không được bán nó, chỉ cần xem người ta trả giá bao nhiêu.' Ở chợ, người ta chỉ trả vài đồng. Ông lão lại bảo anh mang vào tiệm vàng, ông chủ tiệm trả giá 500 đồng. Cuối cùng, anh mang đến một chuyên gia đá quý, người này hét lên: 'Đây là một viên ngọc quý hiếm, vô giá!'. Ông lão nói: 'Cuộc đời con cũng giống như hòn đá này. Giá trị của con không phải do người khác quyết định, mà do con đặt mình vào đâu.'"
+            }
+        ],
+        "Truyện ngụ ngôn": [
+            {
+                "title": "Ếch ngồi đáy giếng",
+                "content": "Có một con ếch sống lâu năm trong một cái giếng. Nó nhìn lên và chỉ thấy một khoảng trời bé bằng miệng giếng. Nó tự hào nghĩ rằng bầu trời chỉ to có vậy. Một ngày, trời mưa to, nước giếng dâng lên và đưa ếch ra ngoài. Lần đầu tiên, nó thấy một bầu trời rộng lớn bao la và nhận ra sự hiểu biết hạn hẹp của mình. Bài học: Môi trường sống hạn hẹp có thể che lấp tầm nhìn của chúng ta. Đừng vội cho rằng những gì mình biết là tất cả."
+            },
+            {
+                "title": "Cáo và chùm nho",
+                "content": "Một con cáo đói đi qua một vườn nho. Nó thấy một chùm nho chín mọng lủng lẳng trên giàn cao. Cáo nhảy lên nhiều lần nhưng không thể với tới. Cuối cùng, nó bỏ đi và tự nhủ: 'Nho còn xanh lắm, ăn vào chỉ chua thôi!'. Bài học: Nhiều người thường chê bai những thứ họ không thể đạt được để tự an ủi bản thân."
+            }
+        ],
+        "Truyện chữa lành": [
+            {
+                "title": "Dòng sông không vội vã",
+                "content": "Không một dòng sông nào vội vã. Nó chảy theo nhịp điệu của riêng mình, lúc êm đềm, lúc cuộn trào, nhưng luôn tiến về phía trước. Dòng sông biết rằng, rồi nó sẽ đến được biển lớn. Hãy sống như một dòng sông, chấp nhận mọi khúc quanh của cuộc đời và tin tưởng vào hành trình của chính mình. Đừng so sánh tốc độ của bạn với người khác, vì mỗi người đều có một con đường riêng."
+            },
+            {
+                "title": "Chiếc bình nứt",
+                "content": "Một người gánh nước có hai chiếc bình, một chiếc lành lặn và một chiếc bị nứt. Chiếc bình nứt luôn cảm thấy tự ti vì nó chỉ giữ được một nửa phần nước. Một ngày, nó xin lỗi người chủ. Người chủ mỉm cười và nói: 'Con có thấy những luống hoa xinh đẹp bên đường không? Đó là nhờ ta đã gieo hạt ở phía bên con. Mỗi ngày, những giọt nước từ vết nứt của con đã tưới cho chúng'. Bài học: Những khuyết điểm của bạn có thể lại là điều tạo nên vẻ đẹp và giá trị riêng biệt mà bạn không ngờ tới."
+            }
+        ]
+    }
 STORIES = load_stories()
 
 # --- TRỢ LÝ ẢO ---
@@ -91,8 +112,18 @@ if "nkc_assistant_message" not in st.session_state:
 avatar, msg = st.session_state.nkc_assistant_message
 
 # --- GIAO DIỆN CHÍNH ---
-st.markdown('<div class="nkc-title-feature">...</div>', unsafe_allow_html=True) # Rút gọn cho dễ đọc
-st.markdown(f"""<div class="nkc-assist-bigbox">...</div>""", unsafe_allow_html=True) # Rút gọn
+st.markdown(
+    '<div class="nkc-title-feature">'
+    ' <span style="font-size:2.3rem;">📖</span> Người Kể Chuyện'
+    '</div>',
+    unsafe_allow_html=True
+)
+st.markdown(f"""
+<div class="nkc-assist-bigbox">
+    <div class="nkc-assist-icon">{avatar}</div>
+    <div class="nkc-assist-text">{msg}</div>
+</div>
+""", unsafe_allow_html=True)
 
 col1, col2 = st.columns([1, 1])
 with col1:
@@ -101,8 +132,11 @@ with col1:
         st.rerun()
 with col2:
     if st.button("🔊 Nghe trợ lý ảo", key="tts_msg_story"):
-        # ... (logic nghe trợ lý ảo) ...
-        pass
+        audio_bytes = BytesIO()
+        tts = gTTS(text=msg, lang='vi', slow=False)
+        tts.write_to_fp(audio_bytes)
+        audio_bytes.seek(0)
+        st.audio(audio_bytes.read(), format="audio/mp3")
 
 st.markdown("⬅️ [Quay về Trang chủ](/)", unsafe_allow_html=True)
 st.write("---")
@@ -125,5 +159,12 @@ if selected_category:
             
             if st.button("Nghe truyện 🎧", key=f"listen_{selected_category}_{i}"):
                 with st.spinner("Đang chuẩn bị âm thanh..."):
-                    # ... (logic nghe truyện) ...
-                    pass
+                    full_text = f"Câu chuyện {story['title']}. {story['content']}"
+                    try:
+                        tts = gTTS(text=full_text, lang='vi', slow=False)
+                        fp = BytesIO()
+                        tts.write_to_fp(fp)
+                        fp.seek(0)
+                        st.audio(fp, format="audio/mp3")
+                    except Exception as e:
+                        st.error(f"Lỗi khi tạo âm thanh: {e}")
