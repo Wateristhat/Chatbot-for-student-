@@ -48,7 +48,7 @@ with col1:
         st.session_state.assistant_message = f"🤖 Trợ lý ảo: {suggestion}"
         st.session_state.assistant_mode = "suggestion"
 with col2:
-    if st.button("🔊 Động viên tinh thần", key="motivation"):
+    if st.button("💜 Động viên tinh thần", key="motivation"):
         motivation = random.choice([
             "Bạn rất tuyệt vời! Mỗi nỗ lực dù nhỏ đều giúp bạn trưởng thành hơn và hạnh phúc hơn.",
             "Dù hôm nay có khó khăn, bạn vẫn xứng đáng được yêu thương và tự hào về bản thân.",
