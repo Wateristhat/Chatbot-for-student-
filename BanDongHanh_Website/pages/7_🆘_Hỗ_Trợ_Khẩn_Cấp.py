@@ -8,29 +8,30 @@ st.set_page_config(page_title="Hỗ Trợ Khẩn Cấp", page_icon="🆘", layou
 st.markdown("""
 <style>
 /* --- CSS CHO KHUNG HOTLINE VỚI CHỮ LỚN --- */
+/* --- CSS MỚI - KÍCH THƯỚC HÀI HÒA GIỐNG KHUNG 115 --- */
 .hotline-container {
     background-color: #FFF0F0;
-    border-radius: 20px;
-    padding: 50px 30px;
-    margin: 30px 0;
-    border: 3px solid #D9534F;
+    border-radius: 15px;      /* Giống khung 115 */
+    padding: 40px;            /* Giống khung 115 */
+    margin: 25px 0;
+    border: 2px solid #D9534F; /* Giống khung 115 */
     text-align: center;
 }
 .hotline-title {
-    font-size: 3rem !important;
+    font-size: 1.5rem;        /* Giống tiêu đề 115 */
     font-weight: 700;
     color: #333;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 .hotline-number {
-    font-size: 8rem !important;
+    font-size: 4rem;          /* Lớn nổi bật, nhưng cân đối */
     font-weight: 900;
     color: #D9534F;
-    letter-spacing: 4px;
-    line-height: 1.1;
+    letter-spacing: 3px;
+    line-height: 1.2;
 }
 .hotline-description {
-    font-size: 2rem !important;
+    font-size: 1.3rem;        /* Giống chữ mô tả 115 */
     margin-top: 15px;
     color: #555;
 }
