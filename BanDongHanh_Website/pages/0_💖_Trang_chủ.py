@@ -7,11 +7,12 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- GOOGLE FONTS + CSS TỐI GIẢN SANG TRỌNG + CARD MENU ---
+# --- GOOGLE FONTS + CSS ---
 st.markdown("""
 <link href="https://fonts.googleapis.com/css?family=Quicksand:700,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
+    /* ... (Toàn bộ CSS của bạn giữ nguyên, không cần thay đổi) ... */
     html, body, [class*="css"]  { font-family: 'Quicksand', Arial, sans-serif; }
     .brand-minimal-box {
         background: linear-gradient(110deg, #ff82ac 3%, #fd5e7c 97%);
@@ -159,6 +160,9 @@ st.markdown("""
 
 if 'user_name' not in st.session_state:
     st.session_state.user_name = None
+# Khởi tạo user_id để đảm bảo nó tồn tại
+if 'user_id' not in st.session_state:
+    st.session_state.user_id = None
 
 if not st.session_state.user_name:
     st.markdown(f"""
@@ -201,6 +205,8 @@ if not st.session_state.user_name:
                 st.warning("⚠️ Bạn ơi, hãy cho mình biết tên của bạn nhé!")
             else:
                 st.session_state.user_name = name
+                # *** ĐÂY LÀ DÒNG CODE ĐÃ SỬA ***
+                st.session_state['user_id'] = name 
                 st.session_state.user_info = {
                     "year": birth_year,
                     "school": school,
@@ -210,6 +216,7 @@ if not st.session_state.user_name:
                 st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
 else:
+    # --- PHẦN GIAO DIỆN SAU KHI ĐĂNG NHẬP (Giữ nguyên) ---
     st.markdown(f"""
     <div class="brand-minimal-box">
         <div class="brand-minimal-header">
@@ -233,84 +240,49 @@ else:
     <span>✨</span> Khám phá các tính năng
     </div>""", unsafe_allow_html=True)
     
-    # ----------- MENU ICON CHUYỂN TRANG NHƯ HÌNH -----------
     MENU_ITEMS = [
         {
-            "icon": "fa-solid fa-sun",
-            "color": "#FFB300",
-            "title": "Liều Thuốc Tinh Thần",
-            "desc": "Nhận những thông điệp tích cực mỗi ngày.",
-            "page": "1_✨_Liều_Thuốc_Tinh_Thần.py"
+            "icon": "fa-solid fa-sun", "color": "#FFB300", "title": "Liều Thuốc Tinh Thần",
+            "desc": "Nhận những thông điệp tích cực mỗi ngày.", "page": "1_✨_Liều_Thuốc_Tinh_Thần"
         },
         {
-            "icon": "fa-solid fa-spa",
-            "color": "#4CAF50",
-            "title": "Góc An Yên",
-            "desc": "Thực hành các bài tập hít thở để giảm căng thẳng.",
-            "page": "2_🧘_Góc_An_Yên.py"
+            "icon": "fa-solid fa-spa", "color": "#4CAF50", "title": "Góc An Yên",
+            "desc": "Thực hành các bài tập hít thở để giảm căng thẳng.", "page": "2_🧘_Góc_An_Yên"
         },
         {
-            "icon": "fa-solid fa-jar",
-            "color": "#F48FB1",
-            "title": "Lọ Biết Ơn",
-            "desc": "Ghi lại những điều nhỏ bé khiến bạn mỉm cười.",
-            "page": "3_🍯_Lọ_biết_ơn.py"
+            "icon": "fa-solid fa-jar", "color": "#F48FB1", "title": "Lọ Biết Ơn",
+            "desc": "Ghi lại những điều nhỏ bé khiến bạn mỉm cười.", "page": "3_🍯_Lọ_biết_ơn"
         },
         {
-            "icon": "fa-solid fa-paintbrush",
-            "color": "#2196F3",
-            "title": "Bảng Màu Cảm Xúc",
-            "desc": "Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc.",
-            "page": "4_🎨_Bảng_màu_cảm_xúc.py"
+            "icon": "fa-solid fa-paintbrush", "color": "#2196F3", "title": "Bảng Màu Cảm Xúc",
+            "desc": "Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc.", "page": "4_🎨_Bảng_màu_cảm_xúc"
         },
         {
-            "icon": "fa-solid fa-dice",
-            "color": "#AB47BC",
-            "title": "Trò Chơi Trí Tuệ",
-            "desc": "Thử thách bản thân với các trò chơi nhẹ nhàng.",
-            "page": "5_🎮_Nhanh_tay_le_mat.py"
+            "icon": "fa-solid fa-dice", "color": "#AB47BC", "title": "Trò Chơi Trí Tuệ",
+            "desc": "Thử thách bản thân với các trò chơi nhẹ nhàng.", "page": "5_🎮_Nhanh_tay_le_mat"
         },
         {
-            "icon": "fa-solid fa-heart",
-            "color": "#D50000",
-            "title": "Góc Nhỏ",
-            "desc": "Xây dựng kế hoạch chăm sóc bản thân mỗi ngày.",
-            "page": "6_❤️_Góc_nhỏ.py"
+            "icon": "fa-solid fa-heart", "color": "#D50000", "title": "Góc Nhỏ",
+            "desc": "Xây dựng kế hoạch chăm sóc bản thân mỗi ngày.", "page": "6_❤️_Góc_nhỏ"
         },
         {
-            "icon": "fa-solid fa-phone",
-            "color": "#0288D1",
-            "title": "Hỗ Trợ Khẩn Cấp",
-            "desc": "Danh sách các nguồn lực và đường dây nóng đáng tin cậy.",
-            "page": "7_📞_Ho_tro_khan_cap.py"
+            "icon": "fa-solid fa-phone", "color": "#0288D1", "title": "Hỗ Trợ Khẩn Cấp",
+            "desc": "Danh sách các nguồn lực và đường dây nóng đáng tin cậy.", "page": "7_🆘_Hỗ_trợ_khẩn_cấp"
         },
         {
-            "icon": "fa-solid fa-robot",
-            "color": "#757575",
-            "title": "Trò Chuyện",
-            "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn.",
-            "page": "8_🤖_Tro_chuyen.py"
+            "icon": "fa-solid fa-robot", "color": "#757575", "title": "Trò Chuyện",
+            "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn.", "page": "8_🤖_Tro_chuyen"
         },
         {
-            "icon": "fa-solid fa-book",
-            "color": "#F57C00",
-            "title": "Người Kể Chuyện",
-            "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn.",
-            "page": "9_📖_Nguoi_ke_chuyen.py"
-        },
-        {
-            "icon": "fa-solid fa-heart",
-            "color": "#9C27B0",
-            "title": "Góc An Yên - Hòa Nhập",
-            "desc": "Trợ lý ảo và hướng dẫn âm thanh cho học sinh hòa nhập.",
-            "page": "3_🫧_Góc_An_Yên.py"
-        },
+            "icon": "fa-solid fa-book", "color": "#F57C00", "title": "Người Kể Chuyện",
+            "desc": "Lắng nghe những câu chuyện chữa lành tâm hồn.", "page": "9_📖_Người_Kể_Chuyện"
+        }
     ]
     st.markdown('<div class="menu-list">', unsafe_allow_html=True)
     for item in MENU_ITEMS:
         st.markdown(
             f"""
-            <a href="/{item['page']}" class="menu-card" target="_self">
+            <a href="{item['page']}" class="menu-card" target="_self">
                 <span class="menu-icon" style="color:{item['color']}"><i class="{item['icon']}"></i></span>
                 <span>
                     <span class="menu-title">{item['title']}</span><br>
@@ -321,12 +293,8 @@ else:
             unsafe_allow_html=True
         )
     st.markdown('</div>', unsafe_allow_html=True)
-    # ----------- END MENU -----------
-
     st.markdown("---")
     st.info("👈 <b>Hãy chọn một tính năng từ mục lục để bắt đầu!</b>", icon="😊")
-
-    # Banner mini động chào mừng cuối trang
     st.markdown(
         """
         <div style="margin-top:2rem;text-align:center;">
@@ -335,5 +303,3 @@ else:
         </div>
         """, unsafe_allow_html=True
     )
-
-
