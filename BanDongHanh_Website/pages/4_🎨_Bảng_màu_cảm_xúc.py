@@ -141,14 +141,6 @@ st.markdown(f"""
 <div class="bmcx-assist-bigbox">
     <div class="bmcx-assist-icon">{avatar}</div>
     <div class="bmcx-assist-text">{msg}</div>
-    <div class="bmcx-assist-btn-row">
-        <form method="post">
-            <button class="bmcx-assist-action-btn" type="submit" name="new_message" formnovalidate>💬 Thông điệp mới</button>
-        </form>
-        <form method="post">
-            <button class="bmcx-assist-action-btn" type="submit" name="tts_message" formnovalidate>🔊 Nghe trợ lý ảo</button>
-        </form>
-    </div>
 </div>
 """, unsafe_allow_html=True)
 
