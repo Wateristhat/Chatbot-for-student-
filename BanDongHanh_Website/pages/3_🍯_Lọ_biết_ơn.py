@@ -11,6 +11,11 @@ from io import BytesIO
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import database as db
 
+# --- KIỂM TRA ĐĂNG NHẬP ---
+if not st.session_state.get('user_id'):
+    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
+    st.stop() # Dừng chạy toàn bộ code còn lại nếu chưa đăng nhập
+    
 st.markdown("""
 <style>
 .stButton > button {
@@ -362,6 +367,7 @@ st.markdown("""
     Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
