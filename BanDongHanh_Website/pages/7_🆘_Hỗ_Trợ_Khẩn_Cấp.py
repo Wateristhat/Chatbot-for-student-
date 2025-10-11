@@ -64,13 +64,12 @@ st.markdown("Khi bạn hoặc ai đó bạn biết đang gặp khủng hoảng, 
 st.write("---")
 
 # --- CẢNH BÁO QUAN TRỌNG ---
-st.error(
-    """
-    **ỨNG DỤNG NÀY KHÔNG PHẢI LÀ DỊCH VỤ CẤP CỨU.**
-
-    Nếu bạn hoặc người thân đang ở trong tình huống nguy hiểm đến tính mạng, vui lòng gọi **115** (Cấp cứu y tế) hoặc đến cơ sở y tế gần nhất.
-    """
-)
+st.markdown("""
+<div class="emergency-warning-box">
+    <p><strong>ỨNG DỤNG NÀY KHÔNG PHẢI LÀ DỊCH VỤ CẤP CỨU.</strong></p>
+    <p>Nếu bạn hoặc người thân đang ở trong tình huống nguy hiểm đến tính mạng, vui lòng gọi <strong>115</strong> (Cấp cứu y tế) hoặc đến cơ sở y tế gần nhất.</p>
+</div>
+""", unsafe_allow_html=True)
 
 st.header("Các đường dây nóng hỗ trợ sức khỏe tinh thần tại Việt Nam")
 
