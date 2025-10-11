@@ -2,7 +2,7 @@
 import streamlit as st
 
 # --- CẤU HÌNH TRANG ---
-st.set_page_config(page_title="Hỗ Trợ Khẩn Cấp", page_icon="🆘", layout="centered")
+st.set_page_config(page_title="Hỗ Trợ Khẩn Cấp", page_icon="🆘", layout="wide")
 
 # --- CSS TÙY CHỈNH ĐỂ TĂNG CỠ CHỮ VÀ TẠO SỰ CHÚ Ý ---
 st.markdown("""
@@ -33,23 +33,29 @@ st.markdown("""
     margin-top: 5px;
     color: #555;
 }
-/* --- CSS CHO KHUNG CẢNH BÁO KHẨN CẤP LỚN HƠN --- */
+/* --- CSS CHO KHUNG CẢNH BÁO LỚN HƠN --- */
 .emergency-warning-box {
     background-color: #FFF0F0;
     border: 2px solid #D9534F;
     border-radius: 15px;
-    padding: 40px; /* << Tăng padding để hộp to hơn */
+    padding: 40px;
     margin: 25px 0;
 }
 .emergency-warning-box p {
-    font-size: 1.3rem; /* << Tăng cỡ chữ bên trong */
+    font-size: 1.3rem;
     text-align: center;
     margin-bottom: 1rem;
 }
 .emergency-warning-box strong {
-    font-size: 1.5rem; /* << Tăng cỡ chữ cho dòng tiêu đề */
-    display: block; /* Làm cho tiêu đề chiếm một dòng riêng */
+    font-size: 1.5rem;
+    display: block;
     margin-bottom: 1rem;
+}
+/* --- Class mới để đổi màu số 115 --- */
+.emergency-number {
+    color: #D9534F; /* Màu đỏ đậm */
+    font-size: 1.8rem; /* Cho số to và nổi bật hơn */
+    font-weight: 900;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -67,7 +73,7 @@ st.write("---")
 st.markdown("""
 <div class="emergency-warning-box">
     <p><strong>ỨNG DỤNG NÀY KHÔNG PHẢI LÀ DỊCH VỤ CẤP CỨU.</strong></p>
-    <p>Nếu bạn hoặc người thân đang ở trong tình huống nguy hiểm đến tính mạng, vui lòng gọi <strong>115</strong> (Cấp cứu y tế) hoặc đến cơ sở y tế gần nhất.</p>
+    <p>Nếu bạn hoặc người thân đang ở trong tình huống nguy hiểm đến tính mạng, vui lòng gọi <strong class="emergency-number">115</strong> (Cấp cứu y tế) hoặc đến cơ sở y tế gần nhất.</p>
 </div>
 """, unsafe_allow_html=True)
 
