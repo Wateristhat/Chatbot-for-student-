@@ -74,25 +74,6 @@ half = (len(unique_ro_actions)+1) // 2
 left_col_actions = unique_ro_actions[:half]
 right_col_actions = unique_ro_actions[half:]
 
-if st.button("💡 Nhận gợi ý từ trợ lý ảo"):
-    suggestion = random.choice([
-        "Hãy thử viết ra một điều bạn tự hào về bản thân nhé!",
-        "Bạn có thể nghe một bài hát bạn yêu thích để thư giãn.",
-        "Vươn vai nhẹ nhàng giúp bạn tỉnh táo hơn đấy!",
-        "Mỉm cười với chính mình trong gương - bạn rất đáng yêu!"
-    ])
-    st.session_state.assistant_message = f"🤖 Trợ lý ảo: {suggestion}"
-    st.session_state.assistant_mode = "suggestion"
-if st.button("🤖 Động viên tinh thần từ trợ lý ảo"):
-    motivation = random.choice([
-        "Bạn rất tuyệt vời! Mỗi nỗ lực dù nhỏ đều giúp bạn trưởng thành hơn và hạnh phúc hơn.",
-        "Dù hôm nay có khó khăn, bạn vẫn xứng đáng được yêu thương và tự hào về bản thân.",
-        "Hãy kiên nhẫn, mọi việc tốt đẹp đều cần thời gian. Bee tin bạn sẽ làm được!",
-        "Bạn là người duy nhất trên thế giới, hãy tự tin và yêu thương bản thân mình nhé!"
-    ])
-    st.session_state.assistant_message = f"🤖 Trợ lý ảo: {motivation}"
-    st.session_state.assistant_mode = "motivation"
-
 if "assistant_message" in st.session_state and st.session_state.assistant_message:
     if st.session_state.assistant_mode == "suggestion":
         st.info(st.session_state.assistant_message)
