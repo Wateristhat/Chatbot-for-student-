@@ -14,11 +14,11 @@ import database as db
 st.markdown("""
 <style>
 .stButton > button {
-    font-size: 1.25rem !important;         /* Tăng cỡ chữ lên 1/3 */
-    padding: 1.2rem 2.5rem !important;     /* Tăng chiều cao & chiều ngang nút */
-    border-radius: 16px !important;        /* Bo tròn nút */
-    min-width: 170px;                      /* Đặt chiều rộng tối thiểu */
-    min-height: 52px;                      /* Đặt chiều cao tối thiểu */
+    font-size: 1.45rem !important;       /* Tăng cỡ chữ hơn nữa */
+    padding: 1.7rem 3.3rem !important;   /* Tăng chiều cao & chiều ngang nhiều hơn */
+    border-radius: 18px !important;
+    min-width: 210px;
+    min-height: 66px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -362,6 +362,7 @@ st.markdown("""
     Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
