@@ -163,14 +163,6 @@ st.markdown(f"""
 <div class="lo-assist-bigbox">
     <div class="lo-assist-icon">{avatar}</div>
     <div class="lo-assist-text">{msg}</div>
-    <div class="lo-assist-btn-row">
-        <form method="post">
-            <button class="lo-assist-action-btn" type="submit" name="new_message" formnovalidate>💬 Thông điệp mới</button>
-        </form>
-        <form method="post">
-            <button class="lo-assist-action-btn" type="submit" name="tts_message" formnovalidate>🔊 Nghe động viên</button>
-        </form>
-    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -368,4 +360,5 @@ st.markdown("""
     Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
 </div>
 """, unsafe_allow_html=True)
+
 
