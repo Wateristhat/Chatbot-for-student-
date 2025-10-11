@@ -57,8 +57,8 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
     background-color: #FFFFFF !important;
 }
 
-/* Làm to và hiện chữ bên trong hộp */
-div[data-testid="stSelectbox"] div[data-baseweb="select"] div[data-testid="stText"] {
+/* Làm to và hiện chữ bên trong hộp (selector mạnh nhất) */
+div[data-testid="stSelectbox"] div[data-testid="stText"] {
     font-size: 1.3rem !important;
     color: #333 !important; /* DÒNG QUAN TRỌNG NHẤT ĐỂ HIỆN CHỮ */
 }
