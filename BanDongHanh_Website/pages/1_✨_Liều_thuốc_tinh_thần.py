@@ -77,6 +77,19 @@ st.markdown("""
 }
 ::-webkit-scrollbar {width: 9px; background: #e3f2fd;}
 ::-webkit-scrollbar-thumb {background: #b3e5fc; border-radius: 8px;}
+/* --- CSS ĐỂ LÀM CÁC NÚT BẤM TO HƠN --- */
+.stButton > button {
+    padding: 0.8rem 1.2rem;     /* Tăng khoảng đệm bên trong nút */
+    font-size: 1.15rem;         /* Tăng kích thước chữ */
+    font-weight: 600;           /* Làm chữ đậm hơn */
+    border-radius: 12px;        /* Bo tròn góc nút cho mềm mại */
+    border: 2px solid #e1bee7;  /* Thêm viền hồng nhạt đồng bộ */
+    background-color: #f9f9fb;  /* Màu nền nút */
+}
+.stButton > button:hover {
+    background-color: #f3e8ff;  /* Đổi màu khi di chuột vào */
+    border-color: #ba68c8;
+}
 @media (max-width:900px) {
     .lttt-assist-bigbox, .lttt-box, .lttt-card, .lttt-footer {max-width:96vw;}
     .lttt-title-feature { font-size:1.6rem; }
