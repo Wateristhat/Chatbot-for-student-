@@ -1,11 +1,6 @@
 # pages/7_🆘_Hỗ_trợ_khẩn_cấp.py
 import streamlit as st
-
-# --- KIỂM TRA ĐĂNG NHẬP ---
-if not st.session_state.get('user_id'):
-    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
-    st.stop() # Dừng chạy toàn bộ code còn lại nếu chưa đăng nhập
-    
+  
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Hỗ Trợ Khẩn Cấp", page_icon="🆘", layout="wide")
 
