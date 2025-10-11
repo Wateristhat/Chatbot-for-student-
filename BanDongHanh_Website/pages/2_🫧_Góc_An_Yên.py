@@ -12,6 +12,18 @@ from io import BytesIO
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database import add_mood_entry, get_mood_entries
 
+st.markdown("""
+<style>
+.stButton > button {
+    font-size: 1.5rem !important;         /* Tăng cỡ chữ lên 1.5 lần */
+    padding: 1.8rem 3.6rem !important;    /* Tăng chiều cao & chiều ngang nút */
+    border-radius: 18px !important;       /* Bo tròn nút */
+    min-width: 220px;                     /* Đặt chiều rộng tối thiểu lớn hơn */
+    min-height: 68px;                     /* Đặt chiều cao tối thiểu lớn hơn */
+}
+</style>
+""", unsafe_allow_html=True)
+
 # Check TTS availability
 try:
     from gtts import gTTS
