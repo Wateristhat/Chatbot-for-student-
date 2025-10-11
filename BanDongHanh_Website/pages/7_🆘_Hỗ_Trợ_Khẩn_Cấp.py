@@ -17,20 +17,20 @@ st.markdown("""
     text-align: center;
 }
 .hotline-title {
-    font-size: 1.5rem;
+    font-size: 1.5rem !important;
     font-weight: 700;
     color: #333;
     margin-bottom: 15px;
 }
 .hotline-number {
-    font-size: 4rem;
+    font-size: 4rem !important;
     font-weight: 900;
     color: #D9534F;
     letter-spacing: 3px;
     line-height: 1.2;
 }
 .hotline-description {
-    font-size: 1.3rem;
+    font-size: 1.3rem !important;
     margin-top: 15px;
     color: #555;
 }
