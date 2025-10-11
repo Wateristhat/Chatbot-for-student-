@@ -75,10 +75,23 @@ left_col_actions = unique_ro_actions[:half]
 right_col_actions = unique_ro_actions[half:]
 
 if "assistant_message" in st.session_state and st.session_state.assistant_message:
-    if st.session_state.assistant_mode == "suggestion":
-        st.info(st.session_state.assistant_message)
-    else:
-        st.success(st.session_state.assistant_message)
+    st.markdown(f"""
+    <div style="
+        background: #e9f3fd;
+        border-radius: 16px;
+        padding: 2.2rem 2.8rem;
+        font-size: 1.23rem;
+        color: #1565c0;
+        max-width: 1700px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 1.1rem;
+        margin-bottom: 1.1rem;
+        box-shadow: 0 2px 18px rgba(21,101,192,0.06);
+    ">
+    {st.session_state.assistant_message}
+    </div>
+    """, unsafe_allow_html=True)
 
 # --- Title & grid ---
 st.markdown('<div style="font-size:2rem;font-weight:700;color:#8e24aa;text-align:center;margin-bottom:1.1rem;">🌈 Chọn từ ngân hàng hoạt động:</div>', unsafe_allow_html=True)
