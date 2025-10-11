@@ -33,7 +33,11 @@ try:
 except ImportError:
     EDGE_TTS_AVAILABLE = False
 
-
+# --- KIỂM TRA ĐĂNG NHẬP ---
+if not st.session_state.get('user_id'):
+    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
+    st.stop() # Dừng chạy toàn bộ code còn lại nếu chưa đăng nhập
+    
 # ========== 0) HẰNG SỐ VÀ TRẠNG THÁI ==========
 
 STATE_CHAT = "chat"
@@ -641,3 +645,4 @@ if st.session_state.page_state == STATE_JOURNAL:
     render_journal_ui()
 elif st.session_state.page_state == STATE_RELAX:
     render_relax_ui()
+
