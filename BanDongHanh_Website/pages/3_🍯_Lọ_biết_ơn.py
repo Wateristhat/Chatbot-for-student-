@@ -182,16 +182,6 @@ with col2:
 # --- NAVIGATION LINK ---
 st.markdown("⬅️ [Quay về Trang chủ](../0_💖_Trang_chủ.py)")
 
-# --- HỘP CHỌN AVATAR ---
-st.markdown("### 🎭 Chọn trợ lý của bạn:")
-avatar_cols = st.columns(len(AVATAR_OPTIONS))
-for i, (avatar_icon, name) in enumerate(zip(AVATAR_OPTIONS, AVATAR_NAMES)):
-    with avatar_cols[i]:
-        if st.button(avatar_icon, key=f"avatar_{i}", help=name):
-            st.session_state.selected_avatar = avatar_icon
-            st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
-            st.rerun()
-
 # --- Hiển thị avatar trợ lý ảo khi gửi biết ơn ---
 if st.session_state.show_gratitude_response:
     avatar, msg = st.session_state.current_assistant_message
@@ -360,5 +350,6 @@ st.markdown("""
     Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
 </div>
 """, unsafe_allow_html=True)
+
 
 
