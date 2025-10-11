@@ -9,29 +9,30 @@ st.markdown("""
 <style>
 /* --- CSS MỚI - CHỮ CỰC LỚN VÀ HÀI HÒA --- */
 /* --- CSS MỚI - KÍCH THƯỚC CUỐI CÙNG, LỚN NHẤT CÓ THỂ --- */
+/* --- CSS MỚI - GIỮ NGUYÊN KHUNG, CHỈ TĂNG CHỮ LỚN NHẤT --- */
 .hotline-container {
     background-color: #FFF0F0;
-    border-radius: 30px;
-    padding: 100px 50px;
-    margin: 50px 0;
-    border: 5px solid #D9534F;
+    border-radius: 20px;
+    padding: 50px 30px;      /* << Giữ nguyên padding của khung */
+    margin: 30px 0;
+    border: 3px solid #D9534F;
     text-align: center;
 }
 .hotline-title {
-    font-size: 6rem;
+    font-size: 6rem;         /* << CỠ CHỮ TIÊU ĐỀ LỚN NHẤT */
     font-weight: 700;
     color: #333;
     margin-bottom: 40px;
 }
 .hotline-number {
-    font-size: 16rem;
+    font-size: 16rem;        /* << CỠ CHỮ SỐ ĐIỆN THOẠI LỚN NHẤT */
     font-weight: 900;
     color: #D9534F;
     letter-spacing: 5px;
     line-height: 1.0;
 }
 .hotline-description {
-    font-size: 4rem;
+    font-size: 4rem;         /* << CỠ CHỮ MÔ TẢ LỚN NHẤT */
     margin-top: 35px;
     color: #555;
 }
