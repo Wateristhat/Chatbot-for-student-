@@ -8,30 +8,31 @@ st.set_page_config(page_title="Hỗ Trợ Khẩn Cấp", page_icon="🆘", layou
 st.markdown("""
 <style>
 /* --- CSS MỚI - CHỮ CỰC LỚN VÀ HÀI HÒA --- */
+/* --- CSS MỚI - KÍCH THƯỚC CUỐI CÙNG, LỚN NHẤT CÓ THỂ --- */
 .hotline-container {
     background-color: #FFF0F0;
-    border-radius: 20px;
-    padding: 50px 30px; /* << TĂNG PADDING ĐỂ KHUNG CAO HƠN */
-    margin: 30px 0;
-    border: 3px solid #D9534F;
+    border-radius: 30px;
+    padding: 100px 50px;
+    margin: 50px 0;
+    border: 5px solid #D9534F;
     text-align: center;
 }
 .hotline-title {
-    font-size: 3rem;   /* << TĂNG CỠ CHỮ */
+    font-size: 6rem;
     font-weight: 700;
     color: #333;
-    margin-bottom: 20px;
+    margin-bottom: 40px;
 }
 .hotline-number {
-    font-size: 8rem;   /* << TĂNG CỠ CHỮ SỐ ĐIỆN THOẠI CỰC LỚN */
+    font-size: 16rem;
     font-weight: 900;
     color: #D9534F;
-    letter-spacing: 4px;
-    line-height: 1.1;
+    letter-spacing: 5px;
+    line-height: 1.0;
 }
 .hotline-description {
-    font-size: 2rem;   /* << TĂNG CỠ CHỮ */
-    margin-top: 15px;
+    font-size: 4rem;
+    margin-top: 35px;
     color: #555;
 }
 /* --- CSS CHO KHUNG CẢNH BÁO LỚN HƠN --- */
