@@ -146,7 +146,7 @@ with col2:
         audio_bytes.seek(0)
         st.audio(audio_bytes.read(), format="audio/mp3")
 
-st.page_link("Trang_chủ", label="⬅️ Quay về Trang chủ", icon="🏠")
+st.page_link("0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
 st.write("---")
 
 # --- PHẦN HIỂN THỊ TRUYỆN ---
