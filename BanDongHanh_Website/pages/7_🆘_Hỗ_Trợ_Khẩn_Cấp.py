@@ -7,31 +7,31 @@ st.set_page_config(page_title="Hỗ Trợ Khẩn Cấp", page_icon="🆘", layou
 # --- CSS TÙY CHỈNH ĐỂ TĂNG CỠ CHỮ VÀ TẠO SỰ CHÚ Ý ---
 st.markdown("""
 <style>
+/* --- CSS MỚI - CHỮ CỰC LỚN VÀ HÀI HÒA --- */
 .hotline-container {
-    background-color: #FFF0F0; /* Nền màu đỏ nhạt */
-    border-radius: 15px;
-    padding: 25px;
-    margin: 25px 0;
-    border: 2px solid #D9534F; /* Viền đỏ đậm */
+    background-color: #FFF0F0;
+    border-radius: 20px;
+    padding: 50px 30px; /* << TĂNG PADDING ĐỂ KHUNG CAO HƠN */
+    margin: 30px 0;
+    border: 3px solid #D9534F;
     text-align: center;
 }
-/* --- CSS MỚI ĐỂ LÀM CHỮ TO HƠN GẤP NHIỀU LẦN --- */
 .hotline-title {
-    font-size: 2.5rem; /* << TĂNG CỠ CHỮ */
+    font-size: 3rem;   /* << TĂNG CỠ CHỮ */
     font-weight: 700;
     color: #333;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 .hotline-number {
-    font-size: 6rem;   /* << TĂNG CỠ CHỮ RẤT LỚN */
+    font-size: 8rem;   /* << TĂNG CỠ CHỮ SỐ ĐIỆN THOẠI CỰC LỚN */
     font-weight: 900;
     color: #D9534F;
-    letter-spacing: 3px;
-    line-height: 1.2;
+    letter-spacing: 4px;
+    line-height: 1.1;
 }
 .hotline-description {
-    font-size: 1.5rem; /* << TĂNG CỠ CHỮ */
-    margin-top: 10px;
+    font-size: 2rem;   /* << TĂNG CỠ CHỮ */
+    margin-top: 15px;
     color: #555;
 }
 /* --- CSS CHO KHUNG CẢNH BÁO LỚN HƠN --- */
