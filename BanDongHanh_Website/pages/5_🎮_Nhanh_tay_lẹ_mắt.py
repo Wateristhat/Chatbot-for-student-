@@ -3,6 +3,11 @@ from gtts import gTTS
 from io import BytesIO
 import os
 
+# --- KIỂM TRA ĐĂNG NHẬP ---
+if not st.session_state.get('user_id'):
+    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
+    st.stop() # Dừng chạy toàn bộ code còn lại nếu chưa đăng nhập
+    
 st.set_page_config(page_title="🐝 Bee Bay Cùng Bạn - Nhanh Tay Lẹ Mắt", page_icon="🎮", layout="centered")
 
 # --- TTS FUNCTION ---
