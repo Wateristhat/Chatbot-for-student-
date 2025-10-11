@@ -7,7 +7,7 @@ st.set_page_config(page_title="Hỗ Trợ Khẩn Cấp", page_icon="🆘", layou
 # --- CSS HOÀN CHỈNH VÀ SẠCH SẼ ---
 st.markdown("""
 <style>
-/* --- CSS CHO KHUNG HOTLINE (ĐỒNG BỘ VỚI KHUNG 115) --- */
+/* --- CSS CHO KHUNG HOTLINE --- */
 .hotline-container {
     background-color: #FFF0F0;
     border: 2px solid #D9534F;
@@ -22,11 +22,6 @@ st.markdown("""
     display: block;
     margin-bottom: 1rem;
     color: #333;
-}
-.hotline-number {
-    font-size: 1.8rem !important;
-    font-weight: 900;
-    color: #D9534F;
 }
 .hotline-description {
     font-size: 1.3rem !important;
@@ -52,13 +47,15 @@ st.markdown("""
     display: block;
     margin-bottom: 1rem;
 }
-/* --- Class mới để đổi màu và font chữ số 115 --- */
-.emergency-number {
-    color: #D9534F;
-    font-size: 1.8rem;
-    font-weight: 900;
-    font-family: 'Courier New', Courier, monospace; /* Thêm font chữ khối */
-    letter-spacing: 3px; /* Thêm khoảng cách giống số 111 */
+
+/* --- CSS CHUNG ĐỂ CÁC SỐ GIỐNG HỆT NHAU --- */
+.hotline-number, .emergency-number {
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 1.8rem !important;
+    font-weight: 900 !important;
+    color: #D9534F !important;
+    letter-spacing: 3px !important;
+    display: inline-block; /* Giúp hiển thị ổn định hơn */
 }
 </style>
 """, unsafe_allow_html=True)
