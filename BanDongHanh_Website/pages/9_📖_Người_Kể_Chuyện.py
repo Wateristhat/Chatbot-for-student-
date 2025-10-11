@@ -39,7 +39,7 @@ st.markdown("""
 .nkc-assist-icon { font-size: 3.2rem; margin-bottom: 0.7rem; }
 .nkc-assist-text { font-size: 1.7rem; font-weight: 700; color: #6d28d9; margin-bottom: 1.1rem; }
 
-/* --- CSS CUỐI CÙNG CHO Ô CHỌN (SELECTBOX) --- */
+/* --- CSS MỚI NHẤT VÀ CHÍNH XÁC CHO Ô CHỌN --- */
 
 /* Làm to nhãn (chữ bên trên) */
 div[data-testid="stSelectbox"] > label {
@@ -57,10 +57,10 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
     background-color: #FFFFFF !important;
 }
 
-/* Làm to và hiện chữ bên trong hộp (selector mạnh nhất) */
-div[data-testid="stSelectbox"] div[data-testid="stText"] {
+/* Làm to và HIỆN CHỮ bên trong hộp (SELECTOR ĐÃ SỬA) */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] span {
     font-size: 1.3rem !important;
-    color: #333 !important; /* DÒNG QUAN TRỌNG NHẤT ĐỂ HIỆN CHỮ */
+    color: #333 !important;
 }
 </style>
 """, unsafe_allow_html=True)
