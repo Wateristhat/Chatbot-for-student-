@@ -4,35 +4,32 @@ import streamlit as st
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Hỗ Trợ Khẩn Cấp", page_icon="🆘", layout="wide")
 
-# --- CSS TÙY CHỈNH ---
+# --- CSS HOÀN CHỈNH VÀ SẠCH SẼ ---
 st.markdown("""
 <style>
-/* --- CSS CHO KHUNG HOTLINE ĐỒNG BỘ VỚI KHUNG 115 --- */
+/* --- CSS CHO KHUNG HOTLINE (ĐỒNG BỘ VỚI KHUNG 115) --- */
 .hotline-container {
     background-color: #FFF0F0;
+    border: 2px solid #D9534F;
     border-radius: 15px;
     padding: 40px;
     margin: 25px 0;
-    border: 2px solid #D9534F;
     text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
 }
 .hotline-title {
-    font-size: 1.5rem;
+    font-size: 1.5rem !important;
     font-weight: 700;
     display: block;
     margin-bottom: 1rem;
     color: #333;
 }
 .hotline-number {
-    font-size: 1.8rem;
+    font-size: 1.8rem !important;
     font-weight: 900;
     color: #D9534F;
 }
 .hotline-description {
-    font-size: 1.3rem;
+    font-size: 1.3rem !important;
     margin-top: 1rem;
     color: #555;
 }
