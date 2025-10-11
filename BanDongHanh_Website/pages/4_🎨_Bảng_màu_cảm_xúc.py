@@ -5,6 +5,11 @@ from datetime import datetime
 from gtts import gTTS
 from io import BytesIO
 
+# --- KIỂM TRA ĐĂNG NHẬP ---
+if not st.session_state.get('user_id'):
+    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
+    st.stop() # Dừng chạy toàn bộ code còn lại nếu chưa đăng nhập
+    
 st.set_page_config(page_title="🎨 Bảng Màu Cảm Xúc", page_icon="🎨", layout="wide")
 
 # --- CSS giao diện pastel trải ngang, đồng bộ Góc An Yên ---
