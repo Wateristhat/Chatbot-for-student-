@@ -1,6 +1,46 @@
 import streamlit as st
 import random
+st.markdown("""
+<style>
+.gn-assist-bigbox {
+    background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
+    border-radius: 38px; box-shadow: 0 8px 36px rgba(124,77,255,.13);
+    padding: 3.2rem 2.8rem 2.1rem 2.8rem; margin-bottom:2.3rem; margin-top:0.2rem;
+    text-align: center; border: 3.5px solid #b39ddb; max-width:1700px; margin-left:auto; margin-right:auto;
+}
+.gn-assist-icon {font-size:3.2rem; margin-bottom:0.7rem;}
+.gn-assist-text {font-size:1.7rem; font-weight:700; color:#6d28d9; margin-bottom:1.1rem;}
+</style>
+""", unsafe_allow_html=True)
 
+st.markdown(f"""
+<div class="gn-assist-bigbox">
+    <div class="gn-assist-icon">🤖</div>
+    <div class="gn-assist-text">Bạn cần gợi ý hoặc trợ giúp? Trợ lý ảo luôn sẵn sàng hỗ trợ bạn!</div>
+</div>
+""", unsafe_allow_html=True)
+
+col1, col2 = st.columns([2,2])
+with col1:
+    if st.button("💬 Gợi ý hoạt động", key="suggest_activity"):
+        suggestion = random.choice([
+            "Hãy thử viết ra một điều bạn tự hào về bản thân nhé!",
+            "Bạn có thể nghe một bài hát bạn yêu thích để thư giãn.",
+            "Vươn vai nhẹ nhàng giúp bạn tỉnh táo hơn đấy!",
+            "Mỉm cười với chính mình trong gương - bạn rất đáng yêu!"
+        ])
+        st.session_state.assistant_message = f"🤖 Trợ lý ảo: {suggestion}"
+        st.session_state.assistant_mode = "suggestion"
+with col2:
+    if st.button("🔊 Động viên tinh thần", key="motivation"):
+        motivation = random.choice([
+            "Bạn rất tuyệt vời! Mỗi nỗ lực dù nhỏ đều giúp bạn trưởng thành hơn và hạnh phúc hơn.",
+            "Dù hôm nay có khó khăn, bạn vẫn xứng đáng được yêu thương và tự hào về bản thân.",
+            "Hãy kiên nhẫn, mọi việc tốt đẹp đều cần thời gian. Bee tin bạn sẽ làm được!",
+            "Bạn là người duy nhất trên thế giới, hãy tự tin và yêu thương bản thân mình nhé!"
+        ])
+        st.session_state.assistant_message = f"🤖 Trợ lý ảo: {motivation}"
+        st.session_state.assistant_mode = "motivation"
 RO_ACTIONS = [
     {"text": "Uống một ly nước đầy", "icon": "💧"},
     {"text": "Uống một ly nước đầy", "icon": "💧"},
@@ -33,23 +73,6 @@ for act in RO_ACTIONS:
 half = (len(unique_ro_actions)+1) // 2
 left_col_actions = unique_ro_actions[:half]
 right_col_actions = unique_ro_actions[half:]
-
-# --- Assistant box giữ nguyên ---
-st.markdown("""
-<div style="background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
-    border-radius: 28px; box-shadow: 0 4px 24px rgba(124,77,255,.10); padding: 2.2rem 2.3rem 1.3rem 2.3rem; margin-bottom:2rem; margin-top:1rem; text-align: center; border: 3px solid #e1bee7;">
-    <div style="font-size:2.4rem; margin-bottom:0.7rem;">🤖</div>
-    <div style="font-size:1.25rem; font-weight:700; color:#6d28d9;">Bạn cần gợi ý hoặc trợ giúp? Trợ lý ảo luôn sẵn sàng hỗ trợ bạn!</div>
-    <div style="display:flex; justify-content: center; gap: 32px; margin-top:1.05rem;">
-        <form method="post">
-            <button style="background: #fff; border: 2.5px solid #e1bee7; border-radius: 15px; font-size:1.13rem; font-weight:600; color:#6d28d9; padding: 0.8rem 1.3rem; cursor:pointer; box-shadow:0 2px 8px rgba(124,77,255,.10); transition:all 0.17s;" type="submit" name="ask_assist" formnovalidate>💬 Gợi ý hoạt động</button>
-        </form>
-        <form method="post">
-            <button style="background: #fff; border: 2.5px solid #e1bee7; border-radius: 15px; font-size:1.13rem; font-weight:600; color:#6d28d9; padding: 0.8rem 1.3rem; cursor:pointer; box-shadow:0 2px 8px rgba(124,77,255,.10); transition:all 0.17s;" type="submit" name="ask_motivation" formnovalidate>🔊 Động viên tinh thần</button>
-        </form>
-    </div>
-</div>
-""", unsafe_allow_html=True)
 
 if st.button("💡 Nhận gợi ý từ trợ lý ảo"):
     suggestion = random.choice([
