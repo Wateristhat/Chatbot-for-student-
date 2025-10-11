@@ -1,5 +1,6 @@
 import streamlit as st
 import random
+
 st.markdown("""
 <style>
 .gn-assist-bigbox {
@@ -10,22 +11,24 @@ st.markdown("""
 }
 .gn-assist-icon {font-size:3.2rem; margin-bottom:0.7rem;}
 .gn-assist-text {font-size:1.7rem; font-weight:700; color:#6d28d9; margin-bottom:1.1rem;}
+
 /* --- CSS ĐỂ LÀM CÁC NÚT BẤM TO HƠN --- */
 .stButton > button {
-    padding: 0.8rem 1.2rem;     /* Tăng khoảng đệm bên trong nút */
-    font-size: 1.15rem;         /* Tăng kích thước chữ */
-    font-weight: 600;           /* Làm chữ đậm hơn */
-    width: 100%;                /* Nút chiếm toàn bộ chiều rộng của cột */
-    margin-bottom: 0.7rem;      /* Thêm khoảng cách giữa các nút */
-    border-radius: 12px;        /* Bo tròn góc nút cho mềm mại hơn */
-    border: 2px solid #d1c4e9;  /* Thêm viền tím nhạt đồng bộ */
-    background-color: #f9f9fb;  /* Màu nền nút */
+    padding: 0.8rem 1.2rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    width: 100%;
+    margin-bottom: 0.7rem;
+    border-radius: 12px;
+    border: 2px solid #d1c4e9;
+    background-color: #f9f9fb;
 }
 .stButton > button:hover {
-    background-color: #f3e8ff;  /* Đổi màu khi di chuột vào */
+    background-color: #f3e8ff;
     border-color: #b39ddb;
 }
-
+</style>
+""", unsafe_allow_html=True)
 st.markdown(f"""
 <div class="gn-assist-bigbox">
     <div class="gn-assist-icon">🤖</div>
