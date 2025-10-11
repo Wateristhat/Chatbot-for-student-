@@ -11,30 +11,31 @@ st.markdown("""
 /* --- CSS MỚI - KÍCH THƯỚC CUỐI CÙNG, LỚN NHẤT CÓ THỂ --- */
 /* --- CSS MỚI - GIỮ NGUYÊN KHUNG, CHỈ TĂNG CHỮ LỚN NHẤT --- */
 /* --- CSS MỚI - GIỮ NGUYÊN KHUNG, CHỮ TO NHẤT --- */
+/* --- CSS MỚI - CHỮ TO, RÕ RÀNG VÀ HOẠT ĐỘNG ỔN ĐỊNH --- */
 .hotline-container {
     background-color: #FFF0F0;
     border-radius: 20px;
-    padding: 50px 30px;      /* << TRẢ LẠI PADDING CŨ */
+    padding: 50px 30px;
     margin: 30px 0;
     border: 3px solid #D9534F;
     text-align: center;
 }
 .hotline-title {
-    font-size: 7rem;         /* << GIỮ NGUYÊN CỠ CHỮ LỚN */
+    font-size: 2.5rem;   /* Kích thước lớn, dễ đọc */
     font-weight: 700;
     color: #333;
-    margin-bottom: 50px;
+    margin-bottom: 20px;
 }
 .hotline-number {
-    font-size: 18rem;        /* << GIỮ NGUYÊN CỠ CHỮ LỚN */
+    font-size: 7rem;     /* Kích thước rất lớn, nổi bật nhất */
     font-weight: 900;
     color: #D9534F;
-    letter-spacing: 6px;
-    line-height: 1.0;
+    letter-spacing: 4px;
+    line-height: 1.1;
 }
 .hotline-description {
-    font-size: 5rem;         /* << GIỮ NGUYÊN CỠ CHỮ LỚN */
-    margin-top: 40px;
+    font-size: 1.7rem;   /* Kích thước lớn hơn cho mô tả */
+    margin-top: 15px;
     color: #555;
 }
 /* --- CSS CHO KHUNG CẢNH BÁO LỚN HƠN --- */
