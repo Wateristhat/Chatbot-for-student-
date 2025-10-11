@@ -33,6 +33,24 @@ st.markdown("""
     margin-top: 5px;
     color: #555;
 }
+/* --- CSS CHO KHUNG CẢNH BÁO KHẨN CẤP LỚN HƠN --- */
+.emergency-warning-box {
+    background-color: #FFF0F0;
+    border: 2px solid #D9534F;
+    border-radius: 15px;
+    padding: 40px; /* << Tăng padding để hộp to hơn */
+    margin: 25px 0;
+}
+.emergency-warning-box p {
+    font-size: 1.3rem; /* << Tăng cỡ chữ bên trong */
+    text-align: center;
+    margin-bottom: 1rem;
+}
+.emergency-warning-box strong {
+    font-size: 1.5rem; /* << Tăng cỡ chữ cho dòng tiêu đề */
+    display: block; /* Làm cho tiêu đề chiếm một dòng riêng */
+    margin-bottom: 1rem;
+}
 </style>
 """, unsafe_allow_html=True)
 
