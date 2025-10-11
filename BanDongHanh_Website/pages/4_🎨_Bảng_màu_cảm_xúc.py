@@ -57,15 +57,15 @@ st.markdown("""
     background:#f3e5f5; border-left:5px solid #ba68c8; border-radius:15px; padding:1rem 1.3rem;
     text-align:center; font-size:1.13rem; margin:0.7rem 0 1rem 0; color:#333; max-width:1200px; margin-left:auto; margin-right:auto;
 }
-/* --- CSS MỚI - LÀM NÚT BẤM LỚN HƠN RÕ RỆT --- */
+/* --- CSS ĐỂ LÀM CÁC NÚT BẤM TO HƠN --- */
 .stButton > button {
-    padding: 1.3rem 1.8rem;      /* << TĂNG PADDING RẤT NHIỀU */
-    font-size: 1.4rem;          /* << TĂNG CỠ CHỮ LỚN HƠN */
-    font-weight: 700;           /* Chữ đậm hơn */
+    padding: 0.8rem 1.2rem;
+    font-size: 1.15rem;
+    font-weight: 600;
     width: 100%;
-    margin-bottom: 0.8rem;
-    border-radius: 16px;        /* Bo góc nhiều hơn */
-    border: 2.5px solid #b39ddb;
+    margin-bottom: 0.7rem;
+    border-radius: 12px;
+    border: 2px solid #b39ddb;
     background-color: #f9f9fb;
     color: #6d28d9;
 }
