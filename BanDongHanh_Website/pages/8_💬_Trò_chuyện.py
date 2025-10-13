@@ -233,13 +233,13 @@ def initialize_gemini():
     for model_name in model_names:
         try:
             model = genai.GenerativeModel(model_name)
-            # Ping model to check if it's accessible
             model.generate_content("ping", generation_config={"max_output_tokens": 1})
             st.sidebar.success(f"✅ AI đã kết nối với: {model_name}")
-            return model, model_name
+            return model, model_name # << THÊM LỆNH RETURN VÀO ĐÂY
         except Exception:
-            continue
+            continue # Bỏ qua model này và thử model tiếp theo
             
+    # Chỉ chạy đến đây khi tất cả các model đều thất bại
     st.sidebar.error("Không thể kết nối với bất kỳ model Gemini nào.", icon="🚨")
     return None, None
 
@@ -645,4 +645,5 @@ if st.session_state.page_state == STATE_JOURNAL:
     render_journal_ui()
 elif st.session_state.page_state == STATE_RELAX:
     render_relax_ui()
+
 
