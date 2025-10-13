@@ -163,6 +163,7 @@ else:
     
     st.markdown('<div class="menu-list">', unsafe_allow_html=True)
     for item in MENU_ITEMS:
+        # Thay thế href="/tên_file.py" bằng href="tên_trang"
         st.markdown(
             f"""
             <a href="{item['page']}" class="menu-card" target="_self">
