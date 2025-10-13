@@ -1,709 +1,866 @@
-
-import streamlit as st
+# pages/8_💬_Trò_chuyện.py
+import asyncio
+import base64
+import html
+import os
+import random
+import re
 import time
-from datetime import datetime, date, timedelta
-from pathlib import Path
-import json, io, base64, os
-from typing import List, Dict, Any, Optional
+from datetime import datetime
+from io import BytesIO
 
-# ================== CẤU HÌNH TRANG ==================
-st.set_page_config(page_title="Trò chuyện - Bạn Đồng Hành", page_icon="🤖", layout="wide")
+import pandas as pd
+import streamlit as st
 
-# ================== HẰNG SỐ & CẤU HÌNH ==================
-SYSTEM_PROMPT = (
-    "Bạn là 'Bạn Đồng Hành' – một trợ lý thân thiện, ấm áp, hỗ trợ cảm xúc. "
-    "Không chẩn đoán y khoa. Giữ câu trả lời tự nhiên, khích lệ, dùng tiếng Việt gần gũi. "
-    "Khi người dùng mô tả cảm xúc tiêu cực, hãy thừa nhận cảm xúc đó và gợi ý hành vi nhẹ nhàng. "
-    "Tránh hứa hẹn tuyệt đối. Có thể đặt câu hỏi mở để họ chia sẻ thêm."
+# Optional: Gemini
+try:
+    import google.generativeai as genai
+    GENAI_AVAILABLE = True
+except ImportError:
+    GENAI_AVAILABLE = False
+
+# Fallback TTS
+try:
+    from gtts import gTTS
+    GTTS_AVAILABLE = True
+except ImportError:
+    GTTS_AVAILABLE = False
+
+# Preferred neural TTS (Microsoft Edge TTS)
+try:
+    import edge_tts
+    EDGE_TTS_AVAILABLE = True
+except ImportError:
+    EDGE_TTS_AVAILABLE = False
+
+
+# ========== 0) HẰNG SỐ VÀ TRẠNG THÁI ==========
+
+STATE_CHAT = "chat"
+STATE_JOURNAL = "journal"
+STATE_RELAX = "relax"
+
+CHAT_STATE_MAIN = "main"
+CHAT_STATE_TAM_SU_SELECTION = "tam_su_selection"
+CHAT_STATE_TAM_SU_CHAT = "tam_su_chat"
+CHAT_STATE_GIAO_TIEP_SELECTION_BASIC = "giao_tiep_selection_basic"
+CHAT_STATE_GIAO_TIEP_SELECTION_EXTENDED = "giao_tiep_selection_extended"
+CHAT_STATE_GIAO_TIEP_PRACTICE = "giao_tiep_practice"
+CHAT_STATE_AWAITING_FOLLOWUP = "awaiting_followup"
+
+# ========== 1) CẤU HÌNH UI & CSS ==========
+
+st.set_page_config(page_title="💬 Trò chuyện", page_icon="💬", layout="wide")
+
+st.markdown(
+    """
+<style>
+/* Reset chrome */
+#MainMenu, footer, header { visibility: hidden; }
+
+/* Layout */
+.stApp { background-color: #FFFFFF; }
+.chat-shell { 
+    max-width: 820px; 
+    margin: 0 auto; 
+    padding-top: 64px; 
+    padding-bottom: 150px; /* Increased to avoid overlap with input bar */
+}
+
+/* Header sticky giống app shopping */
+.chat-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+  background: #fff; border-bottom: 1px solid #efefef;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.chat-header-inner {
+  max-width: 820px; margin: 0 auto; padding: 12px 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.chat-title { font-weight: 700; font-size: 1.05rem; }
+
+/* Bubbles */
+.bubble-row { display:flex; margin: 12px 0; }
+.bubble-user { justify-content: flex-end; }
+.msg {
+  border-radius: 18px; padding: 12px 16px; max-width: 75%;
+  font-size: 1rem; line-height: 1.5; word-wrap: break-word;
+}
+.msg-user { 
+  background: linear-gradient(135deg, #25D366, #128C7E); 
+  color: white; 
+  border-top-right-radius: 6px; 
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+.msg-bot { 
+  background: #F3F4F6; color: #111; border-top-left-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Typing indicator */
+.typing { display:inline-block; padding: 8px 14px; border-radius: 18px; background: #F3F4F6; }
+.typing span {
+  height: 8px; width: 8px; margin: 0 2px; background-color: #9E9E9E;
+  display: inline-block; border-radius: 50%; opacity: 0.5; animation: bob 1s infinite;
+}
+@keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+.typing span:nth-child(1){animation-delay:-0.3s} .typing span:nth-child(2){animation-delay:-0.15s}
+
+/* Quick actions (chips) */
+.quick-actions { display:flex; gap:10px; flex-wrap: wrap; margin: 10px 0 16px; }
+.chip {
+  border: none; color: white; background: linear-gradient(135deg, #0084FF, #0069cc);
+  border-radius: 20px; padding: 8px 14px; font-size: 0.9rem; cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.chip:hover { transform: translateY(-2px); box-shadow: 0 3px 6px rgba(0,0,0,0.15); }
+
+/* Sticky input */
+.input-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 999;
+  background: #fff; border-top: 1px solid #efefef;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+}
+.input-inner {
+  max-width: 820px; margin: 0 auto; padding: 15px 16px;
+}
+
+/* Buttons */
+button {
+  transition: all 0.2s ease;
+}
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+/* Option pills */
+.option-pill {
+  background: #f0f2f5;
+  border-radius: 18px;
+  padding: 10px 14px;
+  margin: 5px 0;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid #e4e6eb;
+}
+
+.option-pill:hover {
+  background: #e4e6eb;
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+</style>
+""",
+    unsafe_allow_html=True,
 )
 
-# Danh sách model ưu tiên (nếu có OpenAI)
-MODEL_PREFERRED = [
-    # Model đa phương thức (ảnh + văn bản)
-    "gpt-4o-mini",
-    "gpt-4o",
-    "gpt-4.1-mini",
-    "gpt-4.1",
-    # Model text fallback
-    "gpt-3.5-turbo"
-]
-
-MEMORY_DIR = Path("data")
-MEMORY_DIR.mkdir(exist_ok=True)
-MEMORY_FILE = MEMORY_DIR / "memory_chat.json"
-
-# Ngưỡng cập nhật bộ nhớ (số message user+assistant)
-MEMORY_UPDATE_INTERVAL = 12
-
-# ================== KHỞI TẠO SESSION STATE ==================
-def _init_state():
-    defaults = {
-        "chat_history": [],   # list[ {role, content, time, images?} ]
-        "theme": "light",
-        "show_suggestions": True,
-        "pending_user_msg": None,
-        "fullscreen": False,
-        "memory_summary": "",
-        "memory_version": 0
-    }
-    for k, v in defaults.items():
-        if k not in st.session_state:
-            st.session_state[k] = v
-
-_init_state()
-
-# ================== HÀM BỘ NHỚ DÀI HẠN (MEMORY) ==================
-def load_memory():
-    if MEMORY_FILE.exists():
-        try:
-            data = json.loads(MEMORY_FILE.read_text(encoding="utf-8"))
-            st.session_state.memory_summary = data.get("summary", "")
-            st.session_state.memory_version = data.get("version", 0)
-        except Exception:
-            st.session_state.memory_summary = ""
-            st.session_state.memory_version = 0
-    else:
-        st.session_state.memory_summary = ""
-        st.session_state.memory_version = 0
-
-def save_memory():
-    out = {
-        "summary": st.session_state.memory_summary,
-        "version": st.session_state.memory_version,
-        "updated_at": datetime.now().isoformat()
-    }
-    MEMORY_FILE.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
-
-load_memory()
-
-# ================== CÔNG CỤ ƯỚC LƯỢNG TOKEN ĐƠN GIẢN ==================
-def approximate_tokens(text: str) -> int:
-    # Ước tính thô (1 token ~ 4 ký tự latin/tiếng Việt trung bình)
-    return max(1, len(text) // 4)
-
-def total_tokens_history(messages: List[Dict[str, Any]]) -> int:
-    return sum(approximate_tokens(m["content"]) for m in messages)
-
-# ================== HÀM TIỆN ÍCH CHAT ==================
-def add_message(role: str, content: str, images: Optional[List[bytes]] = None):
-    st.session_state.chat_history.append({
-        "role": role,
-        "content": content.strip(),
-        "time": datetime.now(),
-        "images": images or []
-    })
-
-def export_chat_txt() -> bytes:
-    buf = io.StringIO()
-    buf.write("=== LỊCH SỬ TRÒ CHUYỆN - Bạn Đồng Hành ===\n")
-    if st.session_state.memory_summary:
-        buf.write("\n--- TÓM TẮT BỘ NHỚ (LONG-TERM) ---\n")
-        buf.write(st.session_state.memory_summary + "\n\n")
-    for m in st.session_state.chat_history:
-        ts = m["time"].strftime("%Y-%m-%d %H:%M")
-        who = "Người dùng" if m["role"] == "user" else "Bạn Đồng Hành"
-        buf.write(f"[{ts}] {who}: {m['content']}\n")
-        if m.get("images"):
-            buf.write(f"  (Đính kèm {len(m['images'])} ảnh)\n")
-    return buf.getvalue().encode("utf-8")
-
-def export_memory_txt() -> bytes:
-    buf = io.StringIO()
-    buf.write("=== BỘ NHỚ DÀI HẠN - Bạn Đồng Hành ===\n")
-    buf.write("Version: " + str(st.session_state.memory_version) + "\n\n")
-    buf.write(st.session_state.memory_summary or "(Trống)\n")
-    return buf.getvalue().encode("utf-8")
-
-# ================== HÀM PHÂN TÁCH NGÀY ==================
-def format_day_separator(dt: datetime) -> str:
-    d = dt.date()
-    today = date.today()
-    if d == today:
-        return "HÔM NAY"
-    if d == today - timedelta(days=1):
-        return "HÔM QUA"
-    return d.strftime("%d/%m/%Y").upper()
-
-# ================== HỖ TRỢ ENCODE ẢNH ==================
-def image_bytes_to_base64(img_bytes: bytes) -> str:
-    return base64.b64encode(img_bytes).decode("utf-8")
-
-# ================== TẠO YÊU CẦU MODEL (OPENAI HOẶC FALLBACK) ==================
-def select_model():
-    # Ở đây chỉ đơn giản trả về model đầu tiên có trong danh sách
-    return MODEL_PREFERRED[0]
-
-def call_openai_api(messages: List[Dict[str, Any]]) -> str:
+# Header
+st.markdown(
     """
-    Gọi OpenAI ChatCompletion (multi-modal nếu có ảnh).
-    Yêu cầu: đặt OPENAI_API_KEY trong biến môi trường.
-    """
-    api_key = os.getenv("OPENAI_API_KEY", "").strip()
-    if not api_key:
-        return None  # báo để fallback
+<div class="chat-header">
+  <div class="chat-header-inner">
+    <div>💬</div>
+    <div class="chat-title">Trò chuyện - Bạn Đồng Hành</div>
+  </div>
+</div>
+""",
+    unsafe_allow_html=True,
+)
 
+
+# ========== 2) CONFIG DỮ LIỆU NỘI DUNG ==========
+
+@st.cache_data
+def get_config():
+    return {
+        "ui": {
+            "title": "Bạn đồng hành 💖",
+            "input_placeholder": "Nhập tin nhắn của bạn...",
+        },
+        "tam_su": {
+            "intro_message": "Hôm nay bạn cảm thấy như thế nào nè? Mình luôn sẵn lòng lắng nghe bạn nha 🌟",
+            "positive_affirmation_trigger": "🌼 Nghe một lời tích cực",
+            "positive_affirmations": [
+                "Bạn mạnh mẽ hơn bạn nghĩ rất nhiều.",
+                "Mỗi bước nhỏ bạn đi đều là một thành công lớn.",
+                "Cảm xúc của bạn là thật và đáng được tôn trọng.",
+                "Bạn xứng đáng được yêu thương và hạnh phúc.",
+                "Hôm nay có thể khó khăn, nhưng ngày mai sẽ tốt hơn."
+            ],
+            "moods": {
+                "😄 Vui": {
+                    "keywords": ["vui", "hạnh phúc", "tuyệt vời", "giỏi", "đi chơi", "🎉", "😄"],
+                    "initial": "Tuyệt vời quá! Có chuyện gì vui không, kể mình nghe với nè!",
+                    "styles": {
+                        "Khuyến khích": [
+                            "Nghe là thấy vui giùm bạn luôn á! Kể thêm chút nữa đi!",
+                            "Hôm nay chắc là một ngày đặc biệt rồi! Chia sẻ thêm nhé!"
+                        ]
+                    }
+                },
+                "😔 Buồn": {
+                    "keywords": ["buồn", "chán", "stress", "cô đơn", "tệ", "😔"],
+                    "initial": "Ôi, mình nghe rồi nè. Có chuyện gì làm bạn buồn vậy?",
+                    "styles": {
+                        "Lắng nghe": [
+                            "Không sao đâu, bạn buồn cũng được mà. Kể mình nghe thêm nhé.",
+                            "Bạn không cần phải gồng đâu, mình ở đây nè."
+                        ]
+                    }
+                }
+            }
+        },
+        "giao_tiep": {
+            "intro_message": "Hãy chọn một tình huống bên dưới để mình cùng luyện tập nhé!",
+            "confirm_buttons": {"understood": "✅ Đã hiểu!", "not_understood": "❓ Chưa rõ lắm!"},
+            "scenarios_basic": {
+                "👋 Chào hỏi bạn bè": "Bạn có thể nói: \"Chào bạn, hôm nay vui không?\"",
+                "🙋 Hỏi bài thầy cô": "Bạn thử hỏi: \"Thầy/cô ơi, phần này em chưa rõ ạ?\""
+            },
+            "scenarios_extended": {
+                "📚 Nhờ bạn giúp đỡ": "Bạn thử nói: \"Cậu chỉ mình chỗ này với được không?\"",
+                "🙏 Xin lỗi khi đến muộn": "Bạn có thể nói: \"Em xin lỗi vì đã đến muộn, em có thể vào lớp không ạ?\"",
+                "🤔 Hỏi khi không hiểu bài": "Thử nói: \"Em chưa hiểu phần này, thầy/cô có thể giải thích lại được không ạ?\"",
+            },
+        },
+        "general": {
+            "neutral_replies": [
+                "Mình chưa rõ lắm, bạn nói cụ thể hơn được không?",
+                "Mình đang nghe bạn nè, bạn muốn nói thêm điều gì không?",
+                "Bạn có thể chia sẻ thêm về điều đó không?",
+                "Mình muốn hiểu bạn hơn. Bạn có thể kể chi tiết hơn được không?"
+            ],
+            "follow_up_prompt": "Bạn muốn tiếp tục tâm sự hay luyện nói chuyện trong lớp nè?",
+            "end_chat_replies": [
+                "Cảm ơn bạn đã chia sẻ với mình hôm nay nha. Mình luôn sẵn sàng khi bạn cần 💖",
+                "Bạn đã làm rất tốt khi bộc lộ cảm xúc. Khi nào cần, mình vẫn ở đây ✨"
+            ],
+        },
+    }
+
+CONFIG = get_config()
+
+# Gemini optional
+AI_ENABLED = False
+if GENAI_AVAILABLE:
     try:
-        from openai import OpenAI
-        client = OpenAI(api_key=api_key)
-    except Exception:
+        # First try to get from secrets
+        api_key = None
+        try:
+            api_key = st.secrets.get("GOOGLE_API_KEY")
+        except:
+            pass
+            
+        # Then try environment variable
+        if not api_key:
+            api_key = os.environ.get("GOOGLE_API_KEY")
+            
+        if api_key:
+            genai.configure(api_key=api_key)
+            gemini_model = genai.GenerativeModel("gemini-1.5-flash")
+            AI_ENABLED = True
+        else:
+            st.sidebar.warning("Chưa cấu hình API key cho Gemini", icon="⚠️")
+    except Exception as e:
+        st.sidebar.error(f"Lỗi cấu hình Gemini: {str(e)}", icon="🚨")
+
+
+# ========== 3) SESSION STATE ==========
+
+# Initialize session state
+if "page_state" not in st.session_state:
+    st.session_state.page_state = STATE_CHAT
+    st.session_state.chat_state = CHAT_STATE_MAIN
+    st.session_state.history = [
+        {"sender": "bot", "text": "Chào bạn, mình là Bạn đồng hành đây! Mình có thể giúp gì cho bạn hôm nay?"}
+    ]
+    st.session_state.turns = 0
+    st.session_state.current_mood = None
+    st.session_state.current_scenario = None
+    st.session_state.user_input_buffer = ""
+    st.session_state.waiting_for_response = False  # Flag to prevent multiple submissions
+
+# Voice settings defaults
+if "tts_enabled" not in st.session_state:
+    st.session_state.tts_enabled = True
+if "tts_voice" not in st.session_state:
+    st.session_state.tts_voice = "vi-VN-HoaiMyNeural"  # nữ
+if "tts_rate" not in st.session_state:
+    st.session_state.tts_rate = 0  # %
+
+# ========== 4) TTS (EDGE TTS NEURAL + FALLBACK GTTS) ==========
+
+@st.cache_data(show_spinner=False)
+def gtts_bytes(text):
+    """Generate audio using gTTS as fallback"""
+    if not GTTS_AVAILABLE:
+        return None
+    try:
+        bio = BytesIO()
+        tts = gTTS(text=text, lang="vi")
+        tts.write_to_fp(bio)
+        bio.seek(0)
+        return bio.read()
+    except Exception as e:
+        st.error(f"Lỗi gTTS: {e}")
         return None
 
-    model_name = select_model()
-
-    # Xây dựng messages theo định dạng OpenAI
-    openai_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-    for m in messages:
-        role = "assistant" if m["role"] == "assistant" else "user"
-        # Nếu có ảnh -> nội dung multi-part
-        if m.get("images"):
-            parts = [{"type": "text", "text": m["content"]}]
-            for img_b in m["images"]:
-                b64 = image_bytes_to_base64(img_b)
-                parts.append({
-                    "type": "image",
-                    "image_url": {
-                        "url": f"data:image/png;base64,{b64}"
-                    }
-                })
-            openai_messages.append({"role": role, "content": parts})
-        else:
-            openai_messages.append({"role": role, "content": m["content"]})
-
+# Fixed Edge TTS function - using asyncio properly
+async def _edge_tts_async(text, voice, rate_pct):
+    if not EDGE_TTS_AVAILABLE:
+        return None
+    
     try:
-        resp = client.chat.completions.create(
-            model=model_name,
-            messages=openai_messages,
-            temperature=0.7,
-            max_tokens=600,
-        )
-        return resp.choices[0].message.content
+        # Format rate string
+        rate_str = f"{'+' if rate_pct>=0 else ''}{rate_pct}%"
+        
+        # Use the Python API directly
+        communicate = edge_tts.Communicate(text, voice, rate=rate_str)
+        
+        # Stream the audio data
+        audio_data = bytearray()
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                audio_data.extend(chunk["data"])
+                
+        return bytes(audio_data)
     except Exception as e:
-        return f"Mình gặp chút sự cố khi gọi mô hình: {e}"
+        st.error(f"Lỗi Edge TTS: {e}")
+        return None
 
-# ================== TÓM TẮT BỘ NHỚ (CÓ MODEL HOẶC FALLBACK) ==================
-def summarize_history_for_memory(history: List[Dict[str, Any]], current_summary: str) -> str:
-    """
-    Nếu có OpenAI API -> dùng model để tóm tắt.
-    Nếu không -> làm heuristic đơn giản.
-    """
-    api_key = os.getenv("OPENAI_API_KEY", "").strip()
-    # Lấy tối đa 40 message gần nhất để tóm
-    recent = history[-40:]
-    raw_text = []
-    if current_summary:
-        raw_text.append("TÓM TẮT HIỆN TẠI:\n" + current_summary + "\n\nTHÊM NỘI DUNG MỚI:\n")
-    for m in recent:
-        prefix = "User:" if m["role"] == "user" else "AI:"
-        raw_text.append(f"{prefix} {m['content']}")
-    combined = "\n".join(raw_text)
+def edge_tts_bytes(text, voice, rate_pct):
+    """Wrapper to handle asyncio execution for Edge TTS"""
+    if not EDGE_TTS_AVAILABLE:
+        return None
+        
+    try:
+        # Create a new event loop for asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        # Run the async function
+        result = loop.run_until_complete(_edge_tts_async(text, voice, rate_pct))
+        loop.close()
+        return result
+    except Exception as e:
+        st.error(f"Lỗi chạy Edge TTS: {e}")
+        return None
 
-    # Nếu có API -> dùng tóm tắt
-    if api_key:
-        try:
-            from openai import OpenAI
-            client = OpenAI(api_key=api_key)
-            model_name = select_model()
-            prompt = (
-                "Hãy cập nhật bản tóm tắt dài hạn ngắn gọn (dưới 180 từ) về người dùng/hoàn cảnh/cảm xúc/"
-                "mục tiêu/thói quen. Không lặp lại chi tiết vụn vặt. "
-                "Giữ giọng trung lập.\n\n"
-                f"Nội dung:\n{combined}"
-            )
-            resp = client.chat.completions.create(
-                model=model_name,
-                messages=[
-                    {"role": "system", "content": "Bạn là công cụ tóm tắt."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.3,
-                max_tokens=400
-            )
-            return resp.choices[0].message.content.strip()
-        except Exception:
-            pass  # fallback heuristic
+def synthesize_tts(text, voice, rate_pct):
+    """Generate text-to-speech audio using available methods"""
+    # Debug info
+    st.session_state.last_tts_attempt = {
+        "text": text[:50] + "...",
+        "voice": voice,
+        "rate": rate_pct,
+        "edge_available": EDGE_TTS_AVAILABLE,
+        "gtts_available": GTTS_AVAILABLE,
+        "timestamp": datetime.now().strftime("%H:%M:%S")
+    }
+    
+    # First try Edge TTS (preferred)
+    if EDGE_TTS_AVAILABLE:
+        audio = edge_tts_bytes(text, voice, rate_pct)
+        if audio:
+            return audio
+            
+    # Then try gTTS as fallback
+    if GTTS_AVAILABLE:
+        return gtts_bytes(text)
+        
+    return None
 
-    # Heuristic đơn giản
-    lines = [l for l in combined.splitlines() if l.strip()]
-    # Lấy vài dòng tiêu biểu (cắt ngắn)
-    out = []
-    seen_user = 0
-    for ln in reversed(lines):
-        if ln.startswith("User:") and seen_user < 5:
-            out.append(ln)
-            seen_user += 1
-    out = list(reversed(out))
-    heuristic = "Tóm tắt (heuristic): " + " | ".join(
-        l.replace("User:", "").strip() for l in out
-    )
-    if current_summary:
-        heuristic = (current_summary[:400] + " ... ") + heuristic
-    return heuristic[:900]
+def autoplay_audio(audio_data):
+    """Play audio data automatically in the streamlit app"""
+    if audio_data is None:
+        return
+        
+    try:
+        b64 = base64.b64encode(audio_data).decode()
+        md = f"""
+        <audio autoplay="true">
+          <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+        </audio>
+        """
+        st.components.v1.html(md, height=0)
+    except Exception as e:
+        st.error(f"Lỗi phát âm thanh: {e}")
 
-# ================== SINH TRẢ LỜI AI (KẾT HỢP MEMORY) ==================
-def generate_ai_reply(user_input: str, images: Optional[List[bytes]] = None) -> str:
-    # Gom lịch sử để gửi (kết hợp summary như context)
-    working_history = []
-    if st.session_state.memory_summary:
-        working_history.append({
-            "role": "assistant",
-            "content": f"(TÓM TẮT BỐI CẢNH TRƯỚC ĐÓ: {st.session_state.memory_summary})",
-            "time": datetime.now()
-        })
-    # Thêm lịch sử thực tế
-    working_history.extend(st.session_state.chat_history)
 
-    reply = call_openai_api(working_history + [{
-        "role": "user",
-        "content": user_input,
-        "images": images or [],
-        "time": datetime.now()
-    }])
+# ========== 5) LOGIC CHAT & AI ==========
 
-    if reply is None:  # fallback mô phỏng
-        canned = [
-            "Mình hiểu cảm xúc của bạn. Bạn có thể kể rõ hơn không? 💖",
-            "Cảm ơn bạn đã chia sẻ. Điều đó không hề dễ dàng. 🌱",
-            "Bạn đã cố gắng rất nhiều rồi, đừng quên dành thời gian nghỉ ngơi nhé. ✨",
-            "Mình ở đây và lắng nghe bạn. Bạn muốn tiếp tục nói về điều gì? 💬"
-        ]
-        idx = len(user_input.strip()) % len(canned)
-        reply = canned[idx]
-    return reply.strip()
+def add_message(sender, text):
+    """Add a message to the chat history"""
+    st.session_state.history.append({"sender": sender, "text": text})
 
-# ================== CSS (THÊM FULLSCREEN / DARK MODE) ==================
-PRIMARY_GRADIENT = "linear-gradient(135deg,#ff82ac 0%,#fd5e7c 55%,#ff9e7b 100%)"
-LIGHT_BG = "#f5f7fa"
-DARK_BG = "#121417"
+def detect_mood_from_text(text):
+    """Detect mood from user input text"""
+    cfg = CONFIG["tam_su"]["moods"]
+    lowered = text.lower()
+    tokens = set(re.findall(r"\b\w+\b", lowered))
+    emojis = {"😄", "😔"}
+    tokens.update(ch for ch in text if ch in emojis)
+    best, score = None, 0
+    for mood, m_cfg in cfg.items():
+        kws = set(m_cfg["keywords"])
+        matches = len(tokens.intersection(kws))
+        if matches > score:
+            best, score = mood, matches
+    return best
 
-light_css = f"""
-:root {{
-  --bg-app: {LIGHT_BG};
-  --bg-panel: #ffffff;
-  --bg-bubble-user: #4f9cff;
-  --bg-bubble-ai: #ffffff;
-  --border-bubble: #e5e8ec;
-  --text-primary: #1d232a;
-  --text-secondary: #4a5562;
-  --accent: #fd5e7c;
-  --scroll-track: #f1f3f5;
-  --scroll-thumb: #d2d8de;
-}}
-"""
-dark_css = f"""
-:root {{
-  --bg-app: {DARK_BG};
-  --bg-panel: #1d2329;
-  --bg-bubble-user: #2563eb;
-  --bg-bubble-ai: #27313a;
-  --border-bubble: #2d353d;
-  --text-primary: #e6ecf2;
-  --text-secondary: #b6c2ce;
-  --accent: #ff6b8a;
-  --scroll-track: #1d2329;
-  --scroll-thumb: #39434d;
-}}
-"""
+def call_gemini(prompt):
+    """Call Gemini AI for text generation"""
+    if not AI_ENABLED:
+        return random.choice(CONFIG["general"]["neutral_replies"])
+    try:
+        contextual = (
+            "Hãy trả lời như một người bạn đồng hành AI thân thiện, kiên nhẫn và thấu hiểu dành cho học sinh."
+            " Trả lời bằng tiếng Việt, ngắn gọn (dưới 100 từ) và giàu đồng cảm. "
+            " Hạn chế trả lời giáo điều và sử dụng ngôn ngữ tự nhiên, thân thiện.\n\n"
+            f"Câu hỏi/Chia sẻ của người dùng: '{prompt}'"
+        )
+        resp = gemini_model.generate_content(contextual)
+        return resp.text or random.choice(CONFIG["general"]["neutral_replies"])
+    except Exception as e:
+        return f"Xin lỗi, hệ thống đang bận. Bạn thử lại sau nhé. (Lỗi: {str(e)[:50]}...)"
 
-fullscreen_css = """
-[data-testid="stSidebar"] {display:none !important;}
-header, footer {visibility:hidden !important; height:0 !important;}
-"""
+def respond_bot(text):
+    """Generate bot response with optional text-to-speech"""
+    # Add bot message with typing effect
+    with st.container():
+        # Synthesize voice if enabled
+        if st.session_state.tts_enabled:
+            audio = synthesize_tts(text, st.session_state.tts_voice, st.session_state.tts_rate)
+            if audio:
+                autoplay_audio(audio)
 
-st.markdown(f"""
-<style>
-{dark_css if st.session_state.theme=='dark' else light_css}
-html, body, [class*="css"] {{
-  font-family: 'Quicksand', Arial, sans-serif;
-  background: var(--bg-app);
-}}
-{"".join(fullscreen_css) if st.session_state.fullscreen else ""}
+    add_message("bot", text)
+    # Reset waiting flag
+    st.session_state.waiting_for_response = False
 
-.chat-wrapper {{
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 .6rem 4rem .6rem;
-}}
-.top-bar {{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background: var(--bg-panel);
-  padding:.85rem 1.1rem;
-  border-radius: 16px;
-  border:1px solid var(--border-bubble);
-  box-shadow:0 4px 18px rgba(0,0,0,.05);
-  margin-bottom:1rem;
-  flex-wrap:wrap;
-  gap:.7rem;
-}}
-.top-title {{
-  font-size:1.25rem;
-  font-weight:800;
-  background:{PRIMARY_GRADIENT};
-  -webkit-background-clip:text;
-  color:transparent;
-  letter-spacing:.4px;
-  display:flex;
-  align-items:center;
-  gap:.55rem;
-}}
-.toolbar {{
-  display:flex;
-  gap:.5rem;
-  flex-wrap:wrap;
-}}
-.btn-mini {{
-  background:var(--bg-bubble-ai);
-  border:1px solid var(--border-bubble);
-  color:var(--text-primary);
-  padding:.5rem .85rem;
-  border-radius:10px;
-  cursor:pointer;
-  font-size:.74rem;
-  font-weight:600;
-  transition:.18s;
-}}
-.btn-mini:hover {{
-  background:var(--accent);
-  color:#fff;
-}}
-.chat-panel {{
-  background:var(--bg-panel);
-  border:1px solid var(--border-bubble);
-  border-radius: 22px;
-  padding:1rem 1rem 1.4rem 1rem;
-  display:flex;
-  flex-direction:column;
-  height:calc(100vh - 235px);
-  max-height:860px;
-  position:relative;
-  overflow:hidden;
-  box-shadow:0 8px 28px -4px rgba(0,0,0,.06);
-}}
-.messages-scroll {{
-  overflow-y:auto;
-  padding-right:.4rem;
-  scroll-behavior:smooth;
-}}
-.messages-scroll::-webkit-scrollbar {{width:10px;}}
-.messages-scroll::-webkit-scrollbar-track {{
-  background:var(--scroll-track);border-radius:10px;
-}}
-.messages-scroll::-webkit-scrollbar-thumb {{
-  background:var(--scroll-thumb);border-radius:10px;
-}}
-.msg-block {{
-  display:flex;
-  gap:.75rem;
-  margin-bottom:1rem;
-  align-items:flex-end;
-  animation:fadeIn .45s ease;
-}}
-.msg-avatar {{
-  width:42px;height:42px;border-radius:14px;
-  background:var(--bg-bubble-ai);
-  display:flex;align-items:center;justify-content:center;
-  font-size:1.25rem;flex-shrink:0;
-  box-shadow:0 3px 8px rgba(0,0,0,.08);
-}}
-.msg-user .msg-avatar {{background:var(--bg-bubble-user);color:#fff;}}
-.msg-bubble {{
-  padding:.7rem 1rem .85rem 1rem;
-  border-radius:18px;
-  max-width:72ch;
-  line-height:1.5;
-  font-size:.95rem;
-  position:relative;
-  border:1px solid var(--border-bubble);
-  word-wrap:break-word;
-  white-space:pre-wrap;
-  background:var(--bg-bubble-ai);
-  color:var(--text-primary);
-}}
-.msg-user .msg-bubble {{
-  background:var(--bg-bubble-user);
-  border:1px solid rgba(255,255,255,0.18);
-  color:#fff;
-}}
-.msg-meta {{
-  font-size:.62rem;
-  opacity:.65;
-  margin-top:.35rem;
-  text-align:right;
-}}
-.day-separator {{
-  text-align:center;
-  font-size:.66rem;
-  font-weight:600;
-  letter-spacing:1px;
-  opacity:.55;
-  margin:1.15rem 0 .8rem 0;
-  position:relative;
-}}
-.day-separator:before, .day-separator:after {{
-  content:"";
-  position:absolute;top:50%;
-  width:38%;height:1px;
-  background:var(--border-bubble);
-}}
-.day-separator:before {{left:0;}}
-.day-separator:after {{right:0;}}
-.typing-indicator {{
-  display:inline-flex;
-  gap:4px;
-  align-items:center;
-  padding:.55rem .85rem;
-  background:var(--bg-bubble-ai);
-  border-radius:16px;
-  border:1px solid var(--border-bubble);
-  font-size:.72rem;
-  margin-left:55px;
-  margin-bottom:1rem;
-}}
-.typing-indicator span {{
-  width:6px;height:6px;
-  background:var(--text-secondary);
-  display:block;
-  border-radius:50%;
-  animation:blink 1s infinite ease-in-out;
-}}
-.typing-indicator span:nth-child(2) {{animation-delay:.2s;}}
-.typing-indicator span:nth-child(3) {{animation-delay:.4s;}}
-.quick-suggestions {{
-  display:flex;flex-wrap:wrap;
-  gap:.55rem;
-  margin:.5rem 0 1rem 0;
-}}
-.suggestion-pill {{
-  background:var(--bg-bubble-ai);
-  border:1px solid var(--border-bubble);
-  padding:.45rem .75rem;
-  border-radius:40px;
-  font-size:.68rem;
-  cursor:pointer;
-  font-weight:600;
-  color:var(--text-secondary);
-  transition:.15s;
-}}
-.suggestion-pill:hover {{
-  background:var(--accent);
-  color:#fff;
-  border-color:var(--accent);
-}}
-.img-list {{
-  display:flex;
-  flex-wrap:wrap;
-  gap:.5rem;
-  margin-top:.45rem;
-}}
-.img-list img {{
-  max-width:160px;
-  border-radius:12px;
-  border:1px solid var(--border-bubble);
-  box-shadow:0 2px 8px rgba(0,0,0,.08);
-}}
-.footer-note {{
-  font-size:.65rem;
-  text-align:center;
-  opacity:.55;
-  margin-top:.5rem;
-}}
-.memory-box {{
-  background:var(--bg-bubble-ai);
-  border:1px solid var(--border-bubble);
-  padding:.75rem .9rem;
-  border-radius:14px;
-  margin-bottom:.8rem;
-  font-size:.72rem;
-  line-height:1.35;
-  color:var(--text-secondary);
-}}
-@keyframes fadeIn {{
-  from {{opacity:0; transform:translateY(4px);}}
-  to {{opacity:1; transform:translateY(0);}}
-}}
-@keyframes blink {{
-  0%,80%,100% {{opacity:.2;}}
-  40% {{opacity:1;}}
-}}
-</style>
-""", unsafe_allow_html=True)
+# ========== 6) GIAO DIỆN CHÍNH (SHOPPING CHAT STYLE) ==========
 
-# ================== THANH CÔNG CỤ TRÊN CÙNG ==================
-st.markdown('<div class="chat-wrapper">', unsafe_allow_html=True)
-st.markdown('<div class="top-bar">', unsafe_allow_html=True)
-
-col_left, col_right = st.columns([1, 2.2], gap="small")
-
-with col_left:
-    st.markdown('<div class="top-title">🤖 Trò chuyện cùng <span style="font-weight:900;">Bạn Đồng Hành</span></div>',
-                unsafe_allow_html=True)
-
-with col_right:
-    tool_cols = st.columns([1,1,1,1,1,1,1,1])
-    with tool_cols[0]:
-        if st.button("🌗 Theme", help="Đổi Light/Dark"):
-            st.session_state.theme = "dark" if st.session_state.theme == "light" else "light"
-            st.rerun()
-    with tool_cols[1]:
-        if st.button("🧹 Xóa Chat", help="Xóa lịch sử hội thoại"):
-            st.session_state.chat_history = []
-            st.session_state.pending_user_msg = None
-            st.session_state.show_suggestions = True
-            st.rerun()
-    with tool_cols[2]:
-        if st.button("🧠 Xóa Memory", help="Xóa bộ nhớ dài hạn"):
-            st.session_state.memory_summary = ""
-            st.session_state.memory_version = 0
-            if MEMORY_FILE.exists():
-                MEMORY_FILE.unlink()
-            st.rerun()
-    with tool_cols[3]:
-        chat_data = export_chat_txt()
-        st.download_button("💾 Chat", data=chat_data, file_name="lich_su_tro_chuyen.txt",
-                           mime="text/plain", help="Tải lịch sử")
-    with tool_cols[4]:
-        mem_data = export_memory_txt()
-        st.download_button("🗂 Memory", data=mem_data, file_name="bo_nho_dai_han.txt",
-                           mime="text/plain", help="Tải tóm tắt bộ nhớ")
-    with tool_cols[5]:
-        if st.button("💡 Gợi ý", help="Ẩn/hiện gợi ý nhanh"):
-            st.session_state.show_suggestions = not st.session_state.show_suggestions
-    with tool_cols[6]:
-        if st.button("🧷 Full", help="Bật/tắt toàn màn hình"):
-            st.session_state.fullscreen = not st.session_state.fullscreen
-            st.rerun()
-    with tool_cols[7]:
-        if st.button("🧠 Info", help="Hiện/ẩn bộ nhớ đang lưu"):
-            st.session_state.show_memory_box = not st.session_state.get("show_memory_box", False)
-
-st.markdown('</div>', unsafe_allow_html=True)
-
-# ================== PANEL CHAT ==================
-st.markdown('<div class="chat-panel">', unsafe_allow_html=True)
-
-# Hộp hiển thị memory (nếu có)
-if st.session_state.get("show_memory_box", False) and st.session_state.memory_summary:
-    st.markdown(f"""
-    <div class="memory-box">
-        <b>TÓM TẮT BỘ NHỚ (v{st.session_state.memory_version}):</b><br>
-        {st.session_state.memory_summary}
-    </div>
-    """, unsafe_allow_html=True)
-
-# Khung scroll
-st.markdown('<div class="messages-scroll" id="messages-scroll">', unsafe_allow_html=True)
-
-last_day_key = None
-for m in st.session_state.chat_history:
-    day_key = m["time"].date()
-    if day_key != last_day_key:
-        st.markdown(f'<div class="day-separator">{format_day_separator(m["time"])}</div>', unsafe_allow_html=True)
-        last_day_key = day_key
-
-    avatar = "😊" if m["role"] == "user" else "🤖"
-    role_class = "msg-user" if m["role"] == "user" else "msg-ai"
-    time_str = m["time"].strftime("%H:%M")
-    images_html = ""
-    if m.get("images"):
-        imgs = []
-        for img_bytes in m["images"]:
-            b64 = image_bytes_to_base64(img_bytes)
-            imgs.append(f'<img src="data:image/png;base64,{b64}" />')
-        images_html = f'<div class="img-list">{"".join(imgs)}</div>'
-
-    st.markdown(f"""
-    <div class="msg-block {role_class}">
-      <div class="msg-avatar">{avatar}</div>
-      <div style="display:flex;flex-direction:column;">
-        <div class="msg-bubble">{m["content"]}{images_html}</div>
-        <div class="msg-meta">{time_str}</div>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-# Typing indicator
-if st.session_state.pending_user_msg is not None:
-    st.markdown("""
-    <div class="typing-indicator">
-      <span></span><span></span><span></span>
-      <div style="margin-left:6px; font-weight:600; font-size:.62rem; letter-spacing:.5px; opacity:.7;">ĐANG SOẠN...</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown('</div>', unsafe_allow_html=True)  # end messages-scroll
-
-# ================== GỢI Ý NHANH ==================
-if st.session_state.show_suggestions and len(st.session_state.chat_history) == 0:
-    suggestions = [
-        "Mình đang cảm thấy khá căng thẳng...",
-        "Làm sao để tập trung học tốt hơn?",
-        "Mình khó ngủ nhiều ngày rồi.",
-        "Làm sao vượt qua cảm giác lo âu?",
-        "Gợi ý giúp mình thói quen lành mạnh nhé!"
+with st.sidebar:
+    st.markdown("### Cài đặt giọng nói")
+    tts_enabled = st.toggle("Đọc to phản hồi", value=st.session_state.tts_enabled, key="tts_toggle")
+    st.session_state.tts_enabled = tts_enabled
+    
+    voice_options = [
+        "vi-VN-HoaiMyNeural (Nữ)",
+        "vi-VN-NamMinhNeural (Nam)"
     ]
-    st.markdown('<div class="quick-suggestions">', unsafe_allow_html=True)
-    sug_cols = st.columns(min(5, len(suggestions)))
-    for i, s in enumerate(suggestions):
-        if sug_cols[i % 5].button(s, key=f"sugg_{i}"):
-            add_message("user", s)
-            st.session_state.pending_user_msg = s
-            st.experimental_rerun()
+    
+    voice_index = 0
+    if st.session_state.tts_voice.endswith("NamMinhNeural"):
+        voice_index = 1
+        
+    voice = st.selectbox(
+        "Giọng đọc",
+        options=voice_options,
+        index=voice_index,
+        key="voice_select"
+    )
+    
+    # Update voice based on selection
+    if "HoaiMy" in voice:
+        st.session_state.tts_voice = "vi-VN-HoaiMyNeural"
+    else:
+        st.session_state.tts_voice = "vi-VN-NamMinhNeural"
+    
+    # Update rate
+    rate = st.slider("Tốc độ nói (%)", -50, 50, st.session_state.tts_rate, step=5, key="rate_slider")
+    st.session_state.tts_rate = rate
+    
+    # Debug info for TTS
+    if "last_tts_attempt" in st.session_state:
+        with st.expander("Thông tin TTS"):
+            st.write(f"**Trạng thái TTS:**")
+            st.write(f"- Edge TTS: {'✅ Sẵn sàng' if EDGE_TTS_AVAILABLE else '❌ Không có'}")
+            st.write(f"- gTTS: {'✅ Sẵn sàng' if GTTS_AVAILABLE else '❌ Không có'}")
+            st.write(f"- Lần cuối: {st.session_state.last_tts_attempt['timestamp']}")
+            st.write(f"- Văn bản: {st.session_state.last_tts_attempt['text']}")
+    
+    st.divider()
+    
+    # About section
+    st.markdown("### Giới thiệu")
+    st.markdown("""
+    **Bạn Đồng Hành** là chatbot hỗ trợ tâm lý và kỹ năng giao tiếp cho học sinh.
+    
+    Chatbot có thể:
+    - Lắng nghe và đồng cảm với cảm xúc
+    - Hỗ trợ luyện tập giao tiếp
+    - Ghi nhật ký cảm xúc
+    - Hướng dẫn bài tập thư giãn
+    """)
+    
+    st.markdown("Phiên bản: 1.2.1")
+
+# Shell for chat
+st.markdown('<div class="chat-shell">', unsafe_allow_html=True)
+
+# Quick action chips
+quick_actions_col = st.container()
+with quick_actions_col:
+    st.markdown('<div class="quick-actions">', unsafe_allow_html=True)
+    qa_cols = st.columns(4)
+    with qa_cols[0]:
+        if st.button("💖 Tâm sự", use_container_width=True, key="btn_tam_su"):
+            st.session_state.chat_state = CHAT_STATE_TAM_SU_SELECTION
+            respond_bot(CONFIG["tam_su"]["intro_message"])
+            st.rerun()
+    with qa_cols[1]:
+        if st.button("🗣️ Luyện giao tiếp", use_container_width=True, key="btn_giao_tiep"):
+            st.session_state.chat_state = CHAT_STATE_GIAO_TIEP_SELECTION_BASIC
+            respond_bot(CONFIG["giao_tiep"]["intro_message"])
+            st.rerun()
+    with qa_cols[2]:
+        if st.button("📓 Nhật ký", use_container_width=True, key="btn_journal"):
+            st.session_state.page_state = STATE_JOURNAL
+            st.rerun()
+    with qa_cols[3]:
+        if st.button("😌 Thư giãn", use_container_width=True, key="btn_relax"):
+            st.session_state.page_state = STATE_RELAX
+            st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ================== FORM GỬI TIN + ẢNH ==================
-with st.container():
-    up_col1, up_col2 = st.columns([4, 1.4])
-    with up_col1:
-        # chat_input (dưới phiên bản Streamlit mới)
-        user_text = st.chat_input("Nhập điều bạn muốn chia sẻ...")
-    with up_col2:
-        uploaded_imgs = st.file_uploader("Ảnh (tùy chọn)", type=["png", "jpg", "jpeg"], accept_multiple_files=True,
-                                         label_visibility="collapsed")
+# Message history
+message_container = st.container()
+with message_container:
+    for m in st.session_state.history:
+        cls_row = "bubble-row bubble-user" if m["sender"] == "user" else "bubble-row"
+        cls_msg = "msg msg-user" if m["sender"] == "user" else "msg msg-bot"
+        st.markdown(
+            f'<div class="{cls_row}"><div class="{cls_msg}">{html.escape(m["text"])}</div></div>',
+            unsafe_allow_html=True
+        )
 
-if user_text:
-    # Lưu ảnh bytes
-    imgs_bytes = []
-    if uploaded_imgs:
-        for f in uploaded_imgs:
-            imgs_bytes.append(f.read())
-    add_message("user", user_text, images=imgs_bytes)
-    st.session_state.pending_user_msg = user_text
-    st.experimental_rerun()
+    # Show typing indicator while waiting for response
+    if st.session_state.waiting_for_response:
+        st.markdown(
+            '<div class="bubble-row"><div class="typing"><span></span><span></span><span></span></div></div>',
+            unsafe_allow_html=True
+        )
 
-# ================== XỬ LÝ TRẢ LỜI AI ==================
-if st.session_state.pending_user_msg is not None:
-    time.sleep(0.8)
-    # Lấy ảnh của message vừa gửi
-    last_user_msg = st.session_state.chat_history[-1]
-    ai_reply = generate_ai_reply(last_user_msg["content"], images=last_user_msg.get("images"))
-    add_message("assistant", ai_reply)
-    st.session_state.pending_user_msg = None
+# Suggested quick replies based on state
+options_container = st.container()
 
-    # Cập nhật memory nếu đạt ngưỡng
-    if (len([m for m in st.session_state.chat_history if m["role"] != "system"]) %
-            MEMORY_UPDATE_INTERVAL == 0):
-        new_summary = summarize_history_for_memory(st.session_state.chat_history,
-                                                   st.session_state.memory_summary)
-        st.session_state.memory_summary = new_summary
-        st.session_state.memory_version += 1
-        save_memory()
-    st.experimental_rerun()
+with options_container:
+    if st.session_state.chat_state == CHAT_STATE_TAM_SU_SELECTION:
+        moods = list(CONFIG["tam_su"]["moods"].keys())
+        st.markdown("#### Gợi ý cảm xúc")
+        cols = st.columns(len(moods))
+        for i, mood in enumerate(moods):
+            if cols[i].button(mood, key=f"mood_{i}"):
+                st.session_state.chat_state = CHAT_STATE_TAM_SU_CHAT
+                st.session_state.current_mood = mood
+                st.session_state.turns = 0
+                respond_bot(CONFIG["tam_su"]["moods"][mood]["initial"])
+                st.rerun()
 
-# ================== FOOTER NOTE ==================
-st.markdown("""
-<div class="footer-note">
-Trò chuyện không thay thế tư vấn tâm lý chuyên nghiệp. Nếu bạn có nguy cơ tự gây hại, hãy tìm sự trợ giúp trực tiếp ngay lập tức. 💖
+    elif st.session_state.chat_state == CHAT_STATE_TAM_SU_CHAT:
+        st.markdown("#### Tùy chọn")
+        col1, col2 = st.columns(2)
+        if col1.button(CONFIG["tam_su"]["positive_affirmation_trigger"], use_container_width=True):
+            affirm = random.choice(CONFIG["tam_su"]["positive_affirmations"])
+            st.session_state.chat_state = CHAT_STATE_MAIN
+            respond_bot(affirm)
+            st.rerun()
+        if col2.button("🏁 Kết thúc", use_container_width=True):
+            st.session_state.chat_state = CHAT_STATE_MAIN
+            respond_bot(random.choice(CONFIG["general"]["end_chat_replies"]))
+            st.rerun()
+
+    elif st.session_state.chat_state == CHAT_STATE_GIAO_TIEP_SELECTION_BASIC:
+        st.markdown("#### Tình huống cơ bản")
+        for scenario in CONFIG["giao_tiep"]["scenarios_basic"].keys():
+            if st.button(scenario, use_container_width=True, key=f"scenario_basic_{scenario}"):
+                st.session_state.chat_state = CHAT_STATE_GIAO_TIEP_PRACTICE
+                st.session_state.current_scenario = scenario
+                respond_bot(CONFIG["giao_tiep"]["scenarios_basic"][scenario])
+                st.rerun()
+
+    elif st.session_state.chat_state == CHAT_STATE_GIAO_TIEP_SELECTION_EXTENDED:
+        st.markdown("#### Tình huống nâng cao")
+        for scenario in CONFIG["giao_tiep"]["scenarios_extended"].keys():
+            if st.button(scenario, use_container_width=True, key=f"scenario_extended_{scenario}"):
+                st.session_state.chat_state = CHAT_STATE_GIAO_TIEP_PRACTICE
+                st.session_state.current_scenario = scenario
+                respond_bot(CONFIG["giao_tiep"]["scenarios_extended"][scenario])
+                st.rerun()
+
+    elif st.session_state.chat_state == CHAT_STATE_GIAO_TIEP_PRACTICE:
+        st.markdown("#### Bạn đã hiểu chưa?")
+        b1, b2, b3 = st.columns(3)
+        if b1.button(CONFIG["giao_tiep"]["confirm_buttons"]["understood"], use_container_width=True):
+            st.session_state.chat_state = CHAT_STATE_GIAO_TIEP_SELECTION_EXTENDED
+            respond_bot("Tuyệt vời! Cùng xem các tình huống mở rộng nhé!")
+            st.rerun()
+        if b2.button(CONFIG["giao_tiep"]["confirm_buttons"]["not_understood"], use_container_width=True):
+            sc = st.session_state.current_scenario
+            text = CONFIG["giao_tiep"]["scenarios_basic"].get(sc) or CONFIG["giao_tiep"]["scenarios_extended"].get(sc, "")
+            respond_bot(f"Không sao cả, mình nói lại nhé:\n\n{text}")
+            st.rerun()
+        if b3.button("⏹️ Dừng", use_container_width=True):
+            st.session_state.chat_state = CHAT_STATE_MAIN
+            respond_bot(random.choice(CONFIG["general"]["end_chat_replies"]))
+            st.rerun()
+
+
+# Chat input
+user_text = st.chat_input(CONFIG["ui"]["input_placeholder"])
+
+if user_text and not st.session_state.waiting_for_response:
+    # Set flag to indicate waiting for response
+    st.session_state.waiting_for_response = True
+    
+    # Add user message
+    add_message("user", user_text)
+    st.session_state.turns += 1
+
+    # Rerun to display the user message immediately
+    st.rerun()
+
+# Handle the bot response after rerun (if waiting flag is set)
+if st.session_state.waiting_for_response:
+    last_msg = st.session_state.history[-1]
+    if last_msg["sender"] == "user":
+        user_text = last_msg["text"]
+        
+        if st.session_state.chat_state == CHAT_STATE_TAM_SU_CHAT:
+            mood = st.session_state.current_mood
+            styles_all = sum(CONFIG["tam_su"]["moods"][mood]["styles"].values(), [])
+            response_text = random.choice(styles_all)
+            if st.session_state.turns >= 2:
+                st.session_state.chat_state = CHAT_STATE_AWAITING_FOLLOWUP
+                respond_bot(f"{response_text} {CONFIG['general']['follow_up_prompt']}")
+            else:
+                respond_bot(response_text)
+
+        else:
+            detected = detect_mood_from_text(user_text)
+            if detected:
+                st.session_state.chat_state = CHAT_STATE_TAM_SU_CHAT
+                st.session_state.current_mood = detected
+                st.session_state.turns = 0
+                respond_bot(CONFIG["tam_su"]["moods"][detected]["initial"])
+            else:
+                # Call AI for open-ended stuff
+                reply = call_gemini(user_text)
+                st.session_state.chat_state = CHAT_STATE_AWAITING_FOLLOWUP
+                respond_bot(reply)
+
+        st.rerun()
+
+# Close shell
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Sticky input bar wrapper
+st.markdown(
+    """
+<div class="input-bar">
+  <div class="input-inner">
+    <small style="color:#999">Mẹo: Bạn có thể bấm các gợi ý nhanh phía trên để thao tác nhanh hơn.</small>
+  </div>
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
-st.markdown('</div>', unsafe_allow_html=True)  # end chat-panel
-st.markdown('</div>', unsafe_allow_html=True)  # end chat-wrapper
 
-# ================== AUTO SCROLL SCRIPT ==================
-st.markdown("""
-<script>
-const el = window.parent.document.querySelector('#messages-scroll');
-if (el) { el.scrollTop = el.scrollHeight; }
-</script>
-""", unsafe_allow_html=True)
+# ========== 7) ROUTER NỘI BỘ: NHẬT KÝ & THƯ GIÃN ==========
+
+def render_journal_ui():
+    st.title("📓 Nhật Ký Cảm Xúc")
+    MOOD_FILE = "mood_journal.csv"
+    MOOD_OPTIONS = ["😄 Vui", "😔 Buồn", "😠 Tức giận", "😴 Mệt mỏi", "😐 Bình thường"]
+
+    def load_mood_data():
+        try:
+            if os.path.exists(MOOD_FILE):
+                try:
+                    return pd.read_csv(MOOD_FILE)
+                except pd.errors.EmptyDataError:
+                    pass
+        except Exception as e:
+            st.error(f"Lỗi khi đọc dữ liệu nhật ký: {e}")
+        return pd.DataFrame(columns=["Ngày", "Cảm xúc", "Ghi chú"])
+
+    journal_df = load_mood_data()
+    
+    # Use two columns for the form
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown("### Hôm nay bạn cảm thấy thế nào?")
+        with st.form("mood_form"):
+            log_date = st.date_input("Chọn ngày", datetime.now())
+            selected_mood = st.selectbox("Chọn cảm xúc", MOOD_OPTIONS)
+            note = st.text_area("Ghi chú thêm (không bắt buộc)", height=100)
+            submitted = st.form_submit_button("Lưu lại cảm xúc", use_container_width=True)
+            
+            if submitted:
+                try:
+                    new_entry = pd.DataFrame(
+                        [{"Ngày": log_date.strftime("%Y-%m-%d"), "Cảm xúc": selected_mood, "Ghi chú": note}]
+                    )
+                    if not journal_df.empty:
+                        journal_df["Ngày"] = journal_df["Ngày"].astype(str)
+                        if log_date.strftime("%Y-%m-%d") in journal_df["Ngày"].values:
+                            st.warning("Bạn đã ghi lại cảm xúc cho ngày này rồi.")
+                        else:
+                            journal_df = pd.concat([journal_df, new_entry], ignore_index=True)
+                            journal_df.to_csv(MOOD_FILE, index=False)
+                            st.success("Đã lưu nhật ký cảm xúc thành công!")
+                            st.rerun()
+                    else:
+                        journal_df = new_entry
+                        journal_df.to_csv(MOOD_FILE, index=False)
+                        st.success("Đã lưu nhật ký cảm xúc đầu tiên!")
+                        st.rerun()
+                except Exception as e:
+                    st.error(f"Lỗi khi lưu nhật ký: {e}")
+    
+    with col2:
+        if not journal_df.empty:
+            st.markdown("### Thống kê cảm xúc")
+            try:
+                mood_counts = journal_df["Cảm xúc"].value_counts()
+                st.bar_chart(mood_counts)
+            except Exception:
+                st.info("Chưa có đủ dữ liệu để hiển thị thống kê.")
+
+    st.markdown("### Lịch sử cảm xúc")
+    if not journal_df.empty:
+        # Format dataframe for display
+        display_df = journal_df.sort_values(by="Ngày", ascending=False).copy()
+        display_df.rename(columns={
+            "Ngày": "📅 Ngày", 
+            "Cảm xúc": "😊 Cảm xúc", 
+            "Ghi chú": "📝 Ghi chú"
+        }, inplace=True)
+        
+        st.dataframe(
+            display_df,
+            use_container_width=True,
+            column_config={
+                "📝 Ghi chú": st.column_config.TextColumn(
+                    "📝 Ghi chú",
+                    width="large",
+                    help="Những điều bạn ghi lại"
+                )
+            },
+            hide_index=True
+        )
+    else:
+        st.info("Nhật ký của bạn còn trống. Hãy thêm một mục nhật ký đầu tiên nhé!")
+
+    if st.button("⬅️ Quay lại trò chuyện", use_container_width=False, key="back_from_journal"):
+        st.session_state.page_state = STATE_CHAT
+        st.rerun()
+
+def render_relax_ui():
+    st.title("😌 Góc Thư Giãn")
+    
+    tabs = st.tabs(["🧘 Hít thở", "🎵 Âm thanh", "📋 Hướng dẫn"])
+    
+    with tabs[0]:
+        st.markdown("### Bài tập hít thở hộp (4-4-4-4)")
+        st.info("Kỹ thuật này giúp giảm lo âu và căng thẳng bằng cách kiểm soát nhịp thở.")
+        
+        col1, col2 = st.columns([3,1])
+        
+        with col1:
+            if st.button("Bắt đầu bài tập hít thở", key="start_breathing", use_container_width=True):
+                placeholder = st.empty()
+                for i in range(3):
+                    placeholder.warning(f"Chuẩn bị... {3-i}")
+                    time.sleep(1)
+                
+                steps = [
+                    ("Hít vào từ từ qua mũi", 4),
+                    ("Giữ hơi thở", 4),
+                    ("Thở ra từ từ qua miệng", 4),
+                    ("Tiếp tục giữ nhịp trước khi hít vào", 4)
+                ]
+                
+                # Repeat the cycle 3 times
+                for cycle in range(3):
+                    placeholder.markdown(f"### Chu kỳ {cycle+1}/3")
+                    for title, sec in steps:
+                        for i in range(sec, 0, -1):
+                            placeholder.success(f"{title} ({i}s)")
+                            time.sleep(1)
+                
+                placeholder.success("✅ Hoàn thành! Bạn cảm thấy thư giãn hơn chưa?")
+        
+        with col2:
+            st.markdown("**Lợi ích:**")
+            st.markdown("""
+            - Giảm căng thẳng
+            - Tập trung tốt hơn
+            - Kiểm soát lo âu
+            - Cải thiện giấc ngủ
+            """)
+            
+    with tabs[1]:
+        st.markdown("### Âm thanh thiên nhiên giúp thư giãn")
+        st.write("Hãy nhấn play và thưởng thức âm thanh trong lúc học tập hoặc nghỉ ngơi.")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1: 
+            st.markdown("#### Mưa rơi nhẹ nhàng")
+            st.video("https://www.youtube.com/watch?v=eKFTSSKCzWA")
+        with col2: 
+            st.markdown("#### Sóng biển êm đềm")
+            st.video("https://www.youtube.com/watch?v=gM_r4c6i25s")
+        with col3: 
+            st.markdown("#### Rừng nhiệt đới")
+            st.video("https://www.youtube.com/watch?v=aIIEI33EUqI")
+    
+    with tabs[2]:
+        st.markdown("### Hướng dẫn thư giãn nhanh")
+        st.markdown("""
+        #### 1. Thư giãn cơ bắp tiến bộ
+        1. Ngồi hoặc nằm thoải mái
+        2. Siết chặt bàn tay thành nắm đấm trong 5 giây
+        3. Thả lỏng trong 10 giây
+        4. Lặp lại với các nhóm cơ khác: cánh tay, vai, mặt, bụng, chân
+        
+        #### 2. Kỹ thuật 5-4-3-2-1
+        Khi cảm thấy căng thẳng, hãy liệt kê:
+        - 5 thứ bạn NHÌN thấy
+        - 4 thứ bạn CÓ THỂ CHẠM vào
+        - 3 thứ bạn NGHE thấy
+        - 2 thứ bạn NGỬI thấy
+        - 1 thứ bạn NẾM thấy
+        
+        Kỹ thuật này giúp kéo bạn về hiện tại và giảm lo âu.
+        """)
+    
+    if st.button("⬅️ Quay lại trò chuyện", use_container_width=False, key="back_from_relax"):
+        st.session_state.page_state = STATE_CHAT
+        st.rerun()
+
+# Router nội bộ
+if st.session_state.page_state == STATE_JOURNAL:
+    render_journal_ui()
+elif st.session_state.page_state == STATE_RELAX:
+    render_relax_ui()
+# STATE_CHAT hiển thị ở trên
