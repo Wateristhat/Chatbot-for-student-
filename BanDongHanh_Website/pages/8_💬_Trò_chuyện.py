@@ -286,21 +286,37 @@ if GENAI_AVAILABLE:
 # Initialize session state
 if "page_state" not in st.session_state:
     st.session_state.page_state = STATE_CHAT
+    
+if "chat_state" not in st.session_state:
     st.session_state.chat_state = CHAT_STATE_MAIN
+    
+if "history" not in st.session_state:
     st.session_state.history = [
         {"sender": "bot", "text": "Chào bạn, mình là Bạn đồng hành đây! Mình có thể giúp gì cho bạn hôm nay?"}
     ]
+    
+if "turns" not in st.session_state:
     st.session_state.turns = 0
+    
+if "current_mood" not in st.session_state:
     st.session_state.current_mood = None
+    
+if "current_scenario" not in st.session_state:
     st.session_state.current_scenario = None
+    
+if "user_input_buffer" not in st.session_state:
     st.session_state.user_input_buffer = ""
-    st.session_state.waiting_for_response = False  # Flag to prevent multiple submissions
+    
+if "is_processing" not in st.session_state:
+    st.session_state.is_processing = False
 
 # Voice settings defaults
 if "tts_enabled" not in st.session_state:
     st.session_state.tts_enabled = True
+    
 if "tts_voice" not in st.session_state:
     st.session_state.tts_voice = "vi-VN-HoaiMyNeural"  # nữ
+    
 if "tts_rate" not in st.session_state:
     st.session_state.tts_rate = 0  # %
 
@@ -318,73 +334,46 @@ def gtts_bytes(text):
         bio.seek(0)
         return bio.read()
     except Exception as e:
-        st.error(f"Lỗi gTTS: {e}")
+        print(f"Lỗi gTTS: {e}")
         return None
 
-# Fixed Edge TTS function - using asyncio properly
-async def _edge_tts_async(text, voice, rate_pct):
+@st.cache_data(show_spinner=False)
+def edge_tts_bytes(text, voice, rate_pct):
+    """Generate audio using Edge TTS (preferred method)"""
     if not EDGE_TTS_AVAILABLE:
         return None
     
     try:
-        # Format rate string
-        rate_str = f"{'+' if rate_pct>=0 else ''}{rate_pct}%"
-        
-        # Use the Python API directly
-        communicate = edge_tts.Communicate(text, voice, rate=rate_str)
-        
-        # Stream the audio data
-        audio_data = bytearray()
-        async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                audio_data.extend(chunk["data"])
-                
-        return bytes(audio_data)
-    except Exception as e:
-        st.error(f"Lỗi Edge TTS: {e}")
-        return None
-
-def edge_tts_bytes(text, voice, rate_pct):
-    """Wrapper to handle asyncio execution for Edge TTS"""
-    if not EDGE_TTS_AVAILABLE:
-        return None
-        
-    try:
-        # Create a new event loop for asyncio
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         
-        # Run the async function
-        result = loop.run_until_complete(_edge_tts_async(text, voice, rate_pct))
+        async def _synthesize():
+            rate_str = f"{'+' if rate_pct>=0 else ''}{rate_pct}%"
+            communicate = edge_tts.Communicate(text, voice=voice, rate=rate_str)
+            audio = b""
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    audio += chunk["data"]
+            return audio
+            
+        audio_data = loop.run_until_complete(_synthesize())
         loop.close()
-        return result
+        return audio_data
+        
     except Exception as e:
-        st.error(f"Lỗi chạy Edge TTS: {e}")
+        print(f"Lỗi Edge TTS: {e}")
         return None
 
 def synthesize_tts(text, voice, rate_pct):
     """Generate text-to-speech audio using available methods"""
-    # Debug info
-    st.session_state.last_tts_attempt = {
-        "text": text[:50] + "...",
-        "voice": voice,
-        "rate": rate_pct,
-        "edge_available": EDGE_TTS_AVAILABLE,
-        "gtts_available": GTTS_AVAILABLE,
-        "timestamp": datetime.now().strftime("%H:%M:%S")
-    }
-    
-    # First try Edge TTS (preferred)
+    # Prefer Edge TTS neural
     if EDGE_TTS_AVAILABLE:
         audio = edge_tts_bytes(text, voice, rate_pct)
         if audio:
             return audio
             
-    # Then try gTTS as fallback
-    if GTTS_AVAILABLE:
-        return gtts_bytes(text)
-        
-    return None
+    # Fallback gTTS
+    return gtts_bytes(text)
 
 def autoplay_audio(audio_data):
     """Play audio data automatically in the streamlit app"""
@@ -400,7 +389,7 @@ def autoplay_audio(audio_data):
         """
         st.components.v1.html(md, height=0)
     except Exception as e:
-        st.error(f"Lỗi phát âm thanh: {e}")
+        print(f"Lỗi phát âm thanh: {e}")
 
 
 # ========== 5) LOGIC CHAT & AI ==========
@@ -442,59 +431,33 @@ def call_gemini(prompt):
 
 def respond_bot(text):
     """Generate bot response with optional text-to-speech"""
-    # Add bot message with typing effect
-    with st.container():
-        # Synthesize voice if enabled
-        if st.session_state.tts_enabled:
+    add_message("bot", text)
+    
+    # Synthesize voice if enabled
+    if st.session_state.tts_enabled:
+        with st.spinner("Đang tạo giọng nói..."):
             audio = synthesize_tts(text, st.session_state.tts_voice, st.session_state.tts_rate)
             if audio:
                 autoplay_audio(audio)
-
-    add_message("bot", text)
-    # Reset waiting flag
-    st.session_state.waiting_for_response = False
 
 # ========== 6) GIAO DIỆN CHÍNH (SHOPPING CHAT STYLE) ==========
 
 with st.sidebar:
     st.markdown("### Cài đặt giọng nói")
-    tts_enabled = st.toggle("Đọc to phản hồi", value=st.session_state.tts_enabled, key="tts_toggle")
-    st.session_state.tts_enabled = tts_enabled
+    st.session_state.tts_enabled = st.toggle("Đọc to phản hồi", value=st.session_state.tts_enabled)
     
-    voice_options = [
-        "vi-VN-HoaiMyNeural (Nữ)",
-        "vi-VN-NamMinhNeural (Nam)"
-    ]
-    
-    voice_index = 0
-    if st.session_state.tts_voice.endswith("NamMinhNeural"):
-        voice_index = 1
-        
     voice = st.selectbox(
         "Giọng đọc",
-        options=voice_options,
-        index=voice_index,
-        key="voice_select"
+        options=[
+            "vi-VN-HoaiMyNeural (Nữ)",
+            "vi-VN-NamMinhNeural (Nam)"
+        ],
+        index=0 if st.session_state.tts_voice.endswith("HoaiMyNeural") else 1
     )
+    st.session_state.tts_voice = "vi-VN-HoaiMyNeural" if "HoaiMy" in voice else "vi-VN-NamMinhNeural"
     
-    # Update voice based on selection
-    if "HoaiMy" in voice:
-        st.session_state.tts_voice = "vi-VN-HoaiMyNeural"
-    else:
-        st.session_state.tts_voice = "vi-VN-NamMinhNeural"
-    
-    # Update rate
-    rate = st.slider("Tốc độ nói (%)", -50, 50, st.session_state.tts_rate, step=5, key="rate_slider")
+    rate = st.slider("Tốc độ nói (%)", -50, 50, st.session_state.tts_rate, step=5)
     st.session_state.tts_rate = rate
-    
-    # Debug info for TTS
-    if "last_tts_attempt" in st.session_state:
-        with st.expander("Thông tin TTS"):
-            st.write(f"**Trạng thái TTS:**")
-            st.write(f"- Edge TTS: {'✅ Sẵn sàng' if EDGE_TTS_AVAILABLE else '❌ Không có'}")
-            st.write(f"- gTTS: {'✅ Sẵn sàng' if GTTS_AVAILABLE else '❌ Không có'}")
-            st.write(f"- Lần cuối: {st.session_state.last_tts_attempt['timestamp']}")
-            st.write(f"- Văn bản: {st.session_state.last_tts_attempt['text']}")
     
     st.divider()
     
@@ -510,7 +473,7 @@ with st.sidebar:
     - Hướng dẫn bài tập thư giãn
     """)
     
-    st.markdown("Phiên bản: 1.2.1")
+    st.markdown("Phiên bản: 1.2.0")
 
 # Shell for chat
 st.markdown('<div class="chat-shell">', unsafe_allow_html=True)
@@ -551,8 +514,8 @@ with message_container:
             unsafe_allow_html=True
         )
 
-    # Show typing indicator while waiting for response
-    if st.session_state.waiting_for_response:
+    # Show typing indicator while processing
+    if st.session_state.is_processing:
         st.markdown(
             '<div class="bubble-row"><div class="typing"><span></span><span></span><span></span></div></div>',
             unsafe_allow_html=True
@@ -626,47 +589,40 @@ with options_container:
 # Chat input
 user_text = st.chat_input(CONFIG["ui"]["input_placeholder"])
 
-if user_text and not st.session_state.waiting_for_response:
-    # Set flag to indicate waiting for response
-    st.session_state.waiting_for_response = True
+if user_text and not st.session_state.is_processing:
+    # Set flag to indicate processing
+    st.session_state.is_processing = True
     
     # Add user message
     add_message("user", user_text)
     st.session_state.turns += 1
 
-    # Rerun to display the user message immediately
-    st.rerun()
-
-# Handle the bot response after rerun (if waiting flag is set)
-if st.session_state.waiting_for_response:
-    last_msg = st.session_state.history[-1]
-    if last_msg["sender"] == "user":
-        user_text = last_msg["text"]
-        
-        if st.session_state.chat_state == CHAT_STATE_TAM_SU_CHAT:
-            mood = st.session_state.current_mood
-            styles_all = sum(CONFIG["tam_su"]["moods"][mood]["styles"].values(), [])
-            response_text = random.choice(styles_all)
-            if st.session_state.turns >= 2:
-                st.session_state.chat_state = CHAT_STATE_AWAITING_FOLLOWUP
-                respond_bot(f"{response_text} {CONFIG['general']['follow_up_prompt']}")
-            else:
-                respond_bot(response_text)
-
+    # Process the response
+    if st.session_state.chat_state == CHAT_STATE_TAM_SU_CHAT:
+        mood = st.session_state.current_mood
+        styles_all = sum(CONFIG["tam_su"]["moods"][mood]["styles"].values(), [])
+        response_text = random.choice(styles_all)
+        if st.session_state.turns >= 2:
+            st.session_state.chat_state = CHAT_STATE_AWAITING_FOLLOWUP
+            respond_bot(f"{response_text} {CONFIG['general']['follow_up_prompt']}")
         else:
-            detected = detect_mood_from_text(user_text)
-            if detected:
-                st.session_state.chat_state = CHAT_STATE_TAM_SU_CHAT
-                st.session_state.current_mood = detected
-                st.session_state.turns = 0
-                respond_bot(CONFIG["tam_su"]["moods"][detected]["initial"])
-            else:
-                # Call AI for open-ended stuff
-                reply = call_gemini(user_text)
-                st.session_state.chat_state = CHAT_STATE_AWAITING_FOLLOWUP
-                respond_bot(reply)
-
-        st.rerun()
+            respond_bot(response_text)
+    else:
+        detected = detect_mood_from_text(user_text)
+        if detected:
+            st.session_state.chat_state = CHAT_STATE_TAM_SU_CHAT
+            st.session_state.current_mood = detected
+            st.session_state.turns = 0
+            respond_bot(CONFIG["tam_su"]["moods"][detected]["initial"])
+        else:
+            # Call AI for open-ended stuff
+            reply = call_gemini(user_text)
+            st.session_state.chat_state = CHAT_STATE_AWAITING_FOLLOWUP
+            respond_bot(reply)
+    
+    # Reset processing flag
+    st.session_state.is_processing = False
+    st.rerun()
 
 # Close shell
 st.markdown('</div>', unsafe_allow_html=True)
