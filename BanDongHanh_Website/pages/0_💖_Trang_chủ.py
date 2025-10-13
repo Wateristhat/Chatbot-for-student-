@@ -1,5 +1,7 @@
 # Dán toàn bộ code này vào file 0_💖_Trang_chủ.py
 import streamlit as st
+from style import apply_global_style
+apply_global_style()
 from datetime import datetime
 
 st.set_page_config(
@@ -164,3 +166,4 @@ else:
 
     st.markdown("---")
     st.info("👈 <b>Hãy chọn một tính năng từ mục lục để bắt đầu!</b>", icon="😊")
+
