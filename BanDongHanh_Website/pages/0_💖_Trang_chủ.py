@@ -98,13 +98,30 @@ if 'user_id' not in st.session_state:
     st.session_state.user_id = None
 
 if not st.session_state.user_name:
-    # --- Giao diện chưa đăng nhập (Giữ nguyên) ---
-    st.markdown(f"""...""", unsafe_allow_html=True) # Rút gọn
+    # --- Giao diện chưa đăng nhập ---
+    st.markdown(f"""
+    <div class="brand-minimal-box">
+        <div class="brand-minimal-header">
+            <span class="brand-minimal-icon"><i class="fa-solid fa-heart"></i></span>
+            <span class="text-main">Chào mừng bạn đến với</span> <span class="text-brand">Bạn Đồng Hành!</span>
+        </div>
+        <div class="brand-minimal-desc">
+            <i class="fa-solid fa-heart"></i>
+            <span><b>“Bạn Đồng Hành”</b> – Người bạn thấu cảm, luôn bên cạnh trên hành trình chăm sóc sức khỏe tinh thần.</span>
+        </div>
+        <div class="brand-minimal-highlight">
+            Cùng truyền cảm hứng và lan tỏa yêu thương mỗi ngày. Được thiết kế để giúp bạn vượt qua thử thách trong học tập, cuộc sống, và nuôi dưỡng sự cân bằng cảm xúc.<br>
+            <span class="highlight-action">Hãy bắt đầu khám phá nhé!</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.title("👋 Chào bạn, mình là Bạn Đồng Hành 💖")
     st.header("Trước khi bắt đầu, chúng mình làm quen nhé?")
+
     with st.form(key="welcome_form", clear_on_submit=True):
         name = st.text_input("📝 Bạn tên là gì?")
-        # ... (các input khác) ...
+        # ... (các input khác như năm sinh, trường học) ...
         submitted = st.form_submit_button("💖 Lưu thông tin và bắt đầu!")
         if submitted:
             if not name:
@@ -112,7 +129,9 @@ if not st.session_state.user_name:
             else:
                 st.session_state.user_name = name
                 st.session_state['user_id'] = name
-                # ...
+                st.session_state.user_info = {
+                    # "year": birth_year, "school": school, "issues": issues
+                }
                 st.success("✅ Lưu thông tin thành công! Chào mừng bạn đến với Bạn Đồng Hành!")
                 st.rerun()
 else:
