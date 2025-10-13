@@ -1,0 +1,48 @@
+# file: test_gemini.py
+import streamlit as st
+import google.generativeai as genai
+
+st.title("Kiểm tra kết nối Gemini AI")
+
+# Lấy API key từ Streamlit Secrets
+api_key = st.secrets.get("GOOGLE_API_KEY")
+
+if not api_key:
+    st.error("LỖI: Không tìm thấy `GOOGLE_API_KEY` trong file secrets.toml.")
+    st.info("Vui lòng kiểm tra lại vị trí và nội dung file .streamlit/secrets.toml")
+else:
+    st.success("✅ Đã tìm thấy API Key trong secrets!")
+    try:
+        genai.configure(api_key=api_key)
+        st.success("✅ Cấu hình API Key thành công!")
+
+        model_names = [
+            "gemini-1.5-flash-latest",
+            "gemini-1.0-pro",
+            "gemini-pro"
+        ]
+        
+        st.info(f"Đang thử kết nối đến các model: {model_names}...")
+        
+        model_found = False
+        for model_name in model_names:
+            with st.spinner(f"Đang thử model: {model_name}..."):
+                try:
+                    model = genai.GenerativeModel(model_name)
+                    # Gửi một yêu cầu nhỏ để kiểm tra
+                    response = model.generate_content("Chào bạn", generation_config={"max_output_tokens": 5})
+                    
+                    st.success(f"✅✅✅ KẾT NỐI THÀNH CÔNG VỚI MODEL: {model_name}!")
+                    st.write("Phản hồi từ AI:", response.text)
+                    model_found = True
+                    break # Dừng lại ngay khi tìm thấy model hoạt động
+                except Exception as e:
+                    st.warning(f"⚠️ Không thể kết nối với model `{model_name}`. Lỗi: {e}")
+        
+        if not model_found:
+            st.error("🚨 LỖI CUỐI CÙNG: Đã thử tất cả các model nhưng không thể kết nối với bất kỳ model Gemini nào.")
+            st.warning("Vui lòng kiểm tra lại API Key, các quyền của key, và kết nối mạng.")
+
+    except Exception as e:
+        st.error(f"🚨 LỖI NGHIÊM TRỌNG: Lỗi khi cấu hình genai. Lỗi này cho thấy API Key của bạn có thể không hợp lệ.")
+        st.exception(e)
