@@ -1,9 +1,78 @@
 import streamlit as st
 import google.generativeai as genai
 
-# --- CẤU HÌNH GIAO DIỆN ---
-st.set_page_config(page_title="Chatbot AI Gemini", page_icon="✨")
-st.title("✨ Chatbot AI với Gemini")
+# --- 1. CẤU HÌNH TRANG VÀ CSS TÙY CHỈNH ---
+st.set_page_config(
+    page_title="Chatbot AI Đầy Màu Sắc",
+    page_icon="🌈",
+    layout="centered"
+)
+
+# CSS để làm cho giao diện màu mè, giống phong cách bạn muốn
+st.markdown("""
+<style>
+    /* Nền và font chữ tổng thể */
+    body {
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .stApp {
+        background: linear-gradient(to right, #fde4f2, #e6e6fa); /* Gradient nền hồng và tím lavender */
+    }
+
+    /* Tiêu đề chính */
+    h1 {
+        font-size: 2.5em;
+        text-align: center;
+        background: linear-gradient(to right, #6a11cb, #2575fc); /* Gradient tím và xanh cho chữ */
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+
+    /* Bong bóng chat của người dùng (user) */
+    [data-testid="stChatMessage"]:has([data-testid="stAvatarIcon-user"]) {
+        background-color: #ffffff; /* Nền trắng */
+        border-radius: 20px 20px 5px 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-right: 10%; /* Thu hẹp lại một chút */
+        border: 1px solid #e0e0e0;
+    }
+
+    /* Bong bóng chat của trợ lý (assistant) */
+    [data-testid="stChatMessage"]:has([data-testid="stAvatarIcon-assistant"]) {
+        background: linear-gradient(to right, #d2b4de, #a0d2eb); /* Gradient tím nhạt và xanh nhạt */
+        border-radius: 20px 20px 20px 5px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-left: 10%; /* Thu hẹp lại một chút */
+        color: #1e1e1e; /* Màu chữ tối để dễ đọc */
+    }
+
+    /* Ô nhập liệu chat */
+    [data-testid="stChatInput"] {
+        background-color: #ffffff;
+        border-radius: 25px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        padding: 5px 15px;
+    }
+
+    /* Nút gửi tin nhắn */
+    [data-testid="stChatInput"] button {
+        background-color: #8e44ad; /* Màu tím đậm */
+        border-radius: 50%;
+        color: white;
+    }
+    [data-testid="stChatInput"] button:hover {
+        background-color: #9b59b6; /* Tím nhạt hơn khi hover */
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
+# --- 2. CODE GỐC CỦA BẠN (GIỮ NGUYÊN) ---
+
+st.title("✨ Chatbot AI Đồng Hành ✨")
 st.caption("Trò chuyện với mô hình AI Gemini của Google.")
 
 # --- CẤU HÌNH GEMINI AI ---
@@ -19,7 +88,7 @@ def configure_gemini():
         api_key = st.secrets["GOOGLE_API_KEY"]
         genai.configure(api_key=api_key)
         
-        # SỬA Ở ĐÂY: Đổi tên model thành "gemini-1.5-flash" hoặc "gemini-pro"
+        # Dòng này bạn đã sửa để dùng model chính xác
         model = genai.GenerativeModel("models/gemini-2.5-pro")
         
         return model
