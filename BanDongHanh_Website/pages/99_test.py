@@ -20,7 +20,7 @@ def configure_gemini():
         genai.configure(api_key=api_key)
         
         # SỬA Ở ĐÂY: Đổi tên model thành "gemini-1.5-flash" hoặc "gemini-pro"
-        model = genai.GenerativeModel("gemini-1.5-flash") 
+        model = genai.GenerativeModel("models/gemini-2.5-flash")
         
         return model
     except (KeyError, ValueError) as e:
