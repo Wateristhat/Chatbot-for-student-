@@ -12,14 +12,12 @@ from io import BytesIO
 import pandas as pd
 import streamlit as st
 
-# Optional: Gemini - BỊ VÔ HIỆU HÓA ĐỂ TRÁNH LỖI KẾT NỐI
-# Tôi giữ lại code nhưng sẽ không cố gắng kết nối ban đầu
-GENAI_AVAILABLE = False
-# try:
-#     import google.generativeai as genai
-#     GENAI_AVAILABLE = True
-# except ImportError:
-#     GENAI_AVAILABLE = False
+# Optional: Gemini
+try:
+    import google.generativeai as genai
+    GENAI_AVAILABLE = True
+except ImportError:
+    GENAI_AVAILABLE = False
 
 # Fallback TTS
 try:
@@ -232,13 +230,13 @@ def get_config():
             "intro_message": "Hãy chọn một tình huống bên dưới để mình cùng luyện tập nhé!",
             "confirm_buttons": {"understood": "✅ Đã hiểu!", "not_understood": "❓ Chưa rõ lắm!"},
             "scenarios_basic": {
-                "👋 Chào hỏi bạn bè": "Bạn có thể nói: \"Chào bạn, hôm nay vui không?\"",
-                "🙋 Hỏi bài thầy cô": "Bạn thử hỏi: \"Thầy/cô ơi, phần này em chưa rõ ạ?\""
+                "👋 Chào hỏi bạn bè": "Bạn có thể nói: "Chào bạn, hôm nay vui không?"",
+                "🙋 Hỏi bài thầy cô": "Bạn thử hỏi: "Thầy/cô ơi, phần này em chưa rõ ạ?""
             },
             "scenarios_extended": {
-                "📚 Nhờ bạn giúp đỡ": "Bạn thử nói: \"Cậu chỉ mình chỗ này với được không?\"",
-                "🙏 Xin lỗi khi đến muộn": "Bạn có thể nói: \"Em xin lỗi vì đã đến muộn, em có thể vào lớp không ạ?\"",
-                "🤔 Hỏi khi không hiểu bài": "Thử nói: \"Em chưa hiểu phần này, thầy/cô có thể giải thích lại được không ạ?\"",
+                "📚 Nhờ bạn giúp đỡ": "Bạn thử nói: "Cậu chỉ mình chỗ này với được không?"",
+                "🙏 Xin lỗi khi đến muộn": "Bạn có thể nói: "Em xin lỗi vì đã đến muộn, em có thể vào lớp không ạ?"",
+                "🤔 Hỏi khi không hiểu bài": "Thử nói: "Em chưa hiểu phần này, thầy/cô có thể giải thích lại được không ạ?"",
             },
         },
         "general": {
@@ -253,40 +251,34 @@ def get_config():
                 "Cảm ơn bạn đã chia sẻ với mình hôm nay nha. Mình luôn sẵn sàng khi bạn cần 💖",
                 "Bạn đã làm rất tốt khi bộc lộ cảm xúc. Khi nào cần, mình vẫn ở đây ✨"
             ],
-            "simulated_ai_responses": [
-                "Mình hiểu rồi. Cảm ơn bạn đã chia sẻ. Đôi khi mọi chuyện có vẻ khó khăn, nhưng bạn rất mạnh mẽ!",
-                "Câu chuyện của bạn rất đáng suy nghĩ. Mình luôn ở đây để lắng nghe thêm nếu bạn muốn tâm sự.",
-                "Mình cảm nhận được những gì bạn đang trải qua. Bạn có thể nói thêm về cảm xúc đó không?",
-                "Đó là một câu hỏi hay. Mình tin rằng bạn sẽ tìm ra cách giải quyết vấn đề này. Mình có thể giúp bạn suy nghĩ thêm.",
-            ]
         },
     }
 
 CONFIG = get_config()
 
-# Gemini optional - Vô hiệu hóa để tránh lỗi kết nối
+# Gemini optional
 AI_ENABLED = False
 if GENAI_AVAILABLE:
     try:
+        # First try to get from secrets
         api_key = None
         try:
             api_key = st.secrets.get("GOOGLE_API_KEY")
         except:
             pass
             
+        # Then try environment variable
         if not api_key:
             api_key = os.environ.get("GOOGLE_API_KEY")
             
         if api_key:
-            import google.generativeai as genai # Import ở đây nếu cần
             genai.configure(api_key=api_key)
-            # Dùng 'gemini-2.5-flash' hoặc 'gemini-1.5-flash'
             gemini_model = genai.GenerativeModel("gemini-1.5-flash")
             AI_ENABLED = True
         else:
-            st.sidebar.warning("Chưa cấu hình API key cho Gemini. Đã chuyển sang chế độ dự phòng.", icon="⚠️")
+            st.sidebar.warning("Chưa cấu hình API key cho Gemini", icon="⚠️")
     except Exception as e:
-        st.sidebar.error(f"Lỗi cấu hình Gemini: {str(e)[:50]}... Đã chuyển sang chế độ dự phòng.", icon="🚨")
+        st.sidebar.error(f"Lỗi cấu hình Gemini: {str(e)}", icon="🚨")
 
 
 # ========== 3) SESSION STATE ==========
@@ -294,52 +286,28 @@ if GENAI_AVAILABLE:
 # Initialize session state
 if "page_state" not in st.session_state:
     st.session_state.page_state = STATE_CHAT
-    
-if "chat_state" not in st.session_state:
     st.session_state.chat_state = CHAT_STATE_MAIN
-    
-if "history" not in st.session_state:
     st.session_state.history = [
         {"sender": "bot", "text": "Chào bạn, mình là Bạn đồng hành đây! Mình có thể giúp gì cho bạn hôm nay?"}
     ]
-    
-if "turns" not in st.session_state:
     st.session_state.turns = 0
-    
-if "current_mood" not in st.session_state:
     st.session_state.current_mood = None
-    
-if "current_scenario" not in st.session_state:
     st.session_state.current_scenario = None
-    
-# Đã xóa 'user_input_buffer' vì không sử dụng
-    
-if "is_processing" not in st.session_state:
-    st.session_state.is_processing = False
+    st.session_state.user_input_buffer = ""
+    st.session_state.waiting_for_response = False  # Flag to prevent multiple submissions
 
 # Voice settings defaults
 if "tts_enabled" not in st.session_state:
     st.session_state.tts_enabled = True
-    
 if "tts_voice" not in st.session_state:
     st.session_state.tts_voice = "vi-VN-HoaiMyNeural"  # nữ
-    
 if "tts_rate" not in st.session_state:
     st.session_state.tts_rate = 0  # %
 
-# Nhật ký (Sử dụng session state thay vì file cục bộ)
-if "journal_data" not in st.session_state:
-    st.session_state.journal_data = pd.DataFrame(columns=["Ngày", "Cảm xúc", "Ghi chú"])
-
-
 # ========== 4) TTS (EDGE TTS NEURAL + FALLBACK GTTS) ==========
 
-# @st.cache_data removed from gtts_bytes/edge_tts_bytes to ensure fresh run if args change slightly (optional but safer)
-# Tuy nhiên, trong context này, tôi giữ lại @st.cache_data để tối ưu hóa performance như trong code gốc.
-
 @st.cache_data(show_spinner=False)
-def gtts_bytes(text):
-    """Generate audio using gTTS as fallback"""
+def gtts_bytes(text: str):
     if not GTTS_AVAILABLE:
         return None
     try:
@@ -349,54 +317,50 @@ def gtts_bytes(text):
         bio.seek(0)
         return bio.read()
     except Exception as e:
-        print(f"Lỗi gTTS: {e}")
+        print("Lỗi gTTS:", e)
+        return None
+
+async def _edge_tts_bytes_async(text: str, voice: str, rate_pct: int):
+    if not EDGE_TTS_AVAILABLE:
+        return None
+    try:
+        # rate like "+0%", "-10%", "+10%"
+        rate_str = f"{'+' if rate_pct>=0 else ''}{rate_pct}%"
+        communicate = edge_tts.Communicate(text, voice=voice, rate=rate_str)
+        audio = b""
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                audio += chunk["data"]
+        return audio
+    except Exception as e:
+        print("Lỗi Edge TTS:", e)
         return None
 
 @st.cache_data(show_spinner=False)
-def edge_tts_bytes(text, voice, rate_pct):
-    """Generate audio using Edge TTS (preferred method)"""
-    if not EDGE_TTS_AVAILABLE:
-        return None
-    
+def edge_tts_bytes(text: str, voice: str, rate_pct: int):
     try:
-        # Sử dụng threading.Thread hoặc multiprocessing để tránh block luồng chính
-        # Tuy nhiên, để đơn giản và phù hợp với Streamlit, chúng ta dùng asyncio trong hàm cache
-        # và giả định môi trường cho phép chạy asyncio.
+        return asyncio.run(_edge_tts_bytes_async(text, voice, rate_pct))
+    except RuntimeError:
+        # In case event loop is already running (Streamlit quirk)
         loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-        async def _synthesize():
-            # Đảm bảo rate_pct là số nguyên
-            rate_pct_int = int(rate_pct)
-            rate_str = f"{'+' if rate_pct_int>=0 else ''}{rate_pct_int}%"
-            communicate = edge_tts.Communicate(text, voice=voice, rate=rate_str)
-            audio = b""
-            async for chunk in communicate.stream():
-                if chunk["type"] == "audio":
-                    audio += chunk["data"]
-            return audio
-            
-        audio_data = loop.run_until_complete(_synthesize())
-        loop.close()
-        return audio_data
-        
+        try:
+            return loop.run_until_complete(_edge_tts_bytes_async(text, voice, rate_pct))
+        finally:
+            loop.close()
     except Exception as e:
-        print(f"Lỗi Edge TTS: {e}")
+        print("Lỗi chạy Edge TTS:", e)
         return None
 
-def synthesize_tts(text, voice, rate_pct):
-    """Generate text-to-speech audio using available methods"""
+def synthesize_tts(text: str, voice: str, rate_pct: int):
     # Prefer Edge TTS neural
     if EDGE_TTS_AVAILABLE:
         audio = edge_tts_bytes(text, voice, rate_pct)
         if audio:
             return audio
-            
     # Fallback gTTS
     return gtts_bytes(text)
 
-def autoplay_audio(audio_data):
-    """Play audio data automatically in the streamlit app"""
+def autoplay_audio(audio_data: bytes):
     if audio_data is None:
         return
         
@@ -409,73 +373,55 @@ def autoplay_audio(audio_data):
         """
         st.components.v1.html(md, height=0)
     except Exception as e:
-        print(f"Lỗi phát âm thanh: {e}")
+        print("Lỗi phát âm thanh:", e)
 
 
 # ========== 5) LOGIC CHAT & AI ==========
 
 def add_message(sender, text):
-    """Add a message to the chat history"""
     st.session_state.history.append({"sender": sender, "text": text})
 
 def detect_mood_from_text(text):
-    """Detect mood from user input text"""
     cfg = CONFIG["tam_su"]["moods"]
     lowered = text.lower()
-    # Tìm từ khóa
     tokens = set(re.findall(r"\b\w+\b", lowered))
-    # Tìm emoji
-    emojis = set(re.findall(r'[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]+', text))
-    # Gộp cả từ khóa và emoji (chỉ lấy các emoji có trong cấu hình)
-    all_tokens = tokens.union(ch for mood_cfg in cfg.values() for ch in mood_cfg["keywords"] if ch in text)
-    
+    emojis = {"😄", "😔"}
+    tokens.update(ch for ch in text if ch in emojis)
     best, score = None, 0
     for mood, m_cfg in cfg.items():
         kws = set(m_cfg["keywords"])
-        # Chỉ xét từ khóa hoặc emoji có trong cấu hình
-        matches = len(all_tokens.intersection(kws))
+        matches = len(tokens.intersection(kws))
         if matches > score:
             best, score = mood, matches
     return best
 
-def get_ai_response(prompt):
-    """
-    Call Gemini AI for text generation hoặc dùng Fallback Logic.
-    Phần này sẽ bị block nếu AI_ENABLED = True.
-    """
-    if AI_ENABLED:
-        try:
-            contextual = (
-                "Hãy trả lời như một người bạn đồng hành AI thân thiện, kiên nhẫn và thấu hiểu dành cho học sinh."
-                " Trả lời bằng tiếng Việt, ngắn gọn (dưới 100 từ) và giàu đồng cảm. "
-                " Hạn chế trả lời giáo điều và sử dụng ngôn ngữ tự nhiên, thân thiện.\n\n"
-                f"Câu hỏi/Chia sẻ của người dùng: '{prompt}'"
-            )
-            # Dùng st.spinner ở giao diện để hiển thị trạng thái chờ
-            # LƯU Ý: Hàm này BLOCK luồng, nên cần xử lý hiển thị hiệu ứng "Đang gõ" ở phía gọi.
-            resp = gemini_model.generate_content(contextual)
-            return resp.text or random.choice(CONFIG["general"]["neutral_replies"])
-        except Exception as e:
-            # Nếu có lỗi khi gọi AI (ví dụ: timeout, API key hết hạn)
-            return f"Xin lỗi, có lỗi khi kết nối AI: {str(e)[:50]}.... Đã chuyển sang phản hồi dự phòng: {random.choice(CONFIG['general']['simulated_ai_responses'])}"
-            
-    # Fallback Logic (Dự phòng)
-    # Mô phỏng thời gian chờ để người dùng cảm nhận ứng dụng đang "nghĩ"
-    time.sleep(random.uniform(1.0, 2.5)) 
-    return random.choice(CONFIG["general"]["simulated_ai_responses"])
+def call_gemini(prompt: str) -> str:
+    if not AI_ENABLED:
+        return random.choice(CONFIG["general"]["neutral_replies"])
+    try:
+        contextual = (
+            "Hãy trả lời như một người bạn đồng hành AI thân thiện, kiên nhẫn và thấu hiểu dành cho học sinh."
+            " Trả lời bằng tiếng Việt, ngắn gọn (dưới 100 từ) và giàu đồng cảm. "
+            " Hạn chế trả lời giáo điều và sử dụng ngôn ngữ tự nhiên, thân thiện.\n\n"
+            f"Câu hỏi/Chia sẻ của người dùng: '{prompt}'"
+        )
+        resp = gemini_model.generate_content(contextual)
+        return resp.text or random.choice(CONFIG["general"]["neutral_replies"])
+    except Exception as e:
+        return f"Xin lỗi, hệ thống đang bận. Bạn thử lại sau nhé. (Lỗi: {str(e)[:50]}...)"
 
+def respond_bot(text: str):
+    # Add bot message with typing effect
+    with st.container():
+        # Synthesize voice if enabled
+        if st.session_state.tts_enabled:
+            audio = synthesize_tts(text, st.session_state.tts_voice, st.session_state.tts_rate)
+            if audio:
+                autoplay_audio(audio)
 
-def respond_bot(text):
-    """Generate bot response with optional text-to-speech"""
-    # Không cần dùng st.spinner trong hàm này nữa, dùng bên ngoài khi gọi hàm AI
     add_message("bot", text)
-    
-    # Synthesize voice if enabled
-    if st.session_state.tts_enabled:
-        audio = synthesize_tts(text, st.session_state.tts_voice, st.session_state.tts_rate)
-        if audio:
-            autoplay_audio(audio)
-            
+    # Reset waiting flag
+    st.session_state.waiting_for_response = False
 
 # ========== 6) GIAO DIỆN CHÍNH (SHOPPING CHAT STYLE) ==========
 
@@ -500,8 +446,6 @@ with st.sidebar:
     
     # About section
     st.markdown("### Giới thiệu")
-    if not AI_ENABLED:
-         st.warning("⚠️ **Chế độ Dự phòng:** Chức năng AI bị vô hiệu hóa do lỗi kết nối/cấu hình API. Phản hồi chung được mô phỏng.", icon="🚫")
     st.markdown("""
     **Bạn Đồng Hành** là chatbot hỗ trợ tâm lý và kỹ năng giao tiếp cho học sinh.
     
@@ -512,37 +456,35 @@ with st.sidebar:
     - Hướng dẫn bài tập thư giãn
     """)
     
-    st.markdown("Phiên bản: 1.2.1 (Sửa lỗi)")
+    st.markdown("Phiên bản: 1.2.0")
 
 # Shell for chat
 st.markdown('<div class="chat-shell">', unsafe_allow_html=True)
 
-# Quick action chips
+# Quick action chips (giống app mua sắm có gợi ý thao tác)
 quick_actions_col = st.container()
 with quick_actions_col:
-    # Logic chỉ hiển thị quick actions khi ở trạng thái MAIN hoặc AWAITING_FOLLOWUP
-    if st.session_state.chat_state in (CHAT_STATE_MAIN, CHAT_STATE_AWAITING_FOLLOWUP):
-        st.markdown('<div class="quick-actions">', unsafe_allow_html=True)
-        qa_cols = st.columns(4)
-        with qa_cols[0]:
-            if st.button("💖 Tâm sự", use_container_width=True, key="btn_tam_su"):
-                st.session_state.chat_state = CHAT_STATE_TAM_SU_SELECTION
-                respond_bot(CONFIG["tam_su"]["intro_message"])
-                st.rerun()
-        with qa_cols[1]:
-            if st.button("🗣️ Luyện giao tiếp", use_container_width=True, key="btn_giao_tiep"):
-                st.session_state.chat_state = CHAT_STATE_GIAO_TIEP_SELECTION_BASIC
-                respond_bot(CONFIG["giao_tiep"]["intro_message"])
-                st.rerun()
-        with qa_cols[2]:
-            if st.button("📓 Nhật ký", use_container_width=True, key="btn_journal"):
-                st.session_state.page_state = STATE_JOURNAL
-                st.rerun()
-        with qa_cols[3]:
-            if st.button("😌 Thư giãn", use_container_width=True, key="btn_relax"):
-                st.session_state.page_state = STATE_RELAX
-                st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="quick-actions">', unsafe_allow_html=True)
+    qa_cols = st.columns(4)
+    with qa_cols[0]:
+        if st.button("💖 Tâm sự", use_container_width=True, key="btn_tam_su"):
+            st.session_state.chat_state = CHAT_STATE_TAM_SU_SELECTION
+            respond_bot(CONFIG["tam_su"]["intro_message"])
+            st.rerun()
+    with qa_cols[1]:
+        if st.button("🗣️ Luyện giao tiếp", use_container_width=True, key="btn_giao_tiep"):
+            st.session_state.chat_state = CHAT_STATE_GIAO_TIEP_SELECTION_BASIC
+            respond_bot(CONFIG["giao_tiep"]["intro_message"])
+            st.rerun()
+    with qa_cols[2]:
+        if st.button("📓 Nhật ký", use_container_width=True, key="btn_journal"):
+            st.session_state.page_state = STATE_JOURNAL
+            st.rerun()
+    with qa_cols[3]:
+        if st.button("😌 Thư giãn", use_container_width=True, key="btn_relax"):
+            st.session_state.page_state = STATE_RELAX
+            st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # Message history
 message_container = st.container()
@@ -555,22 +497,20 @@ with message_container:
             unsafe_allow_html=True
         )
 
-    # Hiển thị Typing Indicator TẠM THỜI (để giữ vị trí)
-    # LƯU Ý: Hiệu ứng này chỉ thực sự hoạt động nếu có 2 lần rerun, rất khó trong Streamlit
-    # Tôi sẽ cố gắng giữ nguyên logic để bạn tùy chỉnh sau.
-    # if st.session_state.is_processing:
-    #     st.markdown(
-    #         '<div class="bubble-row"><div class="typing"><span></span><span></span><span></span></div></div>',
-    #         unsafe_allow_html=True
-    #     )
-    
+    # Show typing indicator while waiting for response
+    if st.session_state.waiting_for_response:
+        st.markdown(
+            '<div class="bubble-row"><div class="typing"><span></span><span></span><span></span></div></div>',
+            unsafe_allow_html=True
+        )
+
 # Suggested quick replies based on state
 options_container = st.container()
 
 with options_container:
     if st.session_state.chat_state == CHAT_STATE_TAM_SU_SELECTION:
-        st.markdown("#### Gợi ý cảm xúc")
         moods = list(CONFIG["tam_su"]["moods"].keys())
+        st.markdown("#### Gợi ý cảm xúc")
         cols = st.columns(len(moods))
         for i, mood in enumerate(moods):
             if cols[i].button(mood, key=f"mood_{i}"):
@@ -595,11 +535,6 @@ with options_container:
 
     elif st.session_state.chat_state == CHAT_STATE_GIAO_TIEP_SELECTION_BASIC:
         st.markdown("#### Tình huống cơ bản")
-        # Thêm nút chuyển sang Tình huống nâng cao
-        if st.button("Xem tình huống nâng cao ➡️", key="btn_ext_scenarios"):
-            st.session_state.chat_state = CHAT_STATE_GIAO_TIEP_SELECTION_EXTENDED
-            st.rerun()
-
         for scenario in CONFIG["giao_tiep"]["scenarios_basic"].keys():
             if st.button(scenario, use_container_width=True, key=f"scenario_basic_{scenario}"):
                 st.session_state.chat_state = CHAT_STATE_GIAO_TIEP_PRACTICE
@@ -609,11 +544,6 @@ with options_container:
 
     elif st.session_state.chat_state == CHAT_STATE_GIAO_TIEP_SELECTION_EXTENDED:
         st.markdown("#### Tình huống nâng cao")
-        # Thêm nút quay lại Tình huống cơ bản
-        if st.button("⬅️ Quay lại tình huống cơ bản", key="btn_basic_scenarios"):
-            st.session_state.chat_state = CHAT_STATE_GIAO_TIEP_SELECTION_BASIC
-            st.rerun()
-            
         for scenario in CONFIG["giao_tiep"]["scenarios_extended"].keys():
             if st.button(scenario, use_container_width=True, key=f"scenario_extended_{scenario}"):
                 st.session_state.chat_state = CHAT_STATE_GIAO_TIEP_PRACTICE
@@ -625,14 +555,12 @@ with options_container:
         st.markdown("#### Bạn đã hiểu chưa?")
         b1, b2, b3 = st.columns(3)
         if b1.button(CONFIG["giao_tiep"]["confirm_buttons"]["understood"], use_container_width=True):
-            # Sau khi hiểu, chuyển sang chế độ mở rộng
             st.session_state.chat_state = CHAT_STATE_GIAO_TIEP_SELECTION_EXTENDED
             respond_bot("Tuyệt vời! Cùng xem các tình huống mở rộng nhé!")
             st.rerun()
         if b2.button(CONFIG["giao_tiep"]["confirm_buttons"]["not_understood"], use_container_width=True):
             sc = st.session_state.current_scenario
-            # Lấy lại text kịch bản
-            text = CONFIG["giao_tiep"]["scenarios_basic"].get(sc) or CONFIG["giao_tiep"]["scenarios_extended"].get(sc, "Mình chưa rõ kịch bản này.")
+            text = CONFIG["giao_tiep"]["scenarios_basic"].get(sc) or CONFIG["giao_tiep"]["scenarios_extended"].get(sc, "")
             respond_bot(f"Không sao cả, mình nói lại nhé:\n\n{text}")
             st.rerun()
         if b3.button("⏹️ Dừng", use_container_width=True):
@@ -641,42 +569,245 @@ with options_container:
             st.rerun()
 
 
-# Chat input
-# Sử dụng placeholder để hiển thị Typing Indicator khi logic đang chạy
-user_text = st.chat_input(CONFIG["ui"]["input_placeholder"], disabled=st.session_state.is_processing)
+# Chat input (modern, like shopping apps)
+placeholder = st.empty()
+user_text = st.chat_input(CONFIG["ui"]["input_placeholder"])
 
-if user_text and not st.session_state.is_processing:
-    # BẮT ĐẦU XỬ LÝ
+if user_text and not st.session_state.waiting_for_response:
+    # Set flag to indicate waiting for response
+    st.session_state.waiting_for_response = True
     
-    # 1. Thêm tin nhắn người dùng
+    # Add user message
     add_message("user", user_text)
     st.session_state.turns += 1
 
-    # 2. Hiển thị Typing Indicator TẠI ĐÂY (trước khi gọi hàm block)
-    # Tuy nhiên, do Streamlit hoạt động, cách tốt nhất là dùng st.spinner()
-    with message_container:
-         # Thêm placeholder cho hiệu ứng đang gõ
-         typing_placeholder = st.empty()
-         typing_placeholder.markdown(
-            '<div class="bubble-row"><div class="typing"><span></span><span></span><span></span></div></div>',
-            unsafe_allow_html=True
-         )
-         
-    # 3. Lấy phản hồi BOT
-    if st.session_state.chat_state == CHAT_STATE_TAM_SU_CHAT:
-        mood = st.session_state.current_mood
-        styles_all = sum(CONFIG["tam_su"]["moods"][mood]["styles"].values(), [])
-        response_text = random.choice(styles_all)
-        if st.session_state.turns >= 2:
-            st.session_state.chat_state = CHAT_STATE_AWAITING_FOLLOWUP
-            final_response = f"{response_text} {CONFIG['general']['follow_up_prompt']}"
-        else:
-            final_response = response_text
-        
-        # Mô phỏng thời gian chờ
-        time.sleep(random.uniform(0.5, 1.5))
+    # Rerun to display the user message immediately
+    st.rerun()
 
-    elif st.session_state.chat_state in (CHAT_STATE_MAIN, CHAT_STATE_AWAITING_FOLLOWUP):
-        detected = detect_mood_from_text(user_text)
-        if detected:
-            st.session_state.
+# Handle the bot response after rerun (if waiting flag is set)
+if st.session_state.waiting_for_response:
+    last_msg = st.session_state.history[-1]
+    if last_msg["sender"] == "user":
+        user_text = last_msg["text"]
+        
+        if st.session_state.chat_state == CHAT_STATE_TAM_SU_CHAT:
+            mood = st.session_state.current_mood
+            styles_all = sum(CONFIG["tam_su"]["moods"][mood]["styles"].values(), [])
+            response_text = random.choice(styles_all)
+            if st.session_state.turns >= 2:
+                st.session_state.chat_state = CHAT_STATE_AWAITING_FOLLOWUP
+                respond_bot(f"{response_text} {CONFIG['general']['follow_up_prompt']}")
+            else:
+                respond_bot(response_text)
+
+        else:
+            detected = detect_mood_from_text(user_text)
+            if detected:
+                st.session_state.chat_state = CHAT_STATE_TAM_SU_CHAT
+                st.session_state.current_mood = detected
+                st.session_state.turns = 0
+                respond_bot(CONFIG["tam_su"]["moods"][detected]["initial"])
+            else:
+                # Call AI for open-ended stuff
+                reply = call_gemini(user_text)
+                st.session_state.chat_state = CHAT_STATE_AWAITING_FOLLOWUP
+                respond_bot(reply)
+
+        st.rerun()
+
+# Close shell
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Sticky input bar wrapper (purely visual; st.chat_input is already bottom-fixed by app flow)
+st.markdown(
+    """
+<div class="input-bar">
+  <div class="input-inner">
+    <small style="color:#999">Mẹo: Bạn có thể bấm các gợi ý nhanh phía trên để thao tác nhanh hơn.</small>
+  </div>
+</div>
+""",
+    unsafe_allow_html=True,
+)
+
+
+# ========== 7) ROUTER NỘI BỘ: NHẬT KÝ & THƯ GIÃN ==========
+
+def render_journal_ui():
+    st.title("📓 Nhật Ký Cảm Xúc")
+    MOOD_FILE = "mood_journal.csv"
+    MOOD_OPTIONS = ["😄 Vui", "😔 Buồn", "😠 Tức giận", "😴 Mệt mỏi", "😐 Bình thường"]
+
+    def load_mood_data():
+        try:
+            if os.path.exists(MOOD_FILE):
+                try:
+                    return pd.read_csv(MOOD_FILE)
+                except pd.errors.EmptyDataError:
+                    pass
+        except Exception as e:
+            st.error(f"Lỗi khi đọc dữ liệu nhật ký: {e}")
+        return pd.DataFrame(columns=["Ngày", "Cảm xúc", "Ghi chú"])
+
+    journal_df = load_mood_data()
+    
+    # Use two columns for the form
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown("### Hôm nay bạn cảm thấy thế nào?")
+        with st.form("mood_form"):
+            log_date = st.date_input("Chọn ngày", datetime.now())
+            selected_mood = st.selectbox("Chọn cảm xúc", MOOD_OPTIONS)
+            note = st.text_area("Ghi chú thêm (không bắt buộc)", height=100)
+            submitted = st.form_submit_button("Lưu lại cảm xúc", use_container_width=True)
+            
+            if submitted:
+                try:
+                    new_entry = pd.DataFrame(
+                        [{"Ngày": log_date.strftime("%Y-%m-%d"), "Cảm xúc": selected_mood, "Ghi chú": note}]
+                    )
+                    if not journal_df.empty:
+                        journal_df["Ngày"] = journal_df["Ngày"].astype(str)
+                        if log_date.strftime("%Y-%m-%d") in journal_df["Ngày"].values:
+                            st.warning("Bạn đã ghi lại cảm xúc cho ngày này rồi.")
+                        else:
+                            journal_df = pd.concat([journal_df, new_entry], ignore_index=True)
+                            journal_df.to_csv(MOOD_FILE, index=False)
+                            st.success("Đã lưu nhật ký cảm xúc thành công!")
+                            st.rerun()
+                    else:
+                        journal_df = new_entry
+                        journal_df.to_csv(MOOD_FILE, index=False)
+                        st.success("Đã lưu nhật ký cảm xúc đầu tiên!")
+                        st.rerun()
+                except Exception as e:
+                    st.error(f"Lỗi khi lưu nhật ký: {e}")
+    
+    with col2:
+        if not journal_df.empty:
+            st.markdown("### Thống kê cảm xúc")
+            try:
+                mood_counts = journal_df["Cảm xúc"].value_counts()
+                st.bar_chart(mood_counts)
+            except Exception:
+                st.info("Chưa có đủ dữ liệu để hiển thị thống kê.")
+
+    st.markdown("### Lịch sử cảm xúc")
+    if not journal_df.empty:
+        # Format dataframe for display
+        display_df = journal_df.sort_values(by="Ngày", ascending=False).copy()
+        display_df.rename(columns={
+            "Ngày": "📅 Ngày", 
+            "Cảm xúc": "😊 Cảm xúc", 
+            "Ghi chú": "📝 Ghi chú"
+        }, inplace=True)
+        
+        st.dataframe(
+            display_df,
+            use_container_width=True,
+            column_config={
+                "📝 Ghi chú": st.column_config.TextColumn(
+                    "📝 Ghi chú",
+                    width="large",
+                    help="Những điều bạn ghi lại"
+                )
+            },
+            hide_index=True
+        )
+    else:
+        st.info("Nhật ký của bạn còn trống. Hãy thêm một mục nhật ký đầu tiên nhé!")
+
+    if st.button("⬅️ Quay lại trò chuyện", use_container_width=False, key="back_from_journal"):
+        st.session_state.page_state = STATE_CHAT
+        st.rerun()
+
+def render_relax_ui():
+    st.title("😌 Góc Thư Giãn")
+    
+    tabs = st.tabs(["🧘 Hít thở", "🎵 Âm thanh", "📋 Hướng dẫn"])
+    
+    with tabs[0]:
+        st.markdown("### Bài tập hít thở hộp (4-4-4-4)")
+        st.info("Kỹ thuật này giúp giảm lo âu và căng thẳng bằng cách kiểm soát nhịp thở.")
+        
+        col1, col2 = st.columns([3,1])
+        
+        with col1:
+            if st.button("Bắt đầu bài tập hít thở", key="start_breathing", use_container_width=True):
+                placeholder = st.empty()
+                for i in range(3):
+                    placeholder.warning(f"Chuẩn bị... {3-i}")
+                    time.sleep(1)
+                
+                steps = [
+                    ("Hít vào từ từ qua mũi", 4),
+                    ("Giữ hơi thở", 4),
+                    ("Thở ra từ từ qua miệng", 4),
+                    ("Tiếp tục giữ nhịp trước khi hít vào", 4)
+                ]
+                
+                # Repeat the cycle 3 times
+                for cycle in range(3):
+                    placeholder.markdown(f"### Chu kỳ {cycle+1}/3")
+                    for title, sec in steps:
+                        for i in range(sec, 0, -1):
+                            placeholder.success(f"{title} ({i}s)")
+                            time.sleep(1)
+                
+                placeholder.success("✅ Hoàn thành! Bạn cảm thấy thư giãn hơn chưa?")
+        
+        with col2:
+            st.markdown("**Lợi ích:**")
+            st.markdown("""
+            - Giảm căng thẳng
+            - Tập trung tốt hơn
+            - Kiểm soát lo âu
+            - Cải thiện giấc ngủ
+            """)
+            
+    with tabs[1]:
+        st.markdown("### Âm thanh thiên nhiên giúp thư giãn")
+        st.write("Hãy nhấn play và thưởng thức âm thanh trong lúc học tập hoặc nghỉ ngơi.")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1: 
+            st.markdown("#### Mưa rơi nhẹ nhàng")
+            st.video("https://www.youtube.com/watch?v=eKFTSSKCzWA")
+        with col2: 
+            st.markdown("#### Sóng biển êm đềm")
+            st.video("https://www.youtube.com/watch?v=gM_r4c6i25s")
+        with col3: 
+            st.markdown("#### Rừng nhiệt đới")
+            st.video("https://www.youtube.com/watch?v=aIIEI33EUqI")
+    
+    with tabs[2]:
+        st.markdown("### Hướng dẫn thư giãn nhanh")
+        st.markdown("""
+        #### 1. Thư giãn cơ bắp tiến bộ
+        1. Ngồi hoặc nằm thoải mái
+        2. Siết chặt bàn tay thành nắm đấm trong 5 giây
+        3. Thả lỏng trong 10 giây
+        4. Lặp lại với các nhóm cơ khác: cánh tay, vai, mặt, bụng, chân
+        
+        #### 2. Kỹ thuật 5-4-3-2-1
+        Khi cảm thấy căng thẳng, hãy liệt kê:
+        - 5 thứ bạn NHÌN thấy
+        - 4 thứ bạn CÓ THỂ CHẠM vào
+        - 3 thứ bạn NGHE thấy
+        - 2 thứ bạn NGỬI thấy
+        - 1 thứ bạn NẾM thấy
+        
+        Kỹ thuật này giúp kéo bạn về hiện tại và giảm lo âu.
+        """)
+    
+    if st.button("⬅️ Quay lại trò chuyện", use_container_width=False, key="back_from_relax"):
+        st.session_state.page_state = STATE_CHAT
+        st.rerun()
+
+# Router nội bộ
+if st.session_state.page_state == STATE_JOURNAL:
+    render_journal_ui()
+elif st.session_state.page_state == STATE_RELAX:
+    render_relax_ui()
+# STATE_CHAT hiển thị ở trên
