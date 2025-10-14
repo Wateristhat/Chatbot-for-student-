@@ -649,4 +649,3 @@ if st.session_state.page_state == STATE_JOURNAL:
     render_journal_ui()
 elif st.session_state.page_state == STATE_RELAX:
     render_relax_ui()
-
