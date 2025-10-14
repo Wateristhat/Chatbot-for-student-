@@ -1,8 +1,10 @@
 import streamlit as st
 import google.generativeai as genai
 import random
+# 1. ADD THIS NEW IMPORT LINE
+from google.generativeai.types import Content, Part
 
-# --- 1. CẤU HÌNH TRANG VÀ CSS TÙY CHỈNH (Giữ nguyên giao diện màu mè) ---
+# --- CẤU HÌNH TRANG VÀ CSS TÙY CHỈNH (Giữ nguyên giao diện màu mè) ---
 st.set_page_config(
     page_title="Chatbot AI Đồng Hành",
     page_icon="🌈",
@@ -60,20 +62,19 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 2. CẤU HÌNH DỮ LIỆU TỪ SƯỜN CODE ---
-# Lưu trữ tất cả kịch bản vào một dictionary để dễ quản lý
+# --- CẤU HÌNH DỮ LIỆU TỪ SƯỜN CODE ---
 CONFIG = {
     "tam_su": {
-        "intro_message": "Hôm nay bạn cảm thấy như thế nào nè? Mình luôn sẵn lòng lắng nghe bạn nha 🌟", # [cite: 104]
+        "intro_message": "Hôm nay bạn cảm thấy như thế nào nè? Mình luôn sẵn lòng lắng nghe bạn nha 🌟",
         "emotions": {
-            "😄 Vui": "Tuyệt vời quá! Có chuyện gì vui không, kể mình nghe với nè!", # [cite: 107]
-            "😐 Bình thường": "Vậy là một ngày bình yên. Nếu có gì muốn kể, mình nghe nè.", # [cite: 107]
-            "😔 Buồn": "Ôi, mình nghe rồi nè, có chuyện gì làm bạn buồn vậy?", # [cite: 107]
-            "😢 Tủi thân": "Tớ hiểu, cảm giác tủi thân không vui chút nào. Kể tớ nghe nha, mình ở đây rồi.", # [cite: 107]
-            "😡 Tức giận": "Giận dữ làm mình khó chịu lắm. Bạn kể ra đi, đỡ hơn nhiều đó!", # [cite: 107]
+            "😄 Vui": "Tuyệt vời quá! Có chuyện gì vui không, kể mình nghe với nè!",
+            "😐 Bình thường": "Vậy là một ngày bình yên. Nếu có gì muốn kể, mình nghe nè.",
+            "😔 Buồn": "Ôi, mình nghe rồi nè, có chuyện gì làm bạn buồn vậy?",
+            "😢 Tủi thân": "Tớ hiểu, cảm giác tủi thân không vui chút nào. Kể tớ nghe nha, mình ở đây rồi.",
+            "😡 Tức giận": "Giận dữ làm mình khó chịu lắm. Bạn kể ra đi, đỡ hơn nhiều đó!",
         },
-        "positive_affirmations": [ # [cite: 338]
-            "Bạn đã làm rất tốt khi chia sẻ cảm xúc của mình. Khi nào cần, mình vẫn luôn ở đây nha 💫", # [cite: 71]
+        "positive_affirmations": [
+            "Bạn đã làm rất tốt khi chia sẻ cảm xúc của mình. Khi nào cần, mình vẫn luôn ở đây nha 💫",
             "Bạn thật mạnh mẽ khi đối mặt với cảm xúc của mình. Mình tự hào về bạn!",
             "Mỗi bước nhỏ bạn đi đều là một thành công lớn. Cố lên nhé!",
             "Bạn xứng đáng được yêu thương và hạnh phúc.",
@@ -81,7 +82,7 @@ CONFIG = {
     },
     "giao_tiep": {
         "intro_message": "Hãy chọn một tình huống bên dưới để mình cùng luyện tập nhé!",
-        "scenarios_basic": { # [cite: 364]
+        "scenarios_basic": {
             "👋 Chào hỏi bạn bè": "Bạn có thể nói: ‘Chào bạn, hôm nay vui không?’ Hoặc: ‘Tớ chào cậu nha, hôm nay học tốt không nè?’",
             "🙋 Hỏi bài thầy cô": "Bạn thử hỏi thầy/cô như vầy nha: ‘Thầy/cô ơi, em chưa hiểu phần này, thầy/cô giảng lại giúp em được không ạ?’",
             "🧑‍🤝‍🧑 Làm quen bạn mới": "Bạn có thể bắt đầu bằng: ‘Xin chào, tớ là A, còn bạn tên gì?’ Hoặc: ‘Mình mới vào lớp, cậu có thể chỉ mình vài điều không?’",
@@ -89,35 +90,32 @@ CONFIG = {
             "🎉 Chúc mừng bạn": "Bạn có thể nói: ‘Chúc mừng nha, bạn làm tốt lắm!’ hoặc ‘Tuyệt vời quá, mình rất vui cho bạn!’",
         },
         "confirm_buttons": {
-            "understood": "✅ Đã hiểu rồi!", # [cite: 352]
-            "not_understood": "❓ Chưa rõ lắm!", # [cite: 353]
+            "understood": "✅ Đã hiểu rồi!",
+            "not_understood": "❓ Chưa rõ lắm!",
         }
     }
 }
 
-# --- 3. KHỞI TẠO STATE VÀ CÁC HÀM HỖ TRỢ ---
-
-# Khởi tạo session state để quản lý trạng thái giao diện
+# --- KHỞI TẠO STATE VÀ CÁC HÀM HỖ TRỢ ---
 if "chat_mode" not in st.session_state:
-    st.session_state.chat_mode = "main" # 'main', 'tam_su_selection', 'giao_tiep_selection', 'giao_tiep_practice'
+    st.session_state.chat_mode = "main"
 
-# Khởi tạo lịch sử chat của Gemini
 if "chat" not in st.session_state:
-    st.session_state.chat = None # Sẽ được khởi tạo sau khi có model
+    st.session_state.chat = None
 
+# 2. CORRECT THIS FUNCTION
 def add_bot_message_to_history(text):
     """Hàm này thêm tin nhắn của bot vào lịch sử chat của Gemini."""
-    st.session_state.chat.history.append(genai.types.Content(
-        parts=[genai.types.Part(text=text)],
+    # Use Content() and Part() directly without the 'genai.types' prefix
+    st.session_state.chat.history.append(Content(
+        parts=[Part(text=text)],
         role="model"
     ))
 
-# --- 4. PHẦN CODE CHÍNH ---
-
+# --- PHẦN CODE CHÍNH ---
 st.title("✨ Chatbot AI Đồng Hành ✨")
 st.caption("Trò chuyện với mô hình AI Gemini của Google.")
 
-# --- Cấu hình Gemini AI (Giữ nguyên từ code cũ của bạn) ---
 @st.cache_resource
 def configure_gemini():
     try:
@@ -131,15 +129,13 @@ def configure_gemini():
 
 model = configure_gemini()
 
-# Khởi tạo session chat nếu chưa có
 if st.session_state.chat is None:
     st.session_state.chat = model.start_chat(history=[])
 
 # --- GIAO DIỆN NÚT BẤM TƯƠNG TÁC ---
 button_container = st.container()
 with button_container:
-    # Giao diện chính với 2 nút chức năng
-    if st.session_state.chat_mode == "main": # [cite: 76]
+    if st.session_state.chat_mode == "main":
         col1, col2 = st.columns(2)
         if col1.button("💖 Tâm sự"):
             st.session_state.chat_mode = "tam_su_selection"
@@ -151,8 +147,7 @@ with button_container:
             add_bot_message_to_history(CONFIG["giao_tiep"]["intro_message"])
             st.rerun()
 
-    # Giao diện chọn cảm xúc cho tính năng "Tâm sự"
-    elif st.session_state.chat_mode == "tam_su_selection": # [cite: 88, 91, 105]
+    elif st.session_state.chat_mode == "tam_su_selection":
         st.write("Hôm nay bạn cảm thấy thế nào?")
         emotions = list(CONFIG["tam_su"]["emotions"].keys())
         cols = st.columns(len(emotions))
@@ -160,11 +155,9 @@ with button_container:
             if cols[i].button(emotion):
                 response_text = CONFIG["tam_su"]["emotions"][emotion]
                 add_bot_message_to_history(response_text)
-                # Sau khi chọn xong, quay về trạng thái chính
                 st.session_state.chat_mode = "main" 
                 st.rerun()
 
-    # Giao diện chọn tình huống cho tính năng "Giao tiếp"
     elif st.session_state.chat_mode == "giao_tiep_selection":
         st.write("Chọn tình huống bạn muốn luyện tập:")
         for scenario, example in CONFIG["giao_tiep"]["scenarios_basic"].items():
@@ -176,26 +169,23 @@ with button_container:
              st.session_state.chat_mode = "main"
              st.rerun()
 
-
-    # Giao diện xác nhận sau khi luyện tập "Giao tiếp"
-    elif st.session_state.chat_mode == "giao_tiep_practice": # [cite: 351]
+    elif st.session_state.chat_mode == "giao_tiep_practice":
         col1, col2 = st.columns(2)
-        if col1.button(CONFIG["giao_tiep"]["confirm_buttons"]["understood"]): # [cite: 355]
+        if col1.button(CONFIG["giao_tiep"]["confirm_buttons"]["understood"]):
             add_bot_message_to_history("Tuyệt vời! Bạn làm tốt lắm. Khi nào cần cứ tìm mình nhé.")
             st.session_state.chat_mode = "main"
             st.rerun()
-        if col2.button(CONFIG["giao_tiep"]["confirm_buttons"]["not_understood"]): # [cite: 356]
+        if col2.button(CONFIG["giao_tiep"]["confirm_buttons"]["not_understood"]):
             add_bot_message_to_history("Không sao cả, mình nói lại nhé. Bạn hãy đọc kỹ lại câu mẫu phía trên nha.")
-            # Vẫn ở trạng thái này để người dùng đọc lại
             st.rerun()
 
-# --- HIỂN THỊ LỊCH SỬ CHAT (Giữ nguyên từ code cũ) ---
+# --- HIỂN THỊ LỊCH SỬ CHAT ---
 for message in st.session_state.chat.history:
     role = "assistant" if message.role == "model" else message.role
     with st.chat_message(role):
         st.markdown(message.parts[0].text)
 
-# --- NHẬN INPUT VĂN BẢN (Giữ nguyên chức năng chat AI) ---
+# --- NHẬN INPUT VĂN BẢN ---
 if prompt := st.chat_input("Hoặc gõ tin nhắn tự do ở đây..."):
     with st.chat_message("user"):
         st.markdown(prompt)
