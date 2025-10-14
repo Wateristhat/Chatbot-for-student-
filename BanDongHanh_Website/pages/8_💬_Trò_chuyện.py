@@ -180,25 +180,29 @@ CONFIG = get_config()
 # ========== 3) SESSION STATE ==========
 
 if "page_state" not in st.session_state:
-    st.session_state.page_state = STATE_CHAT
+    st.session_state.page_state = STATE_CHAT
 if "chat_state" not in st.session_state:
-    st.session_state.chat_state = CHAT_STATE_MAIN
+    st.session_state.chat_state = CHAT_STATE_MAIN
 if "history" not in st.session_state:
-    st.session_state.history = [
-        {"sender": "bot", "text": "Chào bạn, mình là Bạn đồng hành đây! Mình có thể giúp gì cho bạn hôm nay?"}
-    ]
+    st.session_state.history = [
+        {"sender": "bot", "text": "Chào bạn, mình là Bạn đồng hành đây! Mình có thể giúp gì cho bạn hôm nay?"}
+    ]
 if "turns" not in st.session_state:
-    st.session_state.turns = 0
+    st.session_state.turns = 0
 if "current_mood" not in st.session_state:
-    st.session_state.current_mood = None
+    st.session_state.current_mood = None
 if "current_scenario" not in st.session_state:
-    st.session_state.current_scenario = None
+    st.session_state.current_scenario = None
+
+# THÊM CÁC DÒNG KHỞI TẠO CÒN THIẾU VÀO ĐÂY
 if "tts_enabled" not in st.session_state:
-    st.session_state.tts_enabled = True
+    st.session_state.tts_enabled = True # Giá trị mặc định
 if "tts_voice" not in st.session_state:
-    st.session_state.tts_voice = "vi-VN-HoaiMyNeural"
+    st.session_state.tts_voice = "vi-VN-HoaiMyNeural" # Giá trị mặc định
 if "tts_rate" not in st.session_state:
-    st.session_state.tts_rate = 0
+    st.session_state.tts_rate = 0 # Giá trị mặc định
+if "waiting_for_response" not in st.session_state: # Ví dụ nếu bạn dùng biến này
+    st.session_state.waiting_for_response = False
 
 # ========== 4) GEMINI AI (REFACTORED) ==========
 
