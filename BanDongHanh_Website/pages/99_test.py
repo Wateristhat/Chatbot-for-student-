@@ -61,3 +61,27 @@ if prompt := st.chat_input("Hỏi AI bất cứ điều gì..."):
             except Exception as e:
                 # Xử lý các lỗi có thể xảy ra (ví dụ: lỗi kết nối, nội dung bị chặn)
                 st.error(f"Đã có lỗi xảy ra: {e}")
+# --- ĐOẠN CODE KIỂM TRA MODEL ---
+st.subheader("Kiểm tra các model AI có sẵn")
+st.markdown("Nhấn nút bên dưới để xem danh sách các model mà API key của bạn có thể sử dụng.")
+
+if st.button("Liệt kê các model AI có thể dùng"):
+    try:
+        st.info("Đang lấy danh sách...")
+        models_found = []
+        # Lặp qua tất cả model mà Google cung cấp
+        for m in genai.list_models():
+            # Chỉ lấy những model hỗ trợ phương thức 'generateContent' (dùng để chat)
+            if 'generateContent' in m.supported_generation_methods:
+                models_found.append(m.name)
+
+        if models_found:
+            st.success("✅ Các model có thể sử dụng (đã lọc):")
+            # Hiển thị danh sách dưới dạng code để dễ sao chép
+            st.code('\n'.join(models_found))
+            st.warning("Hãy sao chép một tên model từ danh sách trên (ví dụ: 'models/gemini-1.5-flash-001') và thay thế vào dòng `genai.GenerativeModel(...)` trong code của bạn.")
+        else:
+            st.error("Không tìm thấy model nào phù hợp. Vui lòng kiểm tra lại API key.")
+            
+    except Exception as e:
+        st.error(f"Lỗi khi lấy danh sách model: {e}")
