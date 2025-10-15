@@ -163,7 +163,7 @@ else:
     
     st.markdown('<div class="menu-list">', unsafe_allow_html=True)
     for item in MENU_ITEMS:
-        # Thay thế href="/tên_file.py" bằng href="tên_trang"
+        # THAY ĐỔI QUAN TRỌNG: href="{item['page']}" thay vì href="/{item['page']}"
         # Streamlit sẽ tự động hiểu đây là link nội bộ và không tải lại trang
         st.markdown(
             f"""
