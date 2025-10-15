@@ -12,11 +12,6 @@ from io import BytesIO
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database import add_mood_entry, get_mood_entries
 
-# --- KIỂM TRA ĐĂNG NHẬP ---
-if not st.session_state.get('user_id'):
-    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
-    st.stop() # Dừng chạy toàn bộ code còn lại nếu chưa đăng nhập
-    
 st.markdown("""
 <style>
 .stButton > button {
