@@ -1,3 +1,6 @@
+# FILE: 0_💖_Trang_chủ.py
+# DÁN TOÀN BỘ CODE NÀY VÀO FILE CỦA BẠN
+
 import streamlit as st
 from datetime import datetime
 
@@ -9,7 +12,6 @@ st.set_page_config(
 )
 
 # --- CSS TÙY CHỈNH ---
-# Dùng để tạo giao diện menu và các box giới thiệu đẹp mắt.
 st.markdown("""
 <link href="https://fonts.googleapis.com/css?family=Quicksand:700,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -74,9 +76,8 @@ st.markdown("""
         border: 2.2px solid transparent;
         cursor: pointer;
         padding: 1.20rem 1.2rem 1.1rem 1.2rem;
-        text-decoration: none !important; /* Quan trọng để bỏ gạch chân link */
+        text-decoration: none !important;
     }
-    /* Hiệu ứng khi di chuột qua */
     .menu-card:hover {
         box-shadow: 0 8px 32px rgba(255,88,88,0.15);
         transform: translateY(-2px) scale(1.01);
@@ -102,13 +103,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- QUẢN LÝ TRẠNG THÁI ĐĂNG NHẬP ---
-# Khởi tạo session_state nếu chưa có
+# Khởi tạo các key cần thiết trong session_state nếu chưa có
 if 'user_name' not in st.session_state:
     st.session_state.user_name = None
+if 'user_id' not in st.session_state:
+    st.session_state.user_id = None
 
 # --- GIAO DIỆN CHÍNH ---
 
-# 1. NẾU CHƯA ĐĂNG NHẬP
+# 1. NẾU CHƯA ĐĂNG NHẬP (user_name là None)
 if not st.session_state.user_name:
     # Box giới thiệu
     st.markdown("""
@@ -135,10 +138,10 @@ if not st.session_state.user_name:
             if not name:
                 st.warning("⚠️ Bạn ơi, hãy cho mình biết tên của bạn nhé!")
             else:
-                # Lưu tên vào session_state để duy trì đăng nhập
-                st.session_state.user_name = name
+                # LƯU CẢ 2 KEY VÀO SESSION STATE
+                st.session_state.user_name = name # Dùng để chào hỏi
+                st.session_state.user_id = name   # Dùng để xác thực ở các trang con
                 st.success(f"✅ Lưu thông tin thành công! Chào mừng {name}!")
-                # Tải lại trang để cập nhật giao diện đã đăng nhập
                 st.rerun()
 
 # 2. NẾU ĐÃ ĐĂNG NHẬP
@@ -156,7 +159,7 @@ else:
     st.markdown("---")
     st.markdown("""<div style="font-size:1.7rem; font-weight:700; margin-bottom:0.3rem;">✨ Khám phá các tính năng</div>""", unsafe_allow_html=True)
     
-    # --- DANH SÁCH CÁC TÍNH NĂNG (MENU) ĐÃ SỬA LỖI ---
+    # DANH SÁCH CÁC TÍNH NĂNG
     MENU_ITEMS = [
         {"icon": "fa-solid fa-sun", "color": "#FFB300", "title": "Liều Thuốc Tinh Thần", "desc": "Nhận những thông điệp tích cực mỗi ngày.", "page": "Liều_thuốc_tinh_thần"},
         {"icon": "fa-solid fa-spa", "color": "#4CAF50", "title": "Góc An Yên", "desc": "Thực hành các bài tập hít thở để giảm căng thẳng.", "page": "Góc_An_Yên"},
@@ -172,10 +175,7 @@ else:
     # Vòng lặp để tạo các ô menu
     st.markdown('<div class="menu-list">', unsafe_allow_html=True)
     for item in MENU_ITEMS:
-        # **SỬA LỖI Ở ĐÂY:**
-        # - Dùng thẻ <a> với href trỏ đến tên page (tên file .py không có đuôi).
-        # - target="_self" để đảm bảo trang mở trên cùng một tab.
-        # - Streamlit sẽ tự động xử lý điều hướng nội bộ mà không cần tải lại toàn bộ ứng dụng.
+        # SỬA LỖI LIÊN KẾT: href="{item['page']}" không có dấu "/" ở đầu
         st.markdown(f"""
         <a href="{item['page']}" class="menu-card" target="_self">
             <span class="menu-icon" style="color:{item['color']};"><i class="{item['icon']}"></i></span>
