@@ -7,11 +7,6 @@ from io import BytesIO
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Người Kể Chuyện", page_icon="📖", layout="wide")
 
-# --- KIỂM TRA ĐĂNG NHẬP ---
-if not st.session_state.get('user_id'):
-    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
-    st.stop()
-
 # --- CSS GIAO DIỆN ---
 st.markdown("""
 <style>
