@@ -1,11 +1,6 @@
 import streamlit as st
 import random
 
-# --- KIỂM TRA ĐĂNG NHẬP ---
-if not st.session_state.get('user_id'):
-    st.warning("Bạn ơi, hãy quay về Trang Chủ để đăng nhập nhé! ❤️")
-    st.stop() # Dừng chạy toàn bộ code còn lại nếu chưa đăng nhập
-    
 st.markdown("""
 <style>
 .gn-assist-bigbox {
