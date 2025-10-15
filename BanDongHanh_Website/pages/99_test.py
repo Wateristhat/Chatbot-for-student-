@@ -109,7 +109,7 @@ def configure_gemini():
     try:
         api_key = st.secrets["GOOGLE_API_KEY"]
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("models/gemini-2.5-pro")
+        model = genai.GenerativeModel("models/gemini-2.5-flash")
         return model
     except Exception as e:
         st.error("Lỗi: Vui lòng cấu hình GOOGLE_API_KEY trong file secrets.toml.")
