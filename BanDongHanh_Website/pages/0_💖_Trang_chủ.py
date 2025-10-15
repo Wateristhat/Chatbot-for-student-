@@ -1,5 +1,5 @@
 # FILE: 0_💖_Trang_chủ.py
-# DÁN TOÀN BỘ CODE NÀY VÀO FILE CỦA BẠN
+# DÙNG PHIÊN BẢN HOÀN CHỈNH NÀY
 
 import streamlit as st
 from datetime import datetime
@@ -20,90 +20,41 @@ st.markdown("""
     html, body, [class*="css"] { 
         font-family: 'Quicksand', Arial, sans-serif; 
     }
-
-    /* ----- BOX GIỚI THIỆU ĐẦU TRANG ----- */
     .brand-minimal-box {
-        background: linear-gradient(110deg, #ff82ac 3%, #fd5e7c 97%);
-        border-radius: 38px;
-        padding: 2.3rem 2.4rem 2.1rem 2.4rem;
-        margin: 0 auto 2.5rem auto;
-        max-width: 700px;
-        box-shadow: 0 8px 32px rgba(255,88,88,0.08);
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
+        background: linear-gradient(110deg, #ff82ac 3%, #fd5e7c 97%); border-radius: 38px;
+        padding: 2.3rem 2.4rem 2.1rem 2.4rem; margin: 0 auto 2.5rem auto; max-width: 700px;
+        box-shadow: 0 8px 32px rgba(255,88,88,0.08); display: flex; flex-direction: column; align-items: flex-start;
     }
     .brand-minimal-header {
-        font-size: 2.3rem;
-        font-weight: 800;
-        letter-spacing: -1px;
-        color: #fff;
-        margin-bottom: 0.8rem;
-        margin-left: 0.2rem;
-        line-height: 1.22;
+        font-size: 2.3rem; font-weight: 800; letter-spacing: -1px; color: #fff;
+        margin-bottom: 0.8rem; margin-left: 0.2rem; line-height: 1.22;
     }
-    .brand-minimal-icon { 
-        font-size: 2.3rem; 
-        color: #f9c6d3; 
-        margin-right: 0.3rem; 
-    }
+    .brand-minimal-icon { font-size: 2.3rem; color: #f9c6d3; margin-right: 0.3rem; }
     .brand-minimal-desc {
-        color: #fff; 
-        font-size: 1.17rem; 
-        font-weight: 500; 
-        margin-bottom: 1.3rem;
-        margin-left: 0.2rem; 
-        line-height: 1.65;
+        color: #fff; font-size: 1.17rem; font-weight: 500; margin-bottom: 1.3rem;
+        margin-left: 0.2rem; line-height: 1.65;
     }
-
-    /* ----- DANH SÁCH TÍNH NĂNG (MENU) ----- */
     .menu-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
-        margin-top: 1.5rem;
-        margin-bottom: 2.2rem;
+        display: flex; flex-direction: column; gap: 1.25rem;
+        margin-top: 1.5rem; margin-bottom: 2.2rem;
     }
     .menu-card {
-        background: #fff;
-        border-radius: 18px;
-        box-shadow: 0 2px 10px rgba(80,80,120,0.10);
-        display: flex;
-        align-items: center;
-        gap: 1.3rem;
-        min-height: 86px;
-        transition: box-shadow 0.19s, transform 0.12s;
-        border: 2.2px solid transparent;
-        cursor: pointer;
-        padding: 1.20rem 1.2rem 1.1rem 1.2rem;
-        text-decoration: none !important;
+        background: #fff; border-radius: 18px; box-shadow: 0 2px 10px rgba(80,80,120,0.10);
+        display: flex; align-items: center; gap: 1.3rem; min-height: 86px;
+        transition: box-shadow 0.19s, transform 0.12s; border: 2.2px solid transparent;
+        cursor: pointer; padding: 1.20rem 1.2rem 1.1rem 1.2rem; text-decoration: none !important;
     }
     .menu-card:hover {
-        box-shadow: 0 8px 32px rgba(255,88,88,0.15);
-        transform: translateY(-2px) scale(1.01);
-        border: 2.2px solid #f857a6;
-        background: linear-gradient(90deg,#fff6f6 60%,#f7f8fa 100%);
+        box-shadow: 0 8px 32px rgba(255,88,88,0.15); transform: translateY(-2px) scale(1.01);
+        border: 2.2px solid #f857a6; background: linear-gradient(90deg,#fff6f6 60%,#f7f8fa 100%);
     }
-    .menu-icon { 
-        font-size: 2.3rem; 
-        flex-shrink: 0; 
-        margin-right: 0.1rem; 
-    }
-    .menu-title { 
-        font-weight:700; 
-        font-size:1.18rem; 
-        color: #222; 
-    }
-    .menu-desc { 
-        color:#444; 
-        font-size:1.01rem; 
-        font-weight:500; 
-    }
+    .menu-icon { font-size: 2.3rem; flex-shrink: 0; margin-right: 0.1rem; }
+    .menu-title { font-weight:700; font-size:1.18rem; color: #222; }
+    .menu-desc { color:#444; font-size:1.01rem; font-weight:500; }
 </style>
 """, unsafe_allow_html=True)
 
 # --- QUẢN LÝ TRẠNG THÁI ĐĂNG NHẬP ---
-# Khởi tạo các key cần thiết trong session_state nếu chưa có
 if 'user_name' not in st.session_state:
     st.session_state.user_name = None
 if 'user_id' not in st.session_state:
@@ -111,9 +62,8 @@ if 'user_id' not in st.session_state:
 
 # --- GIAO DIỆN CHÍNH ---
 
-# 1. NẾU CHƯA ĐĂNG NHẬP (user_name là None)
+# 1. NẾU CHƯA ĐĂNG NHẬP
 if not st.session_state.user_name:
-    # Box giới thiệu
     st.markdown("""
     <div class="brand-minimal-box">
         <div class="brand-minimal-header">
@@ -125,28 +75,23 @@ if not st.session_state.user_name:
         </div>
     </div>
     """, unsafe_allow_html=True)
-
     st.title("👋 Chào bạn, mình là Bạn Đồng Hành 💖")
     st.header("Trước khi bắt đầu, chúng mình làm quen nhé?")
-
-    # Form nhập thông tin
     with st.form(key="welcome_form", clear_on_submit=True):
         name = st.text_input("📝 Bạn tên là gì?")
         submitted = st.form_submit_button("💖 Lưu thông tin và bắt đầu!")
-        
         if submitted:
             if not name:
                 st.warning("⚠️ Bạn ơi, hãy cho mình biết tên của bạn nhé!")
             else:
-                # LƯU CẢ 2 KEY VÀO SESSION STATE
-                st.session_state.user_name = name # Dùng để chào hỏi
-                st.session_state.user_id = name   # Dùng để xác thực ở các trang con
+                # LƯU CẢ 2 KEY CẦN THIẾT
+                st.session_state.user_name = name
+                st.session_state.user_id = name
                 st.success(f"✅ Lưu thông tin thành công! Chào mừng {name}!")
                 st.rerun()
 
 # 2. NẾU ĐÃ ĐĂNG NHẬP
 else:
-    # Box chào mừng người dùng
     st.markdown(f"""
     <div class="brand-minimal-box">
         <div class="brand-minimal-header">
@@ -155,11 +100,9 @@ else:
         </div>
     </div>
     """, unsafe_allow_html=True)
-
     st.markdown("---")
     st.markdown("""<div style="font-size:1.7rem; font-weight:700; margin-bottom:0.3rem;">✨ Khám phá các tính năng</div>""", unsafe_allow_html=True)
     
-    # DANH SÁCH CÁC TÍNH NĂNG
     MENU_ITEMS = [
         {"icon": "fa-solid fa-sun", "color": "#FFB300", "title": "Liều Thuốc Tinh Thần", "desc": "Nhận những thông điệp tích cực mỗi ngày.", "page": "Liều_thuốc_tinh_thần"},
         {"icon": "fa-solid fa-spa", "color": "#4CAF50", "title": "Góc An Yên", "desc": "Thực hành các bài tập hít thở để giảm căng thẳng.", "page": "Góc_An_Yên"},
@@ -172,10 +115,8 @@ else:
         {"icon": "fa-solid fa-book", "color": "#F57C00", "title": "Người Kể Chuyện", "desc": "Lắng nghe những câu chuyện chữa lành tâm hồn.", "page": "Người_Kể_Chuyện"}
     ]
     
-    # Vòng lặp để tạo các ô menu
     st.markdown('<div class="menu-list">', unsafe_allow_html=True)
     for item in MENU_ITEMS:
-        # SỬA LỖI LIÊN KẾT: href="{item['page']}" không có dấu "/" ở đầu
         st.markdown(f"""
         <a href="{item['page']}" class="menu-card" target="_self">
             <span class="menu-icon" style="color:{item['color']};"><i class="{item['icon']}"></i></span>
@@ -186,6 +127,5 @@ else:
         </a>
         """, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
-
     st.markdown("---")
     st.info("👈 **Hãy chọn một tính năng từ mục lục bên trái để bắt đầu!**", icon="😊")
