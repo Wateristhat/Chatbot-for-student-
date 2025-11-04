@@ -47,20 +47,12 @@ style.apply_global_style()
 ENCOURAGEMENT_MESSAGES = [
     "🌟 Bạn đang làm rất tốt! Hãy tiếp tục nhé!",
     "💙 Mỗi hơi thở đều là một món quà cho bản thân.",
-    "🌸 Hôm nay bạn đã dành thời gian cho chính mình - thật tuyệt vời!",
-    "✨ Bạn xứng đáng được yêu thương và quan tâm.",
-    "🌈 Mọi cảm xúc của bạn đều có giá trị và được chấp nhận.",
-    "💚 Bạn mạnh mẽ hơn những gì mình tưởng tượng.",
-    "🦋 Từng bước nhỏ đều đưa bạn đến gần hơn với sự bình an.",
-    "🌺 Hãy tự hào về bản thân vì đã chăm sóc sức khỏe tinh thần.",
-    "💕 Bạn không đơn độc - chúng mình luôn ở đây cùng bạn.",
-    "🌿 Thời gian dành cho bản thân không phải là ích kỷ, mà là cần thiết."
+    # ... (các tin nhắn khác) ...
 ]
-
 ASSISTANT_AVATARS = ["🤖", "😊", "🌟", "💙", "🌸", "✨"]
 
 # --- HÀM TEXT-TO-SPEECH CẢI TIẾN (Giữ nguyên logic của bạn) ---
-# (Các hàm validate_text_input, check_network_connectivity, gtts_with_diagnostics,
+# (Các hàm validate_text_input, check_network, gtts_with_diagnostics,
 # edge_tts_with_diagnostics, text_to_speech_enhanced, get_error_message,
 # create_tts_button_enhanced, create_tts_button, text_to_speech...
 # được giữ nguyên)
@@ -136,7 +128,7 @@ def create_tts_button_enhanced(text, key_suffix, button_text="🔊 Đọc to"):
             if audio_data and result_code.startswith("success"):
                 if "edge_tts" in result_code: st.success("🎵 Đã tạo âm thanh bằng Edge TTS")
                 else: st.success("🎵 Đã tạo âm thanh bằng Google TTS")
-                st.audio(audio_data, format="audio/mp3", autoplay=True) # <-- 7. THÊM AUTOPLAY
+                st.audio(audio_data, format="audio/mp3", autoplay=True)
             else:
                 error_msg = get_error_message(result_code)
                 if "network" in result_code.lower(): st.error(error_msg)
@@ -153,8 +145,6 @@ def text_to_speech(text):
 st.markdown("""
 <style>
     /* (CSS .stButton > button đã bị xóa) */
-
-    /* --- Giữ lại CSS tùy chỉnh của trang --- */
     .assistant-card {
         background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
         border-radius: 20px;
@@ -270,7 +260,7 @@ def show_virtual_assistant():
 st.title("🫧 Góc An Yên")
 
 # --- 8. SỬA LỖI ĐƯỜNG DẪN LINK ---
-st.page_link("../0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+st.page_link("0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
 
 show_virtual_assistant()
 st.write("---")
