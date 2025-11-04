@@ -1,16 +1,8 @@
+# pages/7_🆘_Hỗ_trợ_khẩn_cấp.py
 import streamlit as st
-import style # <-- 1. IMPORT STYLE
-
+  
 # --- CẤU HÌNH TRANG ---
-st.set_page_config(
-    page_title="Hỗ Trợ Khẩn Cấp", 
-    page_icon="🆘", 
-    layout="wide",
-    initial_sidebar_state="collapsed" # <-- 2. ẨN SIDEBAR
-)
-
-# --- 3. ÁP DỤNG CSS CHUNG ---
-style.apply_global_style()
+st.set_page_config(page_title="Hỗ Trợ Khẩn Cấp", page_icon="🆘", layout="wide")
 
 # --- CSS HOÀN CHỈNH VÀ SẠCH SẼ ---
 st.markdown("""
@@ -64,34 +56,13 @@ st.markdown("""
     color: #D9534F !important;
     letter-spacing: 3px !important;
     display: inline-block; /* Giúp hiển thị ổn định hơn */
-    word-break: break-all; /* Đảm bảo số dài không vỡ khung */
-}
-
-/* --- 4. THÊM CSS TƯƠNG THÍCH ĐIỆN THOẠI --- */
-@media (max-width: 900px) {
-    .hotline-container, .emergency-warning-box {
-        padding: 20px 15px; /* Giảm padding */
-        max-width: 96vw;
-    }
-    .hotline-title, .emergency-warning-box strong {
-        font-size: 1.2rem !important; /* Thu nhỏ tiêu đề */
-    }
-    .hotline-description, .emergency-warning-box p {
-        font-size: 1rem !important; /* Thu nhỏ mô tả */
-    }
-    .hotline-number, .emergency-number {
-        font-size: 1.5rem !important; /* Thu nhỏ số hotline */
-    }
 }
 </style>
 """, unsafe_allow_html=True)
 
 # --- GIAO DIỆN CHÍNH ---
 st.title("🆘 HỖ TRỢ KHẨN CẤP")
-
-# --- 5. CẬP NHẬT LINK ĐIỀU HƯỚNG ---
-st.page_link("0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
-
+st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
 st.markdown("Khi bạn hoặc ai đó bạn biết đang gặp khủng hoảng, hãy tìm đến sự giúp đỡ ngay lập tức.")
 st.write("---")
 
@@ -130,3 +101,5 @@ st.info(
     **Hãy nhớ rằng:** Việc tìm kiếm sự giúp đỡ là một hành động dũng cảm và mạnh mẽ. Bạn không hề đơn độc.
     """
 )
+
+
