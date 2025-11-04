@@ -9,6 +9,7 @@ import subprocess
 import requests
 from gtts import gTTS
 from io import BytesIO
+import style
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database import add_mood_entry, get_mood_entries
 
@@ -38,7 +39,8 @@ except ImportError:
     EDGE_TTS_AVAILABLE = False
 
 # --- CẤU HÌNH TRANG ---
-st.set_page_config(page_title="Góc An Yên", page_icon="🫧", layout="wide")
+st.set_page_config(page_title="Góc An Yên", page_icon="🫧", layout="wide" initial_sidebar_state="collapsed")
+style.apply_global_style()
 st.markdown("""
 <style>
 [data-testid="stSidebar"] {
