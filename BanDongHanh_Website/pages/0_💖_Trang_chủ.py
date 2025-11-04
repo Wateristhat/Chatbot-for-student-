@@ -1,16 +1,14 @@
 # Dán toàn bộ code này vào file 0_💖_Trang_chủ.py
 import streamlit as st
 from datetime import datetime
-import style
+
 
 st.set_page_config(
     page_title="Chào mừng - Bạn Đồng Hành",
     page_icon="💖",
-    layout="wide",
-    initial_sidebar_state="collapsed"
+    layout="wide"
 )
 
-style.apply_global_style()
 
 # --- CSS (Giữ nguyên, không thay đổi) ---
 st.markdown("""
@@ -183,8 +181,4 @@ else:
         )
     st.markdown('</div>', unsafe_allow_html=True)
     # ----------- KẾT THÚC MENU ĐÃ SỬA LỖI -----------
-
-    st.markdown("---")
-    st.info("👈 <b>Hãy chọn một tính năng từ mục lục bên trái để bắt đầu!</b>", icon="😊")
-
 
