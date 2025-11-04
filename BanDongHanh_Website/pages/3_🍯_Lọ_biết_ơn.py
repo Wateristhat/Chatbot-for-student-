@@ -5,119 +5,23 @@ import html
 import time
 import random
 from datetime import datetime
-import tempfile
+# Bỏ 'tempfile' vì chúng ta sẽ dùng 'BytesIO'
 from gtts import gTTS
-from io import BytesIO
+from io import BytesIO  # Import BytesIO để xử lý audio trong bộ nhớ
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import database as db
 
 st.markdown("""
 <style>
 .stButton > button {
-    font-size: 1.45rem !important;       /* Tăng cỡ chữ hơn nữa */
-    padding: 1.7rem 3.3rem !important;   /* Tăng chiều cao & chiều ngang nhiều hơn */
+    font-size: 1.45rem !important;      /* Tăng cỡ chữ hơn nữa */
+    padding: 1.7rem 3.3rem !important;  /* Tăng chiều cao & chiều ngang nhiều hơn */
     border-radius: 18px !important;
     min-width: 210px;
     min-height: 66px;
 }
-</style>
-""", unsafe_allow_html=True)
-
-# --- DANH SÁCH GỢI Ý BIẾT ƠN LUÂN PHIÊN ---
-GRATITUDE_SUGGESTIONS = [
-    "Hôm nay bạn đã nụ cười với ai? Điều gì khiến bạn cảm thấy vui vẻ?",
-    "Có món ăn nào ngon khiến bạn nhớ mãi không? Kể cho mình nghe nhé!",
-    "Bạn đã học được điều gì mới mẻ hôm nay? Dù là điều nhỏ nhất!",
-    "Ai là người đã giúp đỡ bạn gần đây? Bạn biết ơn họ điều gì?",
-    "Thiên nhiên có gì đẹp khiến bạn thích thú? Trời xanh, cây lá, hay tiếng chim hót?",
-    "Bạn đã làm được việc gì khiến bản thân tự hào? Dù nhỏ nhất cũng được!",
-    "Có khoảnh khắc nào hôm nay khiến bạn cảm thấy bình yên và hạnh phúc?",
-    "Điều gì trong ngôi nhà của bạn khiến bạn cảm thấy ấm áp và an toàn?"
-]
-
-# --- VIRTUAL ASSISTANT MESSAGES ---
-ASSISTANT_MESSAGES = [
-    ("🤖", "Mỗi điều biết ơn nhỏ đều là kho báu quý giá!"),
-    ("🤖", "Bạn làm rất tốt khi ghi lại những khoảnh khắc đẹp!"),
-    ("🤖", "Cảm ơn bạn đã tin tưởng và chia sẻ với Bee!"),
-    ("🤖", "Hôm nay bạn đã lan tỏa năng lượng tích cực!"),
-    ("🤖", "Biết ơn là ánh nắng ấm áp cho trái tim!"),
-    ("🤖", "Một lời biết ơn nhỏ - một niềm vui lớn!")
-]
-GRATITUDE_RESPONSES = [
-    "Thật tuyệt vời! Lời biết ơn của bạn đã được thêm vào lọ! 🌟",
-    "Cảm ơn bạn đã chia sẻ! Điều này sẽ làm sáng cả ngày của bạn! ✨", 
-    "Tuyệt quá! Bạn vừa tạo ra một kỷ niệm đẹp! 💝",
-    "Mình cảm thấy ấm lòng khi đọc lời biết ơn của bạn! 🤗",
-    "Bạn đã làm cho thế giới này tích cực hơn một chút! 🦋"
-]
-
-AVATAR_OPTIONS = ["🐝", "🦋", "🌟", "💫", "🌸", "🦄", "🧚‍♀️", "🌻"]
-AVATAR_NAMES = ["Ong Bee", "Bướm xinh", "Sao sáng", "Ánh sáng", "Hoa đào", "Kỳ lân", "Tiên nhỏ", "Hoa hướng dương"]
-
-ENCOURAGING_MESSAGES = [
-    {
-        "avatar": "🌸",
-        "message": "Thật tuyệt vời khi bạn dành thời gian để cảm ơn! Mỗi lời biết ơn là một hạt giống hạnh phúc được gieo vào trái tim bạn."
-    },
-    {
-        "avatar": "🌟", 
-        "message": "Hãy nhớ rằng, những điều nhỏ bé nhất cũng có thể mang lại niềm vui lớn. Bạn đã làm rất tốt rồi!"
-    },
-    {
-        "avatar": "💖",
-        "message": "Mỗi khi bạn viết lời biết ơn, bạn đang nuôi dưỡng một tâm hồn tích cực. Điều này thật đáng quý!"
-    },
-    {
-        "avatar": "🦋",
-        "message": "Biết ơn giống như ánh nắng ấm áp, nó không chỉ sưởi ấm trái tim bạn mà còn lan tỏa đến những người xung quanh."
-    },
-    {
-        "avatar": "🌈",
-        "message": "Bạn có biết không? Khi chúng ta biết ơn, não bộ sẽ tiết ra những hormone hạnh phúc. Bạn đang chăm sóc bản thân thật tốt!"
-    },
-    {
-        "avatar": "🌺",
-        "message": "Mỗi lời cảm ơn bạn viết ra đều là một món quà bạn tặng cho chính mình. Hãy tiếp tục nuôi dưỡng lòng biết ơn nhé!"
-    },
-    {
-        "avatar": "✨",
-        "message": "Đôi khi những điều đơn giản nhất lại mang đến hạnh phúc lớn nhất. Bạn đã nhận ra điều này rồi đấy!"
-    },
-    {
-        "avatar": "🍀",
-        "message": "Lòng biết ơn là chìa khóa mở ra cánh cửa hạnh phúc. Bạn đang trên đúng con đường rồi!"
-    }
-]
-
-def get_random_encouragement():
-    return random.choice(ENCOURAGING_MESSAGES)
-
-def create_audio_file(text):
-    try:
-        tts = gTTS(text=text, lang='vi', slow=False)
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
-            tts.save(tmp_file.name)
-            return tmp_file.name
-    except Exception as e:
-        st.error(f"Lỗi tạo file âm thanh: {e}")
-        return None
-
-# --- SESSION STATE ---
-if 'selected_emotion' not in st.session_state:
-    st.session_state.selected_emotion = None
-if 'suggestion_index' not in st.session_state:
-    st.session_state.suggestion_index = random.randint(0, 4)
-if 'selected_avatar' not in st.session_state:
-    st.session_state.selected_avatar = "🐝"
-if 'current_assistant_message' not in st.session_state or not isinstance(st.session_state.current_assistant_message, tuple):
-    st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
-if 'show_gratitude_response' not in st.session_state:
-    st.session_state.show_gratitude_response = False
-
-# --- CSS GIAO DIỆN ĐỒNG BỘ GÓC AN YÊN ---
-st.markdown("""
-<style>
+/* ... (giữ nguyên các CSS còn lại của bạn) ... */
 .lo-title-feature {
     font-size:2.3rem; font-weight:700; color:#d81b60; text-align:center; margin-bottom:1.5rem; margin-top:0.7rem;
     letter-spacing:0.2px;
@@ -163,6 +67,124 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# --- DANH SÁCH GỢI Ý BIẾT ƠN LUÂN PHIÊN ---
+GRATITUDE_SUGGESTIONS = [
+    "Hôm nay bạn đã nụ cười với ai? Điều gì khiến bạn cảm thấy vui vẻ?",
+    "Có món ăn nào ngon khiến bạn nhớ mãi không? Kể cho mình nghe nhé!",
+    "Bạn đã học được điều gì mới mẻ hôm nay? Dù là điều nhỏ nhất!",
+    "Ai là người đã giúp đỡ bạn gần đây? Bạn biết ơn họ điều gì?",
+    "Thiên nhiên có gì đẹp khiến bạn thích thú? Trời xanh, cây lá, hay tiếng chim hót?",
+    "Bạn đã làm được việc gì khiến bản thân tự hào? Dù nhỏ nhất cũng được!",
+    "Có khoảnh khắc nào hôm nay khiến bạn cảm thấy bình yên và hạnh phúc?",
+    "Điều gì trong ngôi nhà của bạn khiến bạn cảm thấy ấm áp và an toàn?"
+]
+
+# --- VIRTUAL ASSISTANT MESSAGES ---
+# Chuẩn hóa cấu trúc dữ liệu giống như ENCOURAGING_MESSAGES
+ASSISTANT_MESSAGES = [
+    {"avatar": "🤖", "message": "Mỗi điều biết ơn nhỏ đều là kho báu quý giá!"},
+    {"avatar": "🤖", "message": "Bạn làm rất tốt khi ghi lại những khoảnh khắc đẹp!"},
+    {"avatar": "🤖", "message": "Cảm ơn bạn đã tin tưởng và chia sẻ với Bee!"},
+    {"avatar": "🤖", "message": "Hôm nay bạn đã lan tỏa năng lượng tích cực!"},
+    {"avatar": "🤖", "message": "Biết ơn là ánh nắng ấm áp cho trái tim!"},
+    {"avatar": "🤖", "message": "Một lời biết ơn nhỏ - một niềm vui lớn!"}
+]
+GRATITUDE_RESPONSES = [
+    "Thật tuyệt vời! Lời biết ơn của bạn đã được thêm vào lọ! 🌟",
+    "Cảm ơn bạn đã chia sẻ! Điều này sẽ làm sáng cả ngày của bạn! ✨",
+    "Tuyệt quá! Bạn vừa tạo ra một kỷ niệm đẹp! 💝",
+    "Mình cảm thấy ấm lòng khi đọc lời biết ơn của bạn! 🤗",
+    "Bạn đã làm cho thế giới này tích cực hơn một chút! 🦋"
+]
+
+AVATAR_OPTIONS = ["🐝", "🦋", "🌟", "💫", "🌸", "🦄", "🧚‍♀️", "🌻"]
+AVATAR_NAMES = ["Ong Bee", "Bướm xinh", "Sao sáng", "Ánh sáng", "Hoa đào", "Kỳ lân", "Tiên nhỏ", "Hoa hướng dương"]
+
+ENCOURAGING_MESSAGES = [
+    {
+        "avatar": "🌸",
+        "message": "Thật tuyệt vời khi bạn dành thời gian để cảm ơn! Mỗi lời biết ơn là một hạt giống hạnh phúc được gieo vào trái tim bạn."
+    },
+    {
+        "avatar": "🌟",
+        "message": "Hãy nhớ rằng, những điều nhỏ bé nhất cũng có thể mang lại niềm vui lớn. Bạn đã làm rất tốt rồi!"
+    },
+    {
+        "avatar": "💖",
+        "message": "Mỗi khi bạn viết lời biết ơn, bạn đang nuôi dưỡng một tâm hồn tích cực. Điều này thật đáng quý!"
+    },
+    {
+        "avatar": "🦋",
+        "message": "Biết ơn giống như ánh nắng ấm áp, nó không chỉ sưởi ấm trái tim bạn mà còn lan tỏa đến những người xung quanh."
+    },
+    {
+        "avatar": "🌈",
+        "message": "Bạn có biết không? Khi chúng ta biết ơn, não bộ sẽ tiết ra những hormone hạnh phúc. Bạn đang chăm sóc bản thân thật tốt!"
+    },
+    {
+        "avatar": "🌺",
+        "message": "Mỗi lời cảm ơn bạn viết ra đều là một món quà bạn tặng cho chính mình. Hãy tiếp tục nuôi dưỡng lòng biết ơn nhé!"
+    },
+    {
+        "avatar": "✨",
+        "message": "Đôi khi những điều đơn giản nhất lại mang đến hạnh phúc lớn nhất. Bạn đã nhận ra điều này rồi đấy!"
+    },
+    {
+        "avatar": "🍀",
+        "message": "Lòng biết ơn là chìa khóa mở ra cánh cửa hạnh phúc. Bạn đang trên đúng con đường rồi!"
+    }
+]
+
+# --- FUNCTIONS ---
+
+def get_random_encouragement():
+    return random.choice(ENCOURAGING_MESSAGES)
+
+def generate_audio_bytes(text):
+    """
+    Tạo file âm thanh trong bộ nhớ (in-memory) thay vì lưu file tạm.
+    Hiệu quả hơn và tránh các vấn đề về file/permission.
+    """
+    try:
+        audio_bytes = BytesIO()
+        tts = gTTS(text=text, lang='vi', slow=False)
+        tts.write_to_fp(audio_bytes)
+        audio_bytes.seek(0)
+        return audio_bytes.read()
+    except Exception as e:
+        st.error(f"Lỗi tạo file âm thanh: {e}")
+        return None
+
+# --- CALLBACK FUNCTIONS (Quản lý state tốt hơn) ---
+
+def set_new_assistant_message():
+    st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
+
+def set_emotion(emotion):
+    st.session_state.selected_emotion = emotion
+
+def set_new_encouragement():
+    st.session_state.current_encouragement = get_random_encouragement()
+
+def set_new_suggestion():
+    st.session_state.suggestion_index = (st.session_state.suggestion_index + 1) % len(GRATITUDE_SUGGESTIONS)
+
+# --- SESSION STATE ---
+if 'selected_emotion' not in st.session_state:
+    st.session_state.selected_emotion = None
+if 'suggestion_index' not in st.session_state:
+    st.session_state.suggestion_index = random.randint(0, 4)
+if 'selected_avatar' not in st.session_state:
+    st.session_state.selected_avatar = "🐝"
+# Cập nhật kiểm tra session state để khớp với cấu trúc dict mới
+if 'current_assistant_message' not in st.session_state or not isinstance(st.session_state.current_assistant_message, dict):
+    st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
+if 'show_gratitude_response' not in st.session_state:
+    st.session_state.show_gratitude_response = False
+if 'current_encouragement' not in st.session_state:
+    st.session_state.current_encouragement = get_random_encouragement()
+
+
 # --- TIÊU ĐỀ + TRỢ LÝ ẢO ĐẦU TRANG ---
 st.markdown(
     '<div class="lo-title-feature">'
@@ -170,7 +192,12 @@ st.markdown(
     '</div>',
     unsafe_allow_html=True
 )
-avatar, msg = st.session_state.current_assistant_message
+
+# Lấy thông tin từ dict trong session state
+msg_dict = st.session_state.current_assistant_message
+avatar = msg_dict['avatar']
+msg = msg_dict['message']
+
 st.markdown(f"""
 <div class="lo-assist-bigbox">
     <div class="lo-assist-icon">{avatar}</div>
@@ -180,23 +207,21 @@ st.markdown(f"""
 
 col1, col2 = st.columns([2,2])
 with col1:
-    if st.button("💬 Thông điệp mới", key="new_msg_top"):
-        st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
-        st.rerun()
+    # Sử dụng on_click để gọi callback, không cần st.rerun() thủ công
+    st.button("💬 Thông điệp mới", key="new_msg_top", on_click=set_new_assistant_message)
 with col2:
     if st.button("🔊 Nghe động viên", key="tts_msg_top"):
-        audio_bytes = BytesIO()
-        tts = gTTS(text=msg, lang='vi', slow=False)
-        tts.write_to_fp(audio_bytes)
-        audio_bytes.seek(0)
-        st.audio(audio_bytes.read(), format="audio/mp3")
+        with st.spinner("Đang tạo âm thanh..."):
+            # Sử dụng hàm generate_audio_bytes mới
+            audio_data = generate_audio_bytes(msg)
+            if audio_data:
+                st.audio(audio_data, format="audio/mp3", autoplay=True)
 
 # --- NAVIGATION LINK ---
 st.markdown("⬅️ [Quay về Trang chủ](../0_💖_Trang_chủ.py)")
 
 # --- Hiển thị avatar trợ lý ảo khi gửi biết ơn ---
 if st.session_state.show_gratitude_response:
-    avatar, msg = st.session_state.current_assistant_message
     message_to_show = random.choice(GRATITUDE_RESPONSES)
     st.markdown(f"""
     <div class="lo-assist-bigbox">
@@ -204,6 +229,8 @@ if st.session_state.show_gratitude_response:
         <div class="lo-assist-text">{message_to_show}</div>
     </div>
     """, unsafe_allow_html=True)
+    # SỬA LỖI: Đặt lại cờ để thông báo này không hiển thị mãi mãi
+    st.session_state.show_gratitude_response = False
 
 # --- CẢM XÚC BẰNG EMOJI ---
 st.markdown("### 💝 Hôm nay bạn cảm thấy thế nào?")
@@ -212,17 +239,14 @@ emotions = ["😊", "😃", "🥰", "😌", "🤗"]
 emotion_names = ["Vui vẻ", "Hạnh phúc", "Yêu thương", "Bình yên", "Ấm áp"]
 for i, (col, emotion, name) in enumerate(zip(emotion_cols, emotions, emotion_names)):
     with col:
-        if st.button(emotion, key=f"emotion_{i}", help=name):
-            st.session_state.selected_emotion = emotion
-            st.rerun()
+        # Sử dụng on_click và args để truyền cảm xúc
+        st.button(emotion, key=f"emotion_{i}", help=name, on_click=set_emotion, args=(emotion,))
 
 if st.session_state.selected_emotion:
     st.markdown(f"<div style='text-align: center; font-size: 1.2rem; color: #FF69B4; margin: 1rem 0;'>Bạn đang cảm thấy {st.session_state.selected_emotion} - Thật tuyệt vời!</div>", unsafe_allow_html=True)
 st.write("---")
 
 # --- ĐỘNG VIÊN BEE ---
-if 'current_encouragement' not in st.session_state:
-    st.session_state.current_encouragement = get_random_encouragement()
 encouragement = st.session_state.current_encouragement
 st.markdown(f"""
 <div class="lo-assist-bigbox" style="padding:2rem 1.8rem 1.2rem 1.8rem;">
@@ -232,21 +256,14 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 col1, col2 = st.columns([3, 1])
 with col1:
-    if st.button("🎲 Nhận lời động viên mới", help="Nhận một thông điệp động viên khác"):
-        st.session_state.current_encouragement = get_random_encouragement()
-        st.rerun()
+    st.button("🎲 Nhận lời động viên mới", help="Nhận một thông điệp động viên khác", on_click=set_new_encouragement)
 with col2:
     if st.button("🔊 Đọc to", help="Nghe lời động viên"):
         with st.spinner("Đang tạo âm thanh..."):
-            audio_file = create_audio_file(encouragement['message'])
-            if audio_file:
-                try:
-                    with open(audio_file, 'rb') as f:
-                        audio_bytes = f.read()
-                    st.audio(audio_bytes, format='audio/mp3', autoplay=True)
-                    os.unlink(audio_file)
-                except Exception as e:
-                    st.error(f"Không thể phát âm thanh: {e}")
+            # Sử dụng hàm generate_audio_bytes mới
+            audio_data = generate_audio_bytes(encouragement['message'])
+            if audio_data:
+                st.audio(audio_data, format='audio/mp3', autoplay=True)
 
 # --- HỘP GỢI Ý BIẾT ƠN LUÂN PHIÊN ---
 current_suggestion = GRATITUDE_SUGGESTIONS[st.session_state.suggestion_index]
@@ -260,19 +277,12 @@ col1, col2, col3 = st.columns([1, 2, 1])
 with col1:
     if st.button("🔊 Đọc to", key="read_suggestion", help="Đọc to gợi ý này"):
         with st.spinner("Đang chuẩn bị âm thanh..."):
-            audio_file = create_audio_file(f"Gợi ý cho bạn: {current_suggestion}")
-            if audio_file:
-                try:
-                    with open(audio_file, 'rb') as f:
-                        audio_bytes = f.read()
-                    st.audio(audio_bytes, format='audio/mp3', autoplay=True)
-                    os.unlink(audio_file)  # Xóa file tạm
-                except Exception as e:
-                    st.error(f"Không thể phát âm thanh: {e}")
+            # Sử dụng hàm generate_audio_bytes mới
+            audio_data = generate_audio_bytes(f"Gợi ý cho bạn: {current_suggestion}")
+            if audio_data:
+                st.audio(audio_data, format='audio/mp3', autoplay=True)
 with col2:
-    if st.button("🔄 Gợi ý khác", use_container_width=True):
-        st.session_state.suggestion_index = (st.session_state.suggestion_index + 1) % len(GRATITUDE_SUGGESTIONS)
-        st.rerun()
+    st.button("🔄 Gợi ý khác", use_container_width=True, on_click=set_new_suggestion)
 
 # --- KHU VỰC NHẬP LIỆU ---
 st.markdown("### ✍️ Viết điều bạn biết ơn hôm nay:")
@@ -286,7 +296,7 @@ note_text = st.text_area(
 if st.button("🌟 Thêm vào lọ biết ơn", type="primary", use_container_width=True):
     if note_text:
         db.add_gratitude_note(note_text)
-        st.session_state.show_gratitude_response = True
+        st.session_state.show_gratitude_response = True  # Đặt cờ để hiển thị phản hồi
         success_stickers = ["🎉", "⭐", "🌟", "✨", "💫", "🎊", "🦋", "🌈", "🎁", "💝"]
         selected_stickers = random.sample(success_stickers, 3)
         st.markdown(f"""
@@ -297,7 +307,7 @@ if st.button("🌟 Thêm vào lọ biết ơn", type="primary", use_container_wi
         st.success("🌱 Đã thêm một hạt mầm biết ơn vào lọ! Cảm ơn bạn đã chia sẻ!")
         st.balloons()
         time.sleep(2)
-        st.rerun()
+        st.rerun()  # Rerun là cần thiết ở đây để hiển thị thông báo phản hồi
     else:
         st.warning("💛 Bạn hãy viết gì đó để chia sẻ nhé! Mình đang chờ đây!")
 
@@ -326,15 +336,11 @@ if gratitude_notes:
             col1, col2, col3 = st.columns([2, 2, 1])
             with col1:
                 if st.button("🔊 Đọc to", key=f"tts_{note_id}", help="Nghe ghi chú này"):
-                    audio_file = create_audio_file(note_content)
-                    if audio_file:
-                        try:
-                            with open(audio_file, 'rb') as f:
-                                audio_bytes = f.read()
-                            st.audio(audio_bytes, format='audio/mp3', autoplay=True)
-                            os.unlink(audio_file)
-                        except Exception as e:
-                            st.error(f"Không thể phát âm thanh: {e}")
+                    with st.spinner("Đang tạo âm thanh..."):
+                        # Sử dụng hàm generate_audio_bytes mới
+                        audio_data = generate_audio_bytes(note_content)
+                        if audio_data:
+                            st.audio(audio_data, format='audio/mp3', autoplay=True)
             with col2:
                 if st.button("💝 Thích", key=f"like_{note_id}", help="Tôi thích ghi chú này!"):
                     st.markdown("💕 Cảm ơn bạn đã thích kỷ niệm này!")
@@ -362,10 +368,3 @@ st.markdown("""
     Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
 </div>
 """, unsafe_allow_html=True)
-
-
-
-
-
-
-
