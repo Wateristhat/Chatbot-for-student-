@@ -5,22 +5,30 @@ import html
 import time
 import random
 from datetime import datetime
-# Bỏ 'tempfile' vì chúng ta sẽ dùng 'BytesIO'
 from gtts import gTTS
 from io import BytesIO  # Import BytesIO để xử lý audio trong bộ nhớ
+import style # <-- 1. IMPORT STYLE
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import database as db
 
+# --- 2. THIẾT LẬP CẤU HÌNH TRANG ---
+st.set_page_config(
+    page_title="Lọ Biết Ơn", 
+    page_icon="🍯", 
+    layout="wide",
+    initial_sidebar_state="collapsed" # <-- Ẩn sidebar ban đầu
+)
+
+# --- 3. ÁP DỤNG CSS CHUNG ---
+style.apply_global_style()
+
 st.markdown("""
 <style>
-.stButton > button {
-    font-size: 1.45rem !important;      /* Tăng cỡ chữ hơn nữa */
-    padding: 1.7rem 3.3rem !important;  /* Tăng chiều cao & chiều ngang nhiều hơn */
-    border-radius: 18px !important;
-    min-width: 210px;
-    min-height: 66px;
-}
+/* --- XÓA CSS .stButton > button CỤC BỘ --- */
+/* (Khối CSS cho .stButton > button đã bị xóa
+   để file style.py chung quản lý, giúp tương thích ĐT) */
+
 /* ... (giữ nguyên các CSS còn lại của bạn) ... */
 .lo-title-feature {
     font-size:2.3rem; font-weight:700; color:#d81b60; text-align:center; margin-bottom:1.5rem; margin-top:0.7rem;
@@ -63,7 +71,24 @@ st.markdown("""
 .timeline-content {font-size:1.17rem;color:#8B4513;margin-bottom:0.5rem;line-height:1.4;}
 .timeline-date {font-size:0.99rem;color:#CD853F;font-weight:700;}
 .lo-footer {background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:10px;padding:0.9rem 1.2rem;text-align:center;font-size:1.09rem;margin:0.7rem 0 1.2rem 0;color:#333;}
-@media (max-width: 1100px) {.lo-assist-bigbox{padding:2rem 1rem 1rem 1rem; max-width:100vw;}}
+
+/* --- 4. CẬP NHẬT MEDIA QUERY CHO ĐIỆN THOẠI --- */
+@media (max-width: 900px) {
+    .lo-assist-bigbox {
+        padding: 2rem 1rem 1rem 1rem; 
+        max-width: 96vw; /* Dùng 96vw cho đẹp */
+    }
+    .lo-box, .timeline-item, .lo-footer {
+        max-width: 96vw;
+        padding: 1rem 0.8rem;
+    }
+    .lo-title-feature {
+        font-size: 1.8rem; /* Thu nhỏ tiêu đề */
+    }
+    .lo-assist-text {
+        font-size: 1.2rem; /* Thu nhỏ text trợ lý */
+    }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -131,7 +156,7 @@ ENCOURAGING_MESSAGES = [
     },
     {
         "avatar": "🍀",
-        "message": "Lòng biết ơn là chìa khóa mở ra cánh cửa hạnh phúc. Bạn đang trên đúng con đường rồi!"
+        "message": "Lòng biết ơn là chì khóa mở ra cánh cửa hạnh phúc. Bạn đang trên đúng con đường rồi!"
     }
 ]
 
@@ -217,8 +242,10 @@ with col2:
             if audio_data:
                 st.audio(audio_data, format="audio/mp3", autoplay=True)
 
-# --- NAVIGATION LINK ---
-st.markdown("⬅️ [Quay về Trang chủ](../0_💖_Trang_chủ.py)")
+# --- 5. CẬP NHẬT NAVIGATION LINK ---
+# (Giả sử file này nằm trong thư mục 'pages' và trang chủ là '0_...py')
+st.page_link("0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+
 
 # --- Hiển thị avatar trợ lý ảo khi gửi biết ơn ---
 if st.session_state.show_gratitude_response:
@@ -234,7 +261,8 @@ if st.session_state.show_gratitude_response:
 
 # --- CẢM XÚC BẰNG EMOJI ---
 st.markdown("### 💝 Hôm nay bạn cảm thấy thế nào?")
-emotion_cols = st.columns(5)
+# Dùng 5 cột, Streamlit sẽ tự động xếp chồng trên điện thoại
+emotion_cols = st.columns(5) 
 emotions = ["😊", "😃", "🥰", "😌", "🤗"]
 emotion_names = ["Vui vẻ", "Hạnh phúc", "Yêu thương", "Bình yên", "Ấm áp"]
 for i, (col, emotion, name) in enumerate(zip(emotion_cols, emotions, emotion_names)):
