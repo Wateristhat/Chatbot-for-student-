@@ -1,17 +1,5 @@
 import streamlit as st
 import random
-import style # <-- 1. IMPORT STYLE
-
-# --- 2. THIẾT LẬP CẤU HÌNH TRANG ---
-st.set_page_config(
-    page_title="Ngân Hàng Hoạt Động", 
-    page_icon="🌈", 
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
-
-# --- 3. ÁP DỤNG CSS CHUNG ---
-style.apply_global_style()
 
 st.markdown("""
 <style>
@@ -24,93 +12,20 @@ st.markdown("""
 .gn-assist-icon {font-size:3.2rem; margin-bottom:0.7rem;}
 .gn-assist-text {font-size:1.7rem; font-weight:700; color:#6d28d9; margin-bottom:1.1rem;}
 
-/* --- 4. XÓA CSS BUTTON CỤC BỘ --- */
-/* (Khối .stButton > button đã bị xóa
-   để file style.py chung quản lý, giúp tương thích ĐT) */
-
-/* --- 5. CHUYỂN STYLE INLINE THÀNH CLASS ĐỂ QUẢN LÝ --- */
-.gn-assist-response {
-    background: #e9f3fd;
-    border-radius: 16px;
-    padding: 2.2rem 2.8rem;
-    font-size: 1.23rem;
-    color: #1565c0;
-    max-width: 1700px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 1.1rem;
-    margin-bottom: 1.1rem;
-    box-shadow: 0 2px 18px rgba(21,101,192,0.06);
+/* --- CSS ĐỂ LÀM CÁC NÚT BẤM TO HƠN --- */
+.stButton > button {
+    padding: 0.8rem 1.2rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    width: 100%;
+    margin-bottom: 0.7rem;
+    border-radius: 12px;
+    border: 2px solid #d1c4e9;
+    background-color: #f9f9fb;
 }
-.gn-title {
-    font-size:2rem;
-    font-weight:700;
-    color:#8e24aa;
-    text-align:center;
-    margin-bottom:1.1rem;
-}
-.gn-checklist-item {
-    background:#f9f9fb; 
-    border-radius:10px; 
-    padding:0.6rem 0.9rem; 
-    margin-bottom:0.6rem; 
-    display:flex; 
-    align-items:center; 
-    font-size:1.01rem; 
-    border:1.4px solid #ede7f6;
-}
-.gn-congrats {
-    background:#fffde7;
-    border-radius:17px;
-    padding:1.1rem 1rem;
-    text-align:center;
-    font-size:1.15rem;
-    margin:1.2rem 0;
-    color:#333;
-    border:2px solid #ffd54f;
-}
-.gn-footer {
-    background:#f3e5f5;
-    border-left:5px solid #ba68c8;
-    border-radius:10px;
-    padding:0.7rem 1rem;
-    text-align:center;
-    font-size:0.98rem;
-    margin:0.3rem 0 1.1rem 0;
-    color:#333;
-}
-.gn-checklist-title {
-    font-size:1.08rem;
-    font-weight:600;
-    color:#333;
-    margin-top:1rem;
-    margin-bottom:0.3rem;
-    text-align:center;
-}
-
-/* --- 6. CSS TƯƠNG THÍCH ĐIỆN THOẠI --- */
-@media (max-width: 900px) {
-    .gn-assist-bigbox {
-        padding: 2rem 1rem 1rem 1rem; 
-        max-width: 96vw;
-    }
-    .gn-assist-text, .gn-assist-response {
-        font-size: 1.1rem;
-        padding: 1.5rem 1rem;
-    }
-    .gn-title {
-        font-size: 1.5rem;
-    }
-    .gn-checklist-item {
-        font-size: 0.9rem;
-        padding: 0.5rem 0.7rem;
-    }
-    .gn-congrats {
-        font-size: 1rem;
-    }
-    .gn-footer {
-        font-size: 0.85rem;
-    }
+.stButton > button:hover {
+    background-color: #f3e8ff;
+    border-color: #b39ddb;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -120,11 +35,6 @@ st.markdown(f"""
     <div class="gn-assist-text">Bạn cần gợi ý hoặc trợ giúp? Trợ lý ảo luôn sẵn sàng hỗ trợ bạn!</div>
 </div>
 """, unsafe_allow_html=True)
-
-# --- 7. THÊM LINK QUAY VỀ ---
-st.page_link("0_💖_Trang_chủ.py", label="⬅️ 🏠 Quay về Trang chủ", icon="🏠")
-st.write("---")
-
 
 col1, col2 = st.columns([2,2])
 with col1:
@@ -181,16 +91,26 @@ left_col_actions = unique_ro_actions[:half]
 right_col_actions = unique_ro_actions[half:]
 
 if "assistant_message" in st.session_state and st.session_state.assistant_message:
-    # --- 8. SỬ DỤNG CLASS THAY VÌ STYLE INLINE ---
     st.markdown(f"""
-    <div class="gn-assist-response">
-        {st.session_state.assistant_message}
+    <div style="
+        background: #e9f3fd;
+        border-radius: 16px;
+        padding: 2.2rem 2.8rem;
+        font-size: 1.23rem;
+        color: #1565c0;
+        max-width: 1700px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 1.1rem;
+        margin-bottom: 1.1rem;
+        box-shadow: 0 2px 18px rgba(21,101,192,0.06);
+    ">
+    {st.session_state.assistant_message}
     </div>
     """, unsafe_allow_html=True)
 
 # --- Title & grid ---
-# --- 8. SỬ DỤNG CLASS THAY VÌ STYLE INLINE ---
-st.markdown('<div class="gn-title">🌈 Chọn từ ngân hàng hoạt động:</div>', unsafe_allow_html=True)
+st.markdown('<div style="font-size:2rem;font-weight:700;color:#8e24aa;text-align:center;margin-bottom:1.1rem;">🌈 Chọn từ ngân hàng hoạt động:</div>', unsafe_allow_html=True)
 
 if "selected_actions" not in st.session_state:
     st.session_state.selected_actions = []
@@ -209,8 +129,7 @@ for idx, col_actions in enumerate([left_col_actions, right_col_actions]):
 
 # --- Checklist: các hoạt động đã chọn ---
 if st.session_state.selected_actions:
-    # --- 8. SỬ DỤNG CLASS THAY VÌ STYLE INLINE ---
-    st.markdown('<div class="gn-checklist-title">📋 Danh sách việc đã chọn hôm nay:</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:1.08rem;font-weight:600;color:#333;margin-top:1rem;margin-bottom:0.3rem;text-align:center;">📋 Danh sách việc đã chọn hôm nay:</div>', unsafe_allow_html=True)
     all_done = True
     for i, action_text in enumerate(st.session_state.selected_actions):
         action_icon = next((a["icon"] for a in unique_ro_actions if a["text"] == action_text), "💝")
@@ -222,9 +141,8 @@ if st.session_state.selected_actions:
         with cols_done[0]:
             new_state = st.checkbox("", value=is_done, key=f"cb_{action_text}_{i}")
         with cols_done[1]:
-            # --- 8. SỬ DỤNG CLASS THAY VÌ STYLE INLINE ---
             st.markdown(
-                f'<div class="gn-checklist-item"><span style="font-size:1.08rem;margin-right:0.6rem;">{action_icon}</span><span style="font-weight:600;">{action_text}</span></div>',
+                f'<div style="background:#f9f9fb; border-radius:10px; padding:0.6rem 0.9rem; margin-bottom:0.6rem; display:flex; align-items:center; font-size:1.01rem; border:1.4px solid #ede7f6;"><span style="font-size:1.08rem;margin-right:0.6rem;">{action_icon}</span><span style="font-weight:600;">{action_text}</span></div>',
                 unsafe_allow_html=True
             )
         with cols_done[2]:
@@ -240,13 +158,12 @@ if st.session_state.selected_actions:
             all_done = False
 
     if all_done and st.session_state.selected_actions:
-        # --- 8. SỬ DỤNG CLASS THAY VÌ STYLE INLINE ---
         st.markdown(
-            '<div class="gn-congrats"><b>🎉 CHÚC MỪNG! 🎉</b><br>Bạn đã hoàn thành tất cả các mục tiêu tự chăm sóc cho hôm nay!<br>🌟 Bạn thật tuyệt vời! Hãy tự hào về bản thân nhé! 🌟</div>',
+            '<div style="background:#fffde7;border-radius:17px;padding:1.1rem 1rem;text-align:center;font-size:1.15rem;margin:1.2rem 0;color:#333;border:2px solid #ffd54f;"><b>🎉 CHÚC MỪNG! 🎉</b><br>Bạn đã hoàn thành tất cả các mục tiêu tự chăm sóc cho hôm nay!<br>🌟 Bạn thật tuyệt vời! Hãy tự hào về bản thân nhé! 🌟</div>',
             unsafe_allow_html=True
         )
         st.balloons()
 
 # --- Footer động viên ---
-# --- 8. SỬ DỤNG CLASS THAY VÌ STYLE INLINE ---
-st.markdown('<div class="gn-footer">💜 <strong>Nhớ nhé:</strong> Mỗi hành động nhỏ đều là một bước tiến lớn trong việc chăm sóc bản thân. Hãy kiên nhẫn và yêu thương chính mình! 💜</div>', unsafe_allow_html=True)
+st.markdown('<div style="background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:10px;padding:0.7rem 1rem;text-align:center;font-size:0.98rem;margin:0.3rem 0 1.1rem 0;color:#333;">💜 <strong>Nhớ nhé:</strong> Mỗi hành động nhỏ đều là một bước tiến lớn trong việc chăm sóc bản thân. Hãy kiên nhẫn và yêu thương chính mình! 💜</div>', unsafe_allow_html=True)
+
