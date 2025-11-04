@@ -6,7 +6,7 @@ import style
 st.set_page_config(
     page_title="Chào mừng - Bạn Đồng Hành",
     page_icon="💖",
-    layout="wide"
+    layout="wide",
     initial_sidebar_state="collapsed"
 )
 
@@ -186,4 +186,5 @@ else:
 
     st.markdown("---")
     st.info("👈 <b>Hãy chọn một tính năng từ mục lục bên trái để bắt đầu!</b>", icon="😊")
+
 
