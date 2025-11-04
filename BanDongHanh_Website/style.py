@@ -1,5 +1,4 @@
-# Dán toàn bộ code này vào file style.py của bạn
-
+# file: style.py
 import streamlit as st
 
 def apply_global_style():
@@ -11,15 +10,6 @@ def apply_global_style():
         html, body, [class*="css"] {
             font-family: 'Quicksand', Arial, sans-serif;
         }
-
-        /* --- (MỚI) SỬA LỖI CHIỀU CAO SIDEBAR KHÔNG ĐỒNG ĐỀU --- */
-        [data-testid="stSidebarNavItems"] li a {
-            height: 2.75rem; 
-            display: flex;
-            align-items: center;
-        }
-        /* --- (KẾT THÚC PHẦN MỚI) --- */
-
 
         /* --- STYLE CHUNG CHO CÁC NÚT BẤM --- */
         .stButton > button {
