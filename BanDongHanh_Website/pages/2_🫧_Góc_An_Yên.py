@@ -39,7 +39,7 @@ except ImportError:
     EDGE_TTS_AVAILABLE = False
 
 # --- CẤU HÌNH TRANG ---
-st.set_page_config(page_title="Góc An Yên", page_icon="🫧", layout="wide" initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Góc An Yên", page_icon="🫧", layout="wide", initial_sidebar_state="collapsed")
 style.apply_global_style()
 st.markdown("""
 <style>
