@@ -1,19 +1,13 @@
 import streamlit as st
 import google.generativeai as genai
 import random
-import style # <-- 1. IMPORT STYLE
 
-# --- 1. CẤU HÌNH TRANG VÀ CSS TÙY CHỈNH ---
+# --- 1. CẤU HÌNH TRANG VÀ CSS TÙY CHỈNH (Giữ nguyên giao diện màu mè) ---
 st.set_page_config(
     page_title="Chatbot AI Đồng Hành",
     page_icon="🌈",
-    layout="centered",
-    initial_sidebar_state="collapsed" # <-- 2. ẨN SIDEBAR
+    layout="centered"
 )
-
-# --- 3. ÁP DỤNG CSS CHUNG ---
-style.apply_global_style()
-
 
 # CSS để làm cho giao diện màu mè
 st.markdown("""
@@ -26,7 +20,7 @@ st.markdown("""
         background: linear-gradient(to right, #fde4f2, #e6e6fa); /* Gradient nền hồng và tím lavender */
     }
     /* Tiêu đề chính */
-    h1.main-title {
+    h1 {
         font-size: 2.5em;
         text-align: center;
         background: linear-gradient(to right, #6a11cb, #2575fc);
@@ -35,7 +29,7 @@ st.markdown("""
         padding-bottom: 10px;
         margin-bottom: 20px;
     }
-    /* Bong bóng chat (CSS này rất tốt, giữ nguyên) */
+    /* Bong bóng chat */
     [data-testid="stChatMessage"]:has([data-testid="stAvatarIcon-user"]) {
         background-color: #ffffff;
         border-radius: 20px 20px 5px 20px;
@@ -48,28 +42,20 @@ st.markdown("""
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         color: #1e1e1e;
     }
-    /* Ô nhập liệu chat (Giữ nguyên) */
+    /* Ô nhập liệu chat */
     [data-testid="stChatInput"] {
         background-color: #ffffff;
         border-radius: 25px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         padding: 5px 15px;
     }
-    
-    /* --- 4. XÓA CSS BUTTON CỤC BỘ --- */
-    /* (Khối .stButton > button đã bị xóa
-       để file style.py chung quản lý, giúp tương thích ĐT) */
-       
-    /* --- 5. THÊM CSS TƯƠNG THÍCH ĐIỆN THOẠI --- */
-    @media (max-width: 900px) {
-        h1.main-title {
-            font-size: 1.8rem; /* Thu nhỏ tiêu đề */
-        }
-        .stApp {
-            /* Giảm padding trên điện thoại,
-            (Ghi đè style.py nếu cần) */
-            padding: 1rem 0.5rem; 
-        }
+    /* Nút bấm lớn */
+    .stButton > button {
+        border-radius: 12px;
+        font-size: 1.1em;
+        font-weight: bold;
+        padding: 10px 20px;
+        width: 100%; /* Giúp các nút bằng nhau */
     }
 </style>
 """, unsafe_allow_html=True)
@@ -108,19 +94,14 @@ CONFIG = {
 if "chat_mode" not in st.session_state:
     st.session_state.chat_mode = "main"
 
-# Quản lý lịch sử tin nhắn để hiển thị
+# Quản lý lịch sử tin nhắn để hiển thị (đây là thay đổi chính)
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # --- 4. PHẦN CODE CHÍNH ---
 
-st.markdown("<h1 class='main-title'>✨ Chatbot AI Đồng Hành ✨</h1>", unsafe_allow_html=True)
+st.title("✨ Chatbot AI Đồng Hành ✨")
 st.caption("Trò chuyện với mô hình AI Gemini của Google.")
-
-# --- 6. THÊM LINK QUAY VỀ ---
-st.page_link("0_💖_Trang_chủ.py", label="⬅️ 🏠 Quay về Trang chủ", icon="🏠")
-st.write("---") # Thêm đường kẻ
-
 
 # Cấu hình Gemini AI
 @st.cache_resource
@@ -128,15 +109,16 @@ def configure_gemini():
     try:
         api_key = st.secrets["GOOGLE_API_KEY"]
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("models/gemini-1.5-flash") # Cập nhật model
+        model = genai.GenerativeModel("models/gemini-2.5-flash")
         return model
     except Exception as e:
-        st.error(f"Lỗi: Vui lòng cấu hình GOOGLE_API_KEY trong file secrets.toml. Lỗi: {e}")
+        st.error("Lỗi: Vui lòng cấu hình GOOGLE_API_KEY trong file secrets.toml.")
         st.stop()
 
 model = configure_gemini()
 
 # Bắt đầu session chat với lịch sử từ st.session_state.messages
+# Điều này đảm bảo AI có ngữ cảnh từ các nút bấm
 chat = model.start_chat(history=[
     {"role": "model" if msg["role"] == "assistant" else "user", "parts": [msg["content"]]}
     for msg in st.session_state.messages
@@ -164,8 +146,6 @@ with button_container:
         cols = st.columns(len(emotions))
         for i, emotion in enumerate(emotions):
             if cols[i].button(emotion):
-                # --- 7. CẢI TIẾN LOGIC: LƯU LỰA CHỌN CỦA USER ---
-                st.session_state.messages.append({"role": "user", "content": emotion})
                 response_text = CONFIG["tam_su"]["emotions"][emotion]
                 st.session_state.messages.append({"role": "assistant", "content": response_text})
                 st.session_state.chat_mode = "main"
@@ -175,10 +155,8 @@ with button_container:
         st.write("Chọn tình huống bạn muốn luyện tập:")
         for scenario, example in CONFIG["giao_tiep"]["scenarios_basic"].items():
             if st.button(scenario, key=scenario):
-                # --- 7. CẢI TIẾN LOGIC: LƯU LỰA CHỌN CỦA USER ---
-                st.session_state.messages.append({"role": "user", "content": f"Tôi muốn luyện tập: {scenario}"})
-                st.session_state.messages.append({"role": "assistant", "content": example})
                 st.session_state.chat_mode = "giao_tiep_practice"
+                st.session_state.messages.append({"role": "assistant", "content": example})
                 st.rerun()
         if st.button("↩️ Quay lại"):
              st.session_state.chat_mode = "main"
@@ -186,21 +164,12 @@ with button_container:
 
     elif st.session_state.chat_mode == "giao_tiep_practice":
         col1, col2 = st.columns(2)
-        
-        understood_text = CONFIG["giao_tiep"]["confirm_buttons"]["understood"]
-        if col1.button(understood_text):
-            # --- 7. CẢI TIẾN LOGIC: LƯU LỰA CHỌN CỦA USER ---
-            st.session_state.messages.append({"role": "user", "content": understood_text})
+        if col1.button(CONFIG["giao_tiep"]["confirm_buttons"]["understood"]):
             st.session_state.messages.append({"role": "assistant", "content": "Tuyệt vời! Bạn làm tốt lắm. Khi nào cần cứ tìm mình nhé."})
             st.session_state.chat_mode = "main"
             st.rerun()
-            
-        not_understood_text = CONFIG["giao_tiep"]["confirm_buttons"]["not_understood"]
-        if col2.button(not_understood_text):
-            # --- 7. CẢI TIẾN LOGIC: LƯU LỰA CHỌN CỦA USER ---
-            st.session_state.messages.append({"role": "user", "content": not_understood_text})
+        if col2.button(CONFIG["giao_tiep"]["confirm_buttons"]["not_understood"]):
             st.session_state.messages.append({"role": "assistant", "content": "Không sao cả, mình nói lại nhé. Bạn hãy đọc kỹ lại câu mẫu phía trên nha."})
-            # (Không đổi chat_mode, để user đọc lại)
             st.rerun()
 
 # --- HIỂN THỊ LỊCH SỬ CHAT TỪ st.session_state.messages ---
@@ -226,3 +195,5 @@ if prompt := st.chat_input("Hoặc gõ tin nhắn tự do ở đây..."):
                 st.session_state.messages.append({"role": "assistant", "content": response_text})
             except Exception as e:
                 st.error(f"Đã có lỗi xảy ra: {e}")
+
+
