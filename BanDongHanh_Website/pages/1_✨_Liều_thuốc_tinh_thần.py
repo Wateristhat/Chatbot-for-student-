@@ -5,11 +5,8 @@ from datetime import datetime
 import os
 from gtts import gTTS
 from io import BytesIO
-import style
     
-st.set_page_config(page_title="✨ Liều Thuốc Tinh Thần", page_icon="✨", layout="wide", initial_sidebar_state="collapsed")
-
-style.apply_global_style()
+st.set_page_config(page_title="✨ Liều Thuốc Tinh Thần", page_icon="✨", layout="wide")
 
 # --- CSS: khung trợ lý ảo trải dài như Góc An Yên ---
 st.markdown("""
@@ -357,3 +354,7 @@ if st.session_state.show_journal:
 
 # --- Footer động viên ---
 st.markdown('<div class="lttt-footer">💜 <strong>Nhớ nhé:</strong> Mỗi động viên nhỏ đều là một bước tiến lớn. Hãy kiên nhẫn và yêu thương chính mình! 💜</div>', unsafe_allow_html=True)
+
+
+
+
