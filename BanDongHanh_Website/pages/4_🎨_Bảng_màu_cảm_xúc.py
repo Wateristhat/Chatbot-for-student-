@@ -4,26 +4,10 @@ import random
 from datetime import datetime
 from gtts import gTTS
 from io import BytesIO
-import sys # <-- 1. THÊM IMPORT
-import os  # <-- 1. THÊM IMPORT
-import style # <-- 1. THÊM IMPORT
+   
+st.set_page_config(page_title="🎨 Bảng Màu Cảm Xúc", page_icon="🎨", layout="wide")
 
-# --- 1. THÊM ĐƯỜNG DẪN VÀ IMPORT DATABASE ---
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import database as db
-
-# --- 2. CẬP NHẬT PAGE CONFIG ---
-st.set_page_config(
-    page_title="🎨 Bảng Màu Cảm Xúc", 
-    page_icon="🎨", 
-    layout="wide",
-    initial_sidebar_state="collapsed" # <-- Ẩn sidebar ban đầu
-)
-
-# --- 3. ÁP DỤNG CSS CHUNG ---
-style.apply_global_style()
-
-# --- CSS giao diện (ĐÃ XÓA CSS BUTTON CỤC BỘ) ---
+# --- CSS giao diện pastel trải ngang, đồng bộ Góc An Yên ---
 st.markdown("""
 <style>
 .bmcx-title-feature {
@@ -38,7 +22,13 @@ st.markdown("""
 }
 .bmcx-assist-icon {font-size:3.2rem; margin-bottom:0.7rem;}
 .bmcx-assist-text {font-size:1.7rem; font-weight:700; color:#6d28d9; margin-bottom:1.1rem;}
-/* ... (giữ nguyên css của bạn) ... */
+.bmcx-assist-btn-row {display:flex; justify-content: center; gap: 56px; margin-top:1.2rem;}
+.bmcx-assist-action-btn {
+    background: #fff; border: 2.5px solid #b39ddb; border-radius: 17px;
+    font-size:1.25rem; font-weight:600; color:#6d28d9;
+    padding: 1.1rem 2.5rem; cursor:pointer; box-shadow:0 2px 8px rgba(124,77,255,.14); transition:all 0.18s;
+}
+.bmcx-assist-action-btn:hover {background:#f3e8ff;}
 .bmcx-palette-box {
     background: linear-gradient(120deg,#fffbe7 0%,#e0f7fa 100%);
     border-radius: 36px; box-shadow: 0 8px 36px rgba(124,77,255,.11);
@@ -67,17 +57,27 @@ st.markdown("""
     background:#f3e5f5; border-left:5px solid #ba68c8; border-radius:15px; padding:1rem 1.3rem;
     text-align:center; font-size:1.13rem; margin:0.7rem 0 1rem 0; color:#333; max-width:1200px; margin-left:auto; margin-right:auto;
 }
-
-/* --- 4. XÓA CSS BUTTON CỤC BỘ --- */
-/* Khối .stButton > button đã bị xóa để style.py chung quản lý */
-
-/* --- 5. GIỮ NGUYÊN MEDIA QUERY TỐT CỦA BẠN --- */
+/* --- CSS ĐỂ LÀM CÁC NÚT BẤM TO HƠN --- */
+.stButton > button {
+    padding: 0.8rem 1.2rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    width: 100%;
+    margin-bottom: 0.7rem;
+    border-radius: 12px;
+    border: 2px solid #b39ddb;
+    background-color: #f9f9fb;
+    color: #6d28d9;
+}
+.stButton > button:hover {
+    background-color: #f3e8ff;
+    border-color: #5d3fd3;
+    color: #5d3fd3;
+}
 @media (max-width:900px) {
     .bmcx-assist-bigbox, .bmcx-palette-box, .bmcx-history-box, .bmcx-note-box, .bmcx-footer {max-width:96vw;}
-    .bmcx-title-feature { font-size:1.8rem; } /* Thu nhỏ tiêu đề */
-    .bmcx-assist-text { font-size: 1.3rem; } /* Thu nhỏ text trợ lý */
-    .bmcx-emotion-circle {width:80px;height:80px;font-size:1.4rem; margin: 0 5px 1.5rem 5px;}
-    .bmcx-emotion-label { font-size: 0.9rem; }
+    .bmcx-title-feature { font-size:1.3rem; }
+    .bmcx-emotion-circle {width:90px;height:90px;font-size:1.4rem;}
 }
 </style>
 """, unsafe_allow_html=True)
@@ -128,40 +128,15 @@ EMOTIONS = [
     }
 ]
 
-# --- FUNCTIONS (Tái sử dụng code) ---
-
-def generate_audio_bytes(text):
-    """Tạo file âm thanh trong bộ nhớ, không cần lưu file tạm."""
-    try:
-        audio_bytes = BytesIO()
-        tts = gTTS(text=text, lang='vi', slow=False)
-        tts.write_to_fp(audio_bytes)
-        audio_bytes.seek(0)
-        return audio_bytes.read()
-    except Exception as e:
-        st.error(f"Lỗi tạo file âm thanh: {e}")
-        return None
-
-def set_new_assistant_message():
-    st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
-
-def set_emotion(idx, color):
-    """Callback khi chọn cảm xúc."""
-    st.session_state.selected_emotion_idx = idx
-    st.session_state.emotion_note = ""
-    st.session_state.stroke_color = color # Cập nhật màu bút vẽ
-
 # --- Session state ---
 if "selected_emotion_idx" not in st.session_state:
     st.session_state.selected_emotion_idx = None
 if "emotion_note" not in st.session_state:
     st.session_state.emotion_note = ""
-# Bỏ 'emotion_history' vì sẽ đọc từ DB
+if "emotion_history" not in st.session_state:
+    st.session_state.emotion_history = []
 if "show_history" not in st.session_state:
     st.session_state.show_history = False
-if "stroke_color" not in st.session_state:
-    st.session_state.stroke_color = "#FF5733" # Màu mặc định ban đầu
-
 
 # --- Trợ lý ảo & tên tính năng ---
 ASSISTANT_MESSAGES = [
@@ -188,17 +163,18 @@ st.markdown(f"""
 
 col1, col2 = st.columns([2,2])
 with col1:
-    st.button("💬 Thông điệp mới", key="new_msg_top", on_click=set_new_assistant_message)
+    if st.button("💬 Thông điệp mới", key="new_msg_top"):
+        st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
+        st.rerun()
 with col2:
     if st.button("🔊 Nghe trợ lý ảo", key="tts_msg_top"):
-        with st.spinner("Đang tạo âm thanh..."):
-            audio_data = generate_audio_bytes(msg)
-            if audio_data:
-                st.audio(audio_data, format="audio/mp3", autoplay=True)
+        audio_bytes = BytesIO()
+        tts = gTTS(text=msg, lang='vi', slow=False)
+        tts.write_to_fp(audio_bytes)
+        audio_bytes.seek(0)
+        st.audio(audio_bytes.read(), format="audio/mp3")
 
-# --- 6. CẬP NHẬT LINK ĐIỀU HƯỚNG ---
-st.page_link("0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
-
+st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
 
 # --- KHUNG VẼ CANVAS (trắng, vẽ tự do) ---
 st.markdown("""
@@ -216,27 +192,23 @@ with col1:
         help="Chọn 'freedraw' để vẽ tự do, các công cụ khác để vẽ hình học."
     )
 with col2:
-    st.session_state.stroke_color = st.color_picker(
-        "Màu bút:", 
-        st.session_state.stroke_color
-    )
+    if st.session_state.selected_emotion_idx is not None:
+        default_color = EMOTIONS[st.session_state.selected_emotion_idx]["color"]
+    else:
+        default_color = "#FF5733"
+    stroke_color = st.color_picker("Màu bút:", default_color)
     bg_color = st.color_picker("Màu nền:", "#FFFFFF")
 
 st.markdown('<div class="bmcx-palette-box">', unsafe_allow_html=True)
 st.markdown("#### Hãy chọn cảm xúc của bạn hôm nay:")
-# --- CẬP NHẬT SỐ CỘT ---
-# Dùng 7 cột, Streamlit sẽ tự động xếp chồng trên điện thoại
-emotion_cols = st.columns(len(EMOTIONS)) 
+emotion_cols = st.columns(len(EMOTIONS))
 for idx, emo in enumerate(EMOTIONS):
     with emotion_cols[idx]:
         selected = st.session_state.selected_emotion_idx == idx
-        st.button(
-            f"{emo['emoji']}", 
-            key=f"emo_{idx}", 
-            help=emo["label"],
-            on_click=set_emotion,
-            args=(idx, emo["color"]) # Truyền cả index và màu vào callback
-        )
+        if st.button(f"{emo['emoji']}", key=f"emo_{idx}", help=emo["label"]):
+            st.session_state.selected_emotion_idx = idx
+            st.session_state.emotion_note = ""
+            st.rerun()
         st.markdown(
             f"""
             <div class="bmcx-emotion-circle{' selected' if selected else ''}" style="background:{emo['color']};">
@@ -251,7 +223,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 canvas_result = st_canvas(
     fill_color="rgba(255, 165, 0, 0.3)",
     stroke_width=stroke_width,
-    stroke_color=st.session_state.stroke_color, # Lấy màu từ state
+    stroke_color=stroke_color,
     background_color=bg_color,
     height=500,
     drawing_mode=drawing_mode,
@@ -282,80 +254,56 @@ if st.session_state.selected_emotion_idx is not None:
     col1, col2 = st.columns([2,2])
     with col1:
         if st.button("🔊 Nghe động viên", key="tts_encourage"):
-            with st.spinner("Đang tạo âm thanh..."):
-                audio_data = generate_audio_bytes(emo['encourage'])
-                if audio_data:
-                    st.audio(audio_data, format="audio/mp3", autoplay=True)
+            audio_bytes = BytesIO()
+            tts = gTTS(text=emo['encourage'], lang='vi', slow=False)
+            tts.write_to_fp(audio_bytes)
+            audio_bytes.seek(0)
+            st.audio(audio_bytes.read(), format="audio/mp3")
 
-# --- 7. CẬP NHẬT LƯU VÀO DATABASE ---
+# --- Nhập ghi chú cảm xúc ---
 if st.session_state.selected_emotion_idx is not None:
-    emo = EMOTIONS[st.session_state.selected_emotion_idx] # Lấy lại emo
     st.markdown('<div class="bmcx-note-box">', unsafe_allow_html=True)
     st.markdown("#### 📝 Bạn muốn chia sẻ thêm về cảm xúc của mình không?")
     st.session_state.emotion_note = st.text_area(
         "",
         value=st.session_state.emotion_note,
         height=80,
-        placeholder="Bạn có thể mô tả lý do, hoàn cảnh hoặc ai ở bên bạn lúc này...",
-        key="emotion_note_input"
+        placeholder="Bạn có thể mô tả lý do, hoàn cảnh hoặc ai ở bên bạn lúc này..."
     )
     st.markdown('</div>', unsafe_allow_html=True)
     if st.button("💾 Lưu cảm xúc hôm nay", type="primary", use_container_width=True):
-        # LƯU VÀO DATABASE
-        try:
-            db.add_emotion_note(emo["label"], st.session_state.emotion_note)
-            st.success("✅ Đã lưu cảm xúc vào lịch sử của bạn!")
-            st.balloons()
-            
-            # Reset state
-            st.session_state.selected_emotion_idx = None
-            st.session_state.emotion_note = ""
-            st.rerun()
-        except Exception as e:
-            st.error(f"Lỗi khi lưu vào database: {e}")
+        now = datetime.now().strftime("%d/%m/%Y %H:%M")
+        st.session_state.emotion_history.append({
+            "emoji": emo["emoji"], "emotion": emo["label"], "note": st.session_state.emotion_note, "time": now
+        })
+        st.success("✅ Đã lưu cảm xúc vào lịch sử của bạn!")
+        st.balloons()
+        st.session_state.selected_emotion_idx = None
+        st.session_state.emotion_note = ""
+        st.rerun()
 
 st.write("---")
 
-# --- 8. CẬP NHẬT LẤY LỊCH SỬ TỪ DATABASE ---
+# --- Lịch sử cảm xúc ---
 st.markdown("### 📖 Lịch sử cảm xúc của bạn")
-if st.button("📖 Xem/Ẩn lịch sử", key="show_history_btn"):
+if st.button("📖 Xem lịch sử", key="show_history_btn"):
     st.session_state.show_history = not st.session_state.show_history
-
 if st.session_state.show_history:
-    try:
-        emotion_history = db.get_emotion_notes() # Lấy từ DB
-        if emotion_history:
-            st.write(f"Bạn có **{len(emotion_history)}** ghi chú cảm xúc đã lưu.")
-            for entry_id, emotion, note, timestamp in emotion_history:
-                # Lấy emoji tương ứng
-                emoji = "💖" # Mặc định
-                for emo_dict in EMOTIONS:
-                    if emo_dict["label"] == emotion:
-                        emoji = emo_dict["emoji"]
-                        break
-                
-                try:
-                    dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
-                    formatted_date = dt.strftime("%d/%m/%Y lúc %H:%M")
-                except:
-                    formatted_date = timestamp
-
-                st.markdown(
-                    f"""
-                    <div class="bmcx-history-box">
-                        <div style='font-size:2rem;display:inline-block;'>{emoji}</div>
-                        <span style='font-size:1.13rem;font-weight:700;margin-left:8px;color:#5d3fd3;'>{emotion}</span>
-                        <span style='font-size:1rem;color:#888;margin-left:12px;'>{formatted_date}</span>
-                        <div style='margin-top:0.6rem;'>{note if note else "<i>(Không có ghi chú)</i>"}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-        else:
-            st.info("Bạn chưa lưu cảm xúc nào. Hãy chọn và lưu cảm xúc nhé!")
-    except Exception as e:
-        st.error(f"Lỗi khi tải lịch sử từ database: {e}")
-
+    if st.session_state.emotion_history:
+        for item in reversed(st.session_state.emotion_history):
+            st.markdown(
+                f"""
+                <div class="bmcx-history-box">
+                    <div style='font-size:2rem;display:inline-block;'>{item['emoji']}</div>
+                    <span style='font-size:1.13rem;font-weight:700;margin-left:8px;color:#5d3fd3;'>{item['emotion']}</span>
+                    <span style='font-size:1rem;color:#888;margin-left:12px;'>{item['time']}</span>
+                    <div style='margin-top:0.6rem;'>{item['note'] if item['note'] else "<i>(Không có ghi chú)</i>"}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+    else:
+        st.info("Bạn chưa lưu cảm xúc nào hôm nay. Hãy chọn và lưu cảm xúc nhé!")
 
 # --- Footer ---
 st.markdown("""
@@ -364,3 +312,5 @@ st.markdown("""
     "Mỗi cảm xúc đều đáng trân trọng. Bạn hãy tự tin chia sẻ và chăm sóc cảm xúc của mình nhé! 🎨"
 </div>
 """, unsafe_allow_html=True)
+
+
