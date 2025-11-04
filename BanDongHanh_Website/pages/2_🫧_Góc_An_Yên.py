@@ -260,7 +260,7 @@ def show_virtual_assistant():
 st.title("🫧 Góc An Yên")
 
 # --- 8. SỬA LỖI ĐƯỜNG DẪN LINK ---
-st.page_link("0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
 
 show_virtual_assistant()
 st.write("---")
