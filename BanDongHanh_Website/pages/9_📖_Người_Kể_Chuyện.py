@@ -1,28 +1,23 @@
+# pages/9_📖_Người_Kể_Chuyện.py
 import streamlit as st
 import random
 from gtts import gTTS
 from io import BytesIO
-import style # <-- 1. IMPORT STYLE
 
 # --- CẤU HÌNH TRANG ---
-st.set_page_config(
-    page_title="Người Kể Chuyện", 
-    page_icon="📖", 
-    layout="wide",
-    initial_sidebar_state="collapsed" # <-- 2. ẨN SIDEBAR
-)
-
-# --- 3. ÁP DỤNG CSS CHUNG ---
-style.apply_global_style()
+st.set_page_config(page_title="Người Kể Chuyện", page_icon="📖", layout="wide")
 
 # --- CSS GIAO DIỆN ---
 st.markdown("""
 <style>
-/* --- 4. XÓA CSS BUTTON CỤC BỘ --- */
-/* (Khối .stButton > button đã bị xóa
-   để file style.py chung quản lý, giúp tương thích ĐT) */
-
-/* --- Giữ lại CSS tùy chỉnh của trang --- */
+.stButton > button {
+    padding: 0.8rem 1.2rem; font-size: 1.15rem; font-weight: 600; width: 100%;
+    margin-bottom: 0.7rem; border-radius: 12px; border: 2px solid #b39ddb;
+    background-color: #f9f9fb; color: #6d28d9;
+}
+.stButton > button:hover {
+    background-color: #f3e8ff; border-color: #5d3fd3; color: #5d3fd3;
+}
 .nkc-title-feature {
     font-size: 2.6rem; font-weight: 700; color: #5d3fd3; text-align: center;
     margin-bottom: 1.4rem; margin-top: 0.7rem; display: flex; align-items: center;
@@ -37,28 +32,10 @@ st.markdown("""
 }
 .nkc-assist-icon { font-size: 3.2rem; margin-bottom: 0.7rem; }
 .nkc-assist-text { font-size: 1.7rem; font-weight: 700; color: #6d28d9; margin-bottom: 1.1rem; }
-
-/* --- 5. THÊM CSS TƯƠNG THÍCH ĐIỆN THOẠI --- */
-@media (max-width: 900px) {
-    .nkc-title-feature {
-        font-size: 1.8rem; /* Thu nhỏ tiêu đề */
-    }
-    .nkc-assist-bigbox {
-        padding: 2rem 1rem 1rem 1rem; 
-        max-width: 96vw;
-    }
-    .nkc-assist-text {
-        font-size: 1.3rem; /* Thu nhỏ text trợ lý */
-    }
-    /* Tăng cỡ chữ nội dung truyện trên đt cho dễ đọc */
-    .story-content p {
-        font-size: 1.1rem !important;
-    }
-}
 </style>
 """, unsafe_allow_html=True)
 
-# --- NỘI DUNG TRUYỆN (Giữ nguyên) ---
+# --- NỘI DUNG TRUYỆN (ĐÃ PHỤC HỒI ĐẦY ĐỦ) ---
 @st.cache_data
 def load_stories():
     return {
@@ -130,11 +107,9 @@ with col2:
         tts = gTTS(text=msg, lang='vi', slow=False)
         tts.write_to_fp(audio_bytes)
         audio_bytes.seek(0)
-        # Thêm autoplay
-        st.audio(audio_bytes.read(), format="audio/mp3", autoplay=True) 
+        st.audio(audio_bytes.read(), format="audio/mp3")
 
-# --- 6. CẬP NHẬT LINK QUAY VỀ TRANG CHỦ ---
-st.page_link("0_💖_Trang_chủ.py", label="⬅️ 🏠 Quay về Trang chủ", icon="🏠")
+st.markdown("⬅️ [Quay về Trang chủ](/)", unsafe_allow_html=True)
 st.write("---")
 
 selected_category = st.selectbox(
@@ -147,8 +122,7 @@ if selected_category:
     st.subheader(f"Các câu chuyện về {selected_category.lower()}:")
     for i, story in enumerate(STORIES[selected_category]):
         with st.expander(f"**{story['title']}**"):
-            # Thêm class 'story-content'
-            st.markdown(f"<div class='story-content'><p style='font-size: 1.1rem; line-height: 1.6;'>{story['content']}</p></div>", unsafe_allow_html=True)
+            st.markdown(f"<p style='font-size: 1.1rem; line-height: 1.6;'>{story['content']}</p>", unsafe_allow_html=True)
             
             if st.button("Nghe truyện 🎧", key=f"listen_{selected_category}_{i}"):
                 with st.spinner("Đang chuẩn bị âm thanh..."):
@@ -158,6 +132,6 @@ if selected_category:
                         fp = BytesIO()
                         tts.write_to_fp(fp)
                         fp.seek(0)
-                        st.audio(fp, format="audio/mp3", autoplay=True) # Thêm autoplay
+                        st.audio(fp, format="audio/mp3")
                     except Exception as e:
                         st.error(f"Lỗi khi tạo âm thanh: {e}")
