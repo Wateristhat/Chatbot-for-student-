@@ -47,8 +47,40 @@ def load_stories():
             {
                 "title": "Chuyện tảng đá",
                 "content": "Một chàng trai trẻ liên tục thất bại nên rất chán nản. Anh đến hỏi một ông lão thông thái. Ông lão đưa anh một hòn đá và nói: 'Cậu hãy mang hòn đá này ra chợ bán, nhưng không được bán nó, chỉ cần xem người ta trả giá bao nhiêu.' Ở chợ, người ta chỉ trả vài đồng. Ông lão lại bảo anh mang vào tiệm vàng, ông chủ tiệm trả giá 500 đồng. Cuối cùng, anh mang đến một chuyên gia đá quý, người này hét lên: 'Đây là một viên ngọc quý hiếm, vô giá!'. Ông lão nói: 'Cuộc đời con cũng giống như hòn đá này. Giá trị của con không phải do người khác quyết định, mà do con đặt mình vào đâu.'"
+            },
+            {
+                "title": "Góc nhìn của con mèo",
+                "content": "Một con mèo đuổi bắt một cái đuôi không ngừng nghỉ. Nó rất thất vọng vì không thể bắt được. Một con mèo già nằm đó nói: 'Cháu đừng cố gắng bắt đuôi nữa. Hãy cứ đứng yên, và cái đuôi sẽ tự đến với cháu.' Bài học: Khi chúng ta quá tập trung vào mục tiêu bên ngoài, chúng ta sẽ bỏ lỡ những điều đang ở ngay bên trong mình. Hãy sống chậm lại và tận hưởng hiện tại."
+            },
+            {
+                "title": "Hai người đẽo tượng",
+                "content": "Hai người thợ đẽo tượng cùng làm việc trên một tảng đá. Người thứ nhất đẽo vội vàng, nhưng tượng bị lỗi. Người thứ hai kiên nhẫn, điêu khắc từng chút một và tạo ra một tác phẩm vĩ đại. Bài học: Sự vội vã chỉ dẫn đến sai lầm. Hãy kiên nhẫn và dành đủ thời gian cho những mục tiêu lớn trong đời."
+            },
+            {
+                "title": "Tấm gương trong suốt",
+                "content": "Một tấm gương bị dính đầy bụi, không thể phản chiếu rõ ràng. Nó than thở với người chủ. Người chủ bảo: 'Ngươi không cần phải làm gì cả. Chỉ cần đợi ta lau sạch bụi bặm đi thôi'. Bài học: Tâm trí của chúng ta cũng vậy. Khi chúng ta cảm thấy bối rối hay không rõ ràng, điều cần làm không phải là cố gắng tìm câu trả lời, mà là loại bỏ sự căng thẳng và lo lắng (bụi bặm) để tâm trí tự nhiên trở nên trong sáng."
             }
         ],
+        "Truyện ngụ ngôn": [
+            {
+                "title": "Ếch ngồi đáy giếng",
+                "content": "Có một con ếch sống lâu năm trong một cái giếng. Nó nhìn lên và chỉ thấy một khoảng trời bé bằng miệng giếng. Nó tự hào nghĩ rằng bầu trời chỉ to có vậy. Một ngày, trời mưa to, nước giếng dâng lên và đưa ếch ra ngoài. Lần đầu tiên, nó thấy một bầu trời rộng lớn bao la và nhận ra sự hiểu biết hạn hẹp của mình. Bài học: Môi trường sống hạn hẹp có thể che lấp tầm nhìn của chúng ta. Đừng vội cho rằng những gì mình biết là tất cả."
+            },
+            {
+                "title": "Cáo và chùm nho",
+                "content": "Một con cáo đói đi qua một vườn nho. Nó thấy một chùm nho chín mọng lủng lẳng trên giàn cao. Cáo nhảy lên nhiều lần nhưng không thể với tới. Cuối cùng, nó bỏ đi và tự nhủ: 'Nho còn xanh lắm, ăn vào chỉ chua thôi!'. Bài học: Nhiều người thường chê bai những thứ họ không thể đạt được để tự an ủi bản thân."
+            }
+        ],
+        "Truyện chữa lành": [
+            {
+                "title": "Dòng sông không vội vã",
+                "content": "Không một dòng sông nào vội vã. Nó chảy theo nhịp điệu của riêng mình, lúc êm đềm, lúc cuộn trào, nhưng luôn tiến về phía trước. Dòng sông biết rằng, rồi nó sẽ đến được biển lớn. Hãy sống như một dòng sông, chấp nhận mọi khúc quanh của cuộc đời và tin tưởng vào hành trình của chính mình. Đừng so sánh tốc độ của bạn với người khác, vì mỗi người đều có một con đường riêng."
+            },
+            {
+                "title": "Chiếc bình nứt",
+                "content": "Một người gánh nước có hai chiếc bình, một chiếc lành lặn và một chiếc bị nứt. Chiếc bình nứt luôn cảm thấy tự ti vì nó chỉ giữ được một nửa phần nước. Một ngày, nó xin lỗi người chủ. Người chủ mỉm cười và nói: 'Con có thấy những luống hoa xinh đẹp bên đường không? Đó là nhờ ta đã gieo hạt ở phía bên con. Mỗi ngày, những giọt nước từ vết nứt của con đã tưới cho chúng'. Bài học: Những khuyết điểm của bạn có thể lại là điều tạo nên vẻ đẹp và giá trị riêng biệt mà bạn không ngờ tới."
+            },
+        ]
         "Truyện ngụ ngôn": [
             {
                 "title": "Ếch ngồi đáy giếng",
