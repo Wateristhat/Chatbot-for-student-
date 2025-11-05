@@ -16,6 +16,7 @@ st.markdown("""
 .gn-assist-text {font-size:1.7rem; font-weight:700; color:#6d28d9; margin-bottom:1.1rem;}
 
 /* --- CSS ĐỂ LÀM CÁC NÚT BẤM TO HƠN --- */
+/* Cập nhật stButton để thêm style cho Nút Đỏ */
 .stButton > button {
     padding: 0.8rem 1.2rem;
     font-size: 1.15rem;
@@ -29,6 +30,22 @@ st.markdown("""
 .stButton > button:hover {
     background-color: #f3e8ff;
     border-color: #b39ddb;
+}
+
+/* Style riêng cho nút ĐỎ (thêm hoạt động) */
+#add_activity_btn > button {
+    background-color: #ff6347 !important; /* Màu đỏ nổi bật, tương tự như hình */
+    color: white !important;
+    font-weight: 700;
+    border: none;
+    padding: 1rem 1.2rem;
+    font-size: 1.2rem;
+    border-radius: 12px;
+    margin-top: 0.5rem; /* Tách biệt với input field */
+}
+#add_activity_btn > button:hover {
+    background-color: #ff4d4d !important;
+    box-shadow: 0 4px 12px rgba(255, 99, 71, 0.4);
 }
 
 /* CSS cho ô input tùy chỉnh */
@@ -75,7 +92,7 @@ with col2:
         st.session_state.assistant_message = f"🤖 Trợ lý ảo: {motivation}"
         st.session_state.assistant_mode = "motivation"
 
-# --- ACTION LIST DATA (Đã loại bỏ trùng lặp trong khai báo) ---
+# --- ACTION LIST DATA ---
 RO_ACTIONS = [
     {"text": "Uống một ly nước đầy", "icon": "💧"},
     {"text": "Vươn vai và duỗi người trong 1 phút", "icon": "🤸‍♀️"},
@@ -86,7 +103,7 @@ RO_ACTIONS = [
     {"text": "Sắp xếp lại góc học tập/làm việc", "icon": "📚"},
     {"text": "Mỉm cười với chính mình trong gương", "icon": "😊"},
 ]
-unique_ro_actions = RO_ACTIONS # Vì đã dọn dẹp data, không cần vòng lặp loại trùng lặp nữa
+unique_ro_actions = RO_ACTIONS
 
 # --- CHIA ĐỀU 2 CỘT ---
 half = (len(unique_ro_actions)+1) // 2
@@ -127,12 +144,7 @@ for idx, col_actions in enumerate([left_col_actions, right_col_actions]):
             btn_label = f'{act["icon"]} {act["text"]}'
             btn_key = f"action_{act['icon']}_{act['text']}"
             
-            # Thêm CSS để làm mờ nút đã chọn (Optional: nên dùng CSS class cho sạch)
-            btn_style = "opacity: 0.6; cursor: default;" if is_selected else ""
-            
-            # Sử dụng HTML/CSS để thêm style nếu nút đã được chọn (Streamlit button không hỗ trợ style)
-            # Tạm thời giữ nguyên st.button và rely on st.rerun()
-            if st.button(btn_label, key=btn_key):
+            if st.button(btn_label, key=btn_key, disabled=is_selected): # Disable nút đã chọn
                 if not is_selected:
                     st.session_state.selected_actions.append(act["text"])
                 st.rerun()
@@ -142,14 +154,12 @@ if st.session_state.selected_actions:
     st.markdown('<div style="font-size:1.08rem;font-weight:600;color:#333;margin-top:1rem;margin-bottom:0.3rem;text-align:center;">📋 Danh sách việc đã chọn hôm nay:</div>', unsafe_allow_html=True)
     all_done = True
     for i, action_text in enumerate(st.session_state.selected_actions):
-        # Gán icon mặc định nếu là hoạt động tùy chỉnh
         action_icon = next((a["icon"] for a in unique_ro_actions if a["text"] == action_text), "💖") 
         done_key = f"done_{action_text}"
         if done_key not in st.session_state:
             st.session_state[done_key] = False
         is_done = st.session_state[done_key]
         
-        # Bắt đầu cột hiển thị
         cols_done = st.columns([0.12, 0.8, 0.08])
         with cols_done[0]:
             new_state = st.checkbox("", value=is_done, key=f"cb_{action_text}_{i}")
@@ -161,7 +171,6 @@ if st.session_state.selected_actions:
         with cols_done[2]:
             st.markdown(f"<span style='margin-left:auto;font-size:1.1rem;'>{'✅' if is_done else '⬜'}</span>", unsafe_allow_html=True)
             
-        # Xử lý trạng thái Checkbox
         if new_state != is_done:
             if new_state:
                 st.toast(f"🎉 Tuyệt vời! Bạn đã hoàn thành: {action_text}", icon="🌟")
@@ -169,7 +178,7 @@ if st.session_state.selected_actions:
             else:
                 st.toast(f"📝 Đã bỏ đánh dấu: {action_text}", icon="ℹ️")
             st.session_state[done_key] = new_state
-            st.rerun() # Thêm rerun để cập nhật icon nhanh chóng
+            st.rerun() 
 
         if not new_state:
             all_done = False
@@ -181,26 +190,37 @@ if st.session_state.selected_actions:
         )
         st.balloons()
 
-# --- Hàm xử lý khi nhấn Enter trong ô nhập liệu tùy chỉnh ---
+# --- Hàm xử lý khi nhấn Enter (input) hoặc Nút Đỏ (button) ---
 def add_custom_activity():
     # Lấy nội dung từ input
+    # Vì on_change kích hoạt hàm này, nó sử dụng key của input
     new_activity = st.session_state.custom_activity_input.strip()
+    
     # Kiểm tra không rỗng và chưa có trong danh sách
     if new_activity and new_activity not in st.session_state.selected_actions:
         st.session_state.selected_actions.append(new_activity)
         st.session_state.custom_activity_input = "" # Xóa nội dung input sau khi thêm
         st.rerun() # Re-run để cập nhật danh sách
 
-# --- KHUNG NHẬP HOẠT ĐỘNG TÙY CHỈNH (1B) - Vị trí mới (Dưới 2B, trên 3) ---
-st.markdown('<div class="custom-input-style" style="margin-top:1.2rem; margin-bottom:1.5rem;">', unsafe_allow_html=True)
+# --- KHUNG NHẬP HOẠT ĐỘNG TÙY CHỈNH (1B) ---
+st.markdown('<div class="custom-input-style" style="margin-top:1.2rem; margin-bottom:0.5rem;">', unsafe_allow_html=True)
+
+# 1. Khung Input (Placeholder đã chỉnh sửa)
 st.text_input(
     label="Thêm một hoạt động mới vào danh sách:",
-    placeholder="✍️ Nhập hoạt động bạn muốn làm và nhấn Enter...",
+    placeholder="🚀 Nhập hoạt động bạn muốn làm...", # Bỏ "và nhấn Enter"
     key="custom_activity_input",
-    on_change=add_custom_activity
+    on_change=add_custom_activity # Vẫn giữ on_change để xử lý Enter
 )
+st.markdown('</div>', unsafe_allow_html=True)
+
+# 2. Nút Đỏ (Kích thước bằng input)
+st.markdown('<div id="add_activity_btn">', unsafe_allow_html=True)
+if st.button("✨ Thêm hoạt động vào danh sách", key="add_activity_button", on_click=add_custom_activity):
+    # Hàm add_custom_activity sẽ được gọi khi nhấn nút
+    pass
 st.markdown('</div>', unsafe_allow_html=True)
 
 
 # --- Footer động viên (3) ---
-st.markdown('<div style="background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:10px;padding:0.7rem 1rem;text-align:center;font-size:0.98rem;margin:0.3rem 0 1.1rem 0;color:#333;">💜 <strong>Nhớ nhé:</strong> Mỗi hành động nhỏ đều là một bước tiến lớn trong việc chăm sóc bản thân. Hãy kiên nhẫn và yêu thương chính mình! 💜</div>', unsafe_allow_html=True)
+st.markdown('<div style="background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:10px;padding:0.7rem 1rem;text-align:center;font-size:0.98rem;margin:1.5rem 0 1.1rem 0;color:#333;">💜 <strong>Nhớ nhé:</strong> Mỗi hành động nhỏ đều là một bước tiến lớn trong việc chăm sóc bản thân. Hãy kiên nhẫn và yêu thương chính mình! 💜</div>', unsafe_allow_html=True)
