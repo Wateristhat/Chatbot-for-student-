@@ -256,10 +256,10 @@ if "select_emotion" in query_params:
             st.session_state.selected_emotion_idx = selected_idx
             st.session_state.emotion_note = ""
         # Xóa query param sau khi xử lý
-        st.query_params.clear()
-        st.rerun()
+       del st.query_params["select_emotion"]
     except (ValueError, TypeError):
-        st.query_params.clear()
+       if "select_emotion" in st.query_params:
+            del st.query_params["select_emotion"]
 
 # Bắt đầu HỘP BẢNG MÀU (Giữ nguyên class của bạn)
 st.markdown('<div class="bmcx-palette-box">', unsafe_allow_html=True)
