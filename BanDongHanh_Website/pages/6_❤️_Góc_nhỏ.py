@@ -201,15 +201,15 @@ if st.session_state.selected_actions:
 
 # --- Hàm xử lý khi nhấn Enter (input) hoặc Nút Đỏ (button) ---
 def add_custom_activity():
-    # Lấy nội dung từ input
-    # Vì on_change kích hoạt hàm này, nó sử dụng key của input
-    new_activity = st.session_state.custom_activity_input.strip()
-    
-    # Kiểm tra không rỗng và chưa có trong danh sách
-    if new_activity and new_activity not in st.session_state.selected_actions:
-        st.session_state.selected_actions.append(new_activity)
-        st.session_state.custom_activity_input = "" # Xóa nội dung input sau khi thêm
-        st.rerun() # Re-run để cập nhật danh sách
+    # Lấy nội dung từ input
+    # Vì on_change kích hoạt hàm này, nó sử dụng key của input
+    new_activity = st.session_state.custom_activity_input.strip()
+    
+    # Kiểm tra không rỗng và chưa có trong danh sách
+    if new_activity and new_activity not in st.session_state.selected_actions:
+        st.session_state.selected_actions.append(new_activity)
+        st.session_state.custom_activity_input = "" # Xóa nội dung input sau khi thêm
+        st.rerun() # Re-run để cập nhật danh sách
 
 # --- KHUNG NHẬP HOẠT ĐỘNG TÙY CHỈNH (1B) ---
 
