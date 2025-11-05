@@ -290,7 +290,7 @@ for idx, (col, emo) in enumerate(zip(cols, EMOTIONS)):
             # Đây là "nút bấm ma"
             # Nó trong suốt, nằm đè lên trên và nhận click
             st.button(
-                label=f"select_{idx}", # Label ẩn, chỉ dùng cho key
+                label=emo['emoji'], # Label ẩn, chỉ dùng cho key
                 on_click=select_emotion,
                 args=[idx],
                 key=f"btn_emo_{idx}",
