@@ -9,12 +9,21 @@ import subprocess
 import requests
 from gtts import gTTS
 from io import BytesIO
-import style # <-- 2. IMPORT STYLE
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database import add_mood_entry, get_mood_entries
 
-# --- 3. XÓA CSS BUTTON CỤC BỘ ---
-# (Khối CSS .stButton > button ở đầu đã bị xóa)
+# --- 2. GIỮ NGUYÊN CSS BUTTON CỤC BỘ (VÌ KHÔNG DÙNG style.py) ---
+st.markdown("""
+<style>
+.stButton > button {
+    font-size: 1.5rem !important;      /* Tăng cỡ chữ lên 1.5 lần */
+    padding: 1.8rem 3.6rem !important;  /* Tăng chiều cao & chiều ngang nút */
+    border-radius: 18px !important;      /* Bo tròn nút */
+    min-width: 220px;                   /* Đặt chiều rộng tối thiểu lớn hơn */
+    min-height: 68px;                   /* Đặt chiều cao tối thiểu lớn hơn */
+}
+</style>
+""", unsafe_allow_html=True)
 
 # Check TTS availability
 try:
@@ -29,7 +38,7 @@ try:
 except ImportError:
     EDGE_TTS_AVAILABLE = False
 
-# --- 4. SỬA LỖI CẤU HÌNH TRANG (THÊM DẤU PHẨY VÀ COLLAPSED) ---
+# --- 3. SỬA LỖI CẤU HÌNH TRANG (THÊM DẤU PHẨY VÀ COLLAPSED) ---
 st.set_page_config(
     page_title="Góc An Yên", 
     page_icon="🫧", 
@@ -37,10 +46,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed" # <-- SỬA LỖI Ở ĐÂY
 )
 
-# --- 5. ÁP DỤNG CSS CHUNG ---
-style.apply_global_style()
-
-# --- 6. XÓA CSS SIDEBAR CỤC BỘ GÂY LỖI ---
+# --- 4. XÓA CSS SIDEBAR CỤC BỘ GÂY LỖI ---
 # (Khối st.markdown(""" <style> [data-testid="stSidebar"] { ... } </style> """) đã bị xóa)
 
 # --- CÁC THÔNG ĐIỆP ĐỘNG VIÊN NGẪU NHIÊN ---
@@ -51,11 +57,7 @@ ENCOURAGEMENT_MESSAGES = [
 ]
 ASSISTANT_AVATARS = ["🤖", "😊", "🌟", "💙", "🌸", "✨"]
 
-# --- HÀM TEXT-TO-SPEECH CẢI TIẾN (Giữ nguyên logic của bạn) ---
-# (Các hàm validate_text_input, check_network, gtts_with_diagnostics,
-# edge_tts_with_diagnostics, text_to_speech_enhanced, get_error_message,
-# create_tts_button_enhanced, create_tts_button, text_to_speech...
-# được giữ nguyên)
+# --- HÀM TEXT-TO-SPEECH CẢI TIẾN ---
 
 def validate_text_input(text):
     if text is None: return False, "", "text_is_none"
@@ -66,30 +68,57 @@ def validate_text_input(text):
         if len(cleaned_text) < 2: return False, "", "text_too_short"
         return True, cleaned_text, "valid"
     except Exception as e: return False, "", "text_validation_error"
+
 def check_network_connectivity():
     try:
         response = requests.get("https://translate.google.com", timeout=3)
         return response.status_code == 200
     except: return False
+
+# --- 5. SỬA LỖI ÂM THANH: DÙNG TEMPFILE THAY VÌ BYTESIO ---
 def gtts_with_diagnostics(text):
-    if not GTTS_AVAILABLE: return None, "gTTS không có sẵn"
+    """Tạo âm thanh bằng gTTS (SỬA LẠI DÙNG TEMPFILE cho điện thoại)"""
+    if not GTTS_AVAILABLE:
+        return None, "gTTS không có sẵn trong hệ thống"
+    
     is_valid, cleaned_text, validation_error = validate_text_input(text)
-    if not is_valid: return None, validation_error
-    if not check_network_connectivity(): return None, "network_error"
+    if not is_valid:
+        print(f"[gTTS] Input validation failed: {validation_error}")
+        return None, validation_error
+    
+    if not check_network_connectivity():
+        return None, "network_error"
+    
+    temp_path = "" # Khởi tạo
     try:
-        audio_bytes = BytesIO()
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
+            temp_path = tmp_file.name
         tts = gTTS(text=cleaned_text, lang='vi', slow=False)
-        tts.write_to_fp(audio_bytes)
-        audio_bytes.seek(0)
-        audio_data = audio_bytes.read()
-        if audio_data and len(audio_data) > 0: return audio_data, "success"
-        else: return None, "no_audio_generated"
+        tts.save(temp_path)
+        
+        if os.path.exists(temp_path) and os.path.getsize(temp_path) > 0:
+            with open(temp_path, 'rb') as f:
+                audio_data = f.read()
+            try: os.unlink(temp_path)
+            except: pass
+            return audio_data, "success"
+        else:
+            try: os.unlink(temp_path)
+            except: pass
+            return None, "no_audio_generated"
+            
     except Exception as e:
+        if temp_path and os.path.exists(temp_path):
+            try: os.unlink(temp_path)
+            except: pass
         error_str = str(e).lower()
         if "connection" in error_str: return None, "network_error"
         else: return None, f"unknown_error: {str(e)}"
+
 def edge_tts_with_diagnostics(text, voice="vi-VN-HoaiMyNeural", rate=0):
-    if not EDGE_TTS_AVAILABLE: return None, "edge_tts_not_available"
+    if not EDGE_TTS_AVAILABLE:
+        return None, "edge_tts_not_available"
+    temp_path = ""
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
             temp_path = temp_file.name
@@ -101,8 +130,16 @@ def edge_tts_with_diagnostics(text, voice="vi-VN-HoaiMyNeural", rate=0):
             try: os.unlink(temp_path)
             except: pass
             return audio_data, "success"
-        else: return None, "no_audio_file_generated"
-    except Exception as e: return None, f"edge_tts_error: {str(e)}"
+        else:
+            try: os.unlink(temp_path)
+            except: pass
+            return None, "no_audio_file_generated"
+    except Exception as e:
+        if temp_path and os.path.exists(temp_path):
+            try: os.unlink(temp_path)
+            except: pass
+        return None, f"edge_tts_error: {str(e)}"
+
 @st.cache_data
 def text_to_speech_enhanced(text):
     is_valid, cleaned_text, validation_error = validate_text_input(text)
@@ -115,24 +152,31 @@ def text_to_speech_enhanced(text):
         if audio_data: return audio_data, "success_gtts"
         else: return None, error_code
     return None, "no_tts_available"
+    
 def get_error_message(error_code):
     error_messages = { "text_is_none": "💭 Chưa có nội dung để đọc.", "network_error": "🌐 Không thể kết nối internet.", }
     if error_code.startswith("unknown_error:"): return "🔍 Có lỗi không xác định."
     return error_messages.get(error_code, f"🔊 Lỗi âm thanh ({error_code}).")
+
 def create_tts_button_enhanced(text, key_suffix, button_text="🔊 Đọc to"):
     is_valid, cleaned_text, validation_error = validate_text_input(text)
     if not is_valid: return
+    
     if st.button(button_text, key=f"tts_enhanced_{key_suffix}", help="Nhấn để nghe nội dung"):
         with st.spinner("🎵 Đang tạo âm thanh..."):
             audio_data, result_code = text_to_speech_enhanced(text)
+            
             if audio_data and result_code.startswith("success"):
                 if "edge_tts" in result_code: st.success("🎵 Đã tạo âm thanh bằng Edge TTS")
                 else: st.success("🎵 Đã tạo âm thanh bằng Google TTS")
-                st.audio(audio_data, format="audio/mp3", autoplay=True)
+                
+                # --- 6. SỬA LỖI ÂM THANH: XÓA AUTOPLAY=TRUE ---
+                st.audio(audio_data, format="audio/mp3") 
             else:
                 error_msg = get_error_message(result_code)
                 if "network" in result_code.lower(): st.error(error_msg)
                 else: st.info(error_msg)
+
 def create_tts_button(text, key_suffix, button_text="🔊 Đọc to"):
     create_tts_button_enhanced(text, key_suffix, button_text)
 @st.cache_data  
@@ -144,52 +188,39 @@ def text_to_speech(text):
 # --- CSS CHO GIAO DIỆN THÂN THIỆN ---
 st.markdown("""
 <style>
-    /* (CSS .stButton > button đã bị xóa) */
+    /* (CSS .stButton > button đã bị xóa khỏi đây) */
+
     .assistant-card {
         background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
-        border-radius: 20px;
-        padding: 2rem;
-        margin: 1.5rem 0;
+        border-radius: 20px; padding: 2rem; margin: 1.5rem 0;
         border: 3px solid #e1bee7;
         box-shadow: 0 6px 20px rgba(156,39,176,0.3);
         animation: gentleGlow 3s ease-in-out infinite alternate;
-        position: relative;
-        overflow: hidden;
+        position: relative; overflow: hidden;
     }
     .assistant-card::before {
-        content: '';
-        position: absolute;
+        content: ''; position: absolute;
         top: -2px; left: -2px; right: -2px; bottom: -2px;
         background: linear-gradient(45deg, #9c27b0, #e91e63, #2196f3, #4caf50);
-        border-radius: 22px;
-        z-index: -1;
+        border-radius: 22px; z-index: -1;
         animation: borderGlow 4s linear infinite;
     }
     @keyframes borderGlow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     @keyframes gentleGlow { from { box-shadow: 0 4px 15px rgba(0,0,0,0.1); } to { box-shadow: 0 6px 20px rgba(156,39,176,0.2); } }
     .assistant-avatar {
-        font-size: 4rem;
-        display: block;
-        text-align: center;
-        margin-bottom: 1rem;
-        animation: bounce 2s infinite;
+        font-size: 4rem; display: block; text-align: center;
+        margin-bottom: 1rem; animation: bounce 2s infinite;
         filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     }
     @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(-5px); } }
     .assistant-message {
-        text-align: center;
-        font-size: 1.3rem;
-        font-weight: 700;
-        color: #4a148c;
-        margin-bottom: 1.5rem;
-        line-height: 1.8;
+        text-align: center; font-size: 1.3rem; font-weight: 700;
+        color: #4a148c; margin-bottom: 1.5rem; line-height: 1.8;
         text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
     }
     .exercise-card {
         background: linear-gradient(145deg, #fff3e0 0%, #e8f5e8 100%);
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin: 1rem 0;
+        border-radius: 15px; padding: 1.5rem; margin: 1rem 0;
         border-left: 5px solid #4caf50;
         box-shadow: 0 3px 10px rgba(0,0,0,0.1);
     }
@@ -209,6 +240,33 @@ st.markdown("""
         font-size: 1.1rem; line-height: 1.8;
     }
     
+    /* --- 7. THÊM CSS TƯƠNG THÍCH ĐIỆN THOẠI --- */
+    @media (max-width: 900px) {
+        .assistant-card {
+            padding: 1.5rem 1rem;
+            max-width: 96vw;
+        }
+        .assistant-avatar {
+            font-size: 3rem;
+        }
+        .assistant-message {
+            font-size: 1.1rem;
+        }
+        .exercise-card, .inclusive-instruction, .progress-container, .assistant-card {
+            padding: 1rem 0.8rem;
+            font-size: 1rem;
+            max-width: 96vw;
+        }
+        .inclusive-instruction h4 {
+            font-size: 1.1rem;
+        }
+        /* Làm cho nút to ban đầu nhỏ lại trên điện thoại */
+        .stButton > button {
+            font-size: 1.1rem !important;
+            padding: 1rem 1.5rem !important;
+            min-height: 50px !important;
+        }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -400,7 +458,7 @@ with tab2:
                     time.sleep(1); st.rerun()
                 else: st.warning("Vui lòng nhập cảm nhận của bạn trước khi lưu!")
         with col2:
-            if st.button("❌ Hủy", key="cancel_543", use_container_width=True):
+            if st.button("❌ Hủy", key="cancel_observation", use_container_width=True): # Sửa key
                 st.session_state.show_543_sharing = False
                 st.rerun()
 
