@@ -299,6 +299,8 @@ for idx, (col, emo) in enumerate(zip(cols, EMOTIONS)):
 
 # Tiêm CSS để làm cho nút bấm trong suốt và đè lên trên
 # Đồng thời đảm bảo CSS của bạn vẫn hoạt động
+# Tiêm CSS để làm cho nút bấm trong suốt và đè lên trên
+# Đồng thời đảm bảo CSS của bạn vẫn hoạt động
 st.markdown("""
 <style>
     /* CSS cho các nút bấm ma */
@@ -309,10 +311,13 @@ st.markdown("""
         width: 100%;
         height: 100%;
         
-        /* Làm cho nút trong suốt */
-        background: transparent;
-        border: none;
-        color: transparent;
+        /* * LÀM CHO NÚT TRONG SUỐT (Thêm !important)
+         * !important sẽ ép các nút này phải trong suốt,
+         * bất kể CSS khác của bạn.
+        */
+        background: transparent !important;
+        border: none !important;
+        color: transparent !important; /* Dòng này sẽ ẩn chữ "select_0" */
         
         /* Bỏ hiệu ứng hover/active của nút gốc */
         box-shadow: none !important; 
