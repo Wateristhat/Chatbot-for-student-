@@ -4,7 +4,7 @@ import random
 from datetime import datetime
 from gtts import gTTS
 from io import BytesIO
-    
+   
 st.set_page_config(page_title="🎨 Bảng Màu Cảm Xúc", page_icon="🎨", layout="wide")
 
 # --- CSS giao diện pastel trải ngang, đồng bộ Góc An Yên ---
@@ -57,6 +57,54 @@ st.markdown("""
     background:#f3e5f5; border-left:5px solid #ba68c8; border-radius:15px; padding:1rem 1.3rem;
     text-align:center; font-size:1.13rem; margin:0.7rem 0 1rem 0; color:#333; max-width:1200px; margin-left:auto; margin-right:auto;
 }
+/* --- BẮT ĐẦU CODE FIX RESPONSIVE (Dán vào đây) --- */
+
+/* Bọc ngoài 7 mục, dùng flexbox cho desktop */
+.emotion-grid-container {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-around;
+    padding: 1.5rem 0.5rem;
+}
+
+/* Từng mục cảm xúc (gồm vòng tròn + chữ) */
+.emotion-grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none !important; /* Bỏ gạch chân của link */
+    color: #222;
+}
+.emotion-grid-item .bmcx-emotion-label {
+    text-decoration: none !important;
+}
+
+/* Đoạn media query này chính là yêu cầu của bạn.
+   Khi màn hình <= 768px (điện thoại), nó sẽ được áp dụng.
+*/
+@media (max-width: 768px) {
+    .emotion-grid-container {
+        /* Chuyển sang CSS Grid */
+        display: grid;
+        
+        /* Yêu cầu 2 cột */
+        grid-template-columns: 1fr 1fr;
+        
+        /* Khoảng cách giữa các ô */
+        gap: 24px;
+        padding: 1rem;
+    }
+    
+    .bmcx-emotion-circle {
+        /* Cho vòng tròn nhỏ lại một chút trên di động */
+        width: 100px;
+        height: 100px;
+        font-size: 2rem;
+    }
+}
+/* --- KẾT THÚC CODE FIX RESPONSIVE --- */
+
+/* Dòng @media (max-width:900px) { ... } có sẵn của bạn nằm ở đây */
 /* --- CSS ĐỂ LÀM CÁC NÚT BẤM TO HƠN --- */
 .stButton > button {
     padding: 0.8rem 1.2rem;
@@ -74,62 +122,9 @@ st.markdown("""
     border-color: #5d3fd3;
     color: #5d3fd3;
 }
-
-/* --- BẮT ĐẦU CSS MỚI (Trượt ngang + Ghi chú) --- */
-
-/* 1. Ẩn ghi chú trượt trên desktop */
-.scroll-tip {
-    display: none;
-}
-
-@media (max-width: 768px) {
-    
-    /* 2. HIỆN GHI CHÚ TRƯỢT NGANG (chỉ trên mobile) */
-    .scroll-tip {
-        display: block;
-        font-size: 0.9rem;
-        color: #555;
-        margin-top: -10px; /* Kéo lên gần title */
-        margin-bottom: 15px;
-    }
-
-    /* 3. CSS ĐỂ TRƯỢT NGANG (st.columns) */
-    /* === SỬA LỖI DUY NHẤT Ở ĐÂY: THAY DẤU + BẰNG DẤU ~ === */
-    .scroll-tip ~ div[data-testid="stHorizontalBlock"] {
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        overflow-x: auto !important;
-        justify-content: flex-start !important;
-        padding: 10px 0;
-    }
-    
-    /* Target vào các cột con BÊN TRONG block trượt ngang */
-    .scroll-tip ~ div[data-testid="stHorizontalBlock"] > div[data-testid="stVerticalBlock"] {
-        flex-shrink: 0 !important;
-        align-items: center; 
-        width: 140px !important; 
-    }
-
-    /* 4. Tinh chỉnh vòng tròn cho vừa */
-    /* Target vòng tròn BÊN TRONG block trượt ngang */
-    .scroll-tip ~ div[data-testid="stHorizontalBlock"] .bmcx-emotion-circle {
-        width: 100px;
-        height: 100px;
-        font-size: 2rem;
-        margin: 0 10px 1rem 10px;
-    }
-    /* Target nhãn BÊN TRONG block trượt ngang */
-    .scroll-tip ~ div[data-testid="stHorizontalBlock"] .bmcx-emotion-label {
-        font-size: 1rem;
-    }
-}
-/* --- KẾT THÚC CSS MỚI --- */
-
 @media (max-width:900px) {
     .bmcx-assist-bigbox, .bmcx-palette-box, .bmcx-history-box, .bmcx-note-box, .bmcx-footer {max-width:96vw;}
     .bmcx-title-feature { font-size:1.3rem; }
-    /* Dòng này bị xung đột với CSS trượt ngang, nên comment nó lại */
-    /* .bmcx-emotion-circle {width:90px;height:90px;font-size:1.4rem;} */
 }
 </style>
 """, unsafe_allow_html=True)
@@ -250,31 +245,59 @@ with col2:
         default_color = "#FF5733"
     stroke_color = st.color_picker("Màu bút:", default_color)
     bg_color = st.color_picker("Màu nền:", "#FFFFFF")
+# --- BẮT ĐẦU CODE THAY THẾ (Dán vào đây) ---
 
+# Đọc query param để xử lý click
+query_params = st.query_params
+if "select_emotion" in query_params:
+    try:
+        selected_idx = int(query_params["select_emotion"])
+        if 0 <= selected_idx < len(EMOTIONS):
+            st.session_state.selected_emotion_idx = selected_idx
+            st.session_state.emotion_note = ""
+        # Xóa query param sau khi xử lý
+        st.query_params.clear()
+        st.rerun()
+    except (ValueError, TypeError):
+        st.query_params.clear()
+
+# Bắt đầu HỘP BẢNG MÀU (Giữ nguyên class của bạn)
 st.markdown('<div class="bmcx-palette-box">', unsafe_allow_html=True)
 st.markdown("#### Hãy chọn cảm xúc của bạn hôm nay:")
 
-# Ghi chú "Lướt sang" (Dòng này đã có dấu =)
-st.markdown("<div class='scroll-tip'><strong><i>(Lướt sang trái/phải để xem tất cả)</i></strong></div>", unsafe_allow_html=True)
-
-emotion_cols = st.columns(len(EMOTIONS))
+# Tạo chuỗi HTML cho lưới cảm xúc
+html_items = []
 for idx, emo in enumerate(EMOTIONS):
-    with emotion_cols[idx]:
-        selected = st.session_state.selected_emotion_idx == idx
-        if st.button(f"{emo['emoji']}", key=f"emo_{idx}", help=emo["label"]):
-            st.session_state.selected_emotion_idx = idx
-            st.session_state.emotion_note = ""
-            st.rerun()
-        st.markdown(
-            f"""
-            <div class="bmcx-emotion-circle{' selected' if selected else ''}" style="background:{emo['color']};">
-                {emo['emoji']}
-            </div>
-            <div class="bmcx-emotion-label">{emo['label']}</div>
-            """,
-            unsafe_allow_html=True
-        )
+    selected = st.session_state.selected_emotion_idx == idx
+    
+    # Dùng class 'selected' của bạn để highlight
+    selected_class = ' selected' if selected else ''
+    
+    # Tạo từng mục HTML.
+    # Quan trọng: Dùng thẻ <a> (link) với query param "?select_emotion={idx}"
+    # để Streamlit biết bạn đã click vào đâu.
+    html_items.append(f"""
+    <a href="?select_emotion={idx}" class="emotion-grid-item">
+        <div class="bmcx-emotion-circle{selected_class}" style="background:{emo['color']};">
+            {emo['emoji']}
+        </div>
+        <div class="bmcx-emotion-label">{emo['label']}</div>
+    </a>
+    """)
+
+# Hiển thị toàn bộ lưới cảm xúc
+st.markdown(
+    f"""
+    <div class="emotion-grid-container">
+        {''.join(html_items)}
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# Đóng HỘP BẢNG MÀU
 st.markdown('</div>', unsafe_allow_html=True)
+# --- KẾT THÚC CODE THAY THẾ ---
 
 canvas_result = st_canvas(
     fill_color="rgba(255, 165, 0, 0.3)",
@@ -311,4 +334,61 @@ if st.session_state.selected_emotion_idx is not None:
     with col1:
         if st.button("🔊 Nghe động viên", key="tts_encourage"):
             audio_bytes = BytesIO()
-            tts = gTTS(text=emo['encourage'], lang='vi', slow=False
+            tts = gTTS(text=emo['encourage'], lang='vi', slow=False)
+            tts.write_to_fp(audio_bytes)
+            audio_bytes.seek(0)
+            st.audio(audio_bytes.read(), format="audio/mp3")
+
+# --- Nhập ghi chú cảm xúc ---
+if st.session_state.selected_emotion_idx is not None:
+    st.markdown('<div class="bmcx-note-box">', unsafe_allow_html=True)
+    st.markdown("#### 📝 Bạn muốn chia sẻ thêm về cảm xúc của mình không?")
+    st.session_state.emotion_note = st.text_area(
+        "",
+        value=st.session_state.emotion_note,
+        height=80,
+        placeholder="Bạn có thể mô tả lý do, hoàn cảnh hoặc ai ở bên bạn lúc này..."
+    )
+    st.markdown('</div>', unsafe_allow_html=True)
+    if st.button("💾 Lưu cảm xúc hôm nay", type="primary", use_container_width=True):
+        now = datetime.now().strftime("%d/%m/%Y %H:%M")
+        st.session_state.emotion_history.append({
+            "emoji": emo["emoji"], "emotion": emo["label"], "note": st.session_state.emotion_note, "time": now
+        })
+        st.success("✅ Đã lưu cảm xúc vào lịch sử của bạn!")
+        st.balloons()
+        st.session_state.selected_emotion_idx = None
+        st.session_state.emotion_note = ""
+        st.rerun()
+
+st.write("---")
+
+# --- Lịch sử cảm xúc ---
+st.markdown("### 📖 Lịch sử cảm xúc của bạn")
+if st.button("📖 Xem lịch sử", key="show_history_btn"):
+    st.session_state.show_history = not st.session_state.show_history
+if st.session_state.show_history:
+    if st.session_state.emotion_history:
+        for item in reversed(st.session_state.emotion_history):
+            st.markdown(
+                f"""
+                <div class="bmcx-history-box">
+                    <div style='font-size:2rem;display:inline-block;'>{item['emoji']}</div>
+                    <span style='font-size:1.13rem;font-weight:700;margin-left:8px;color:#5d3fd3;'>{item['emotion']}</span>
+                    <span style='font-size:1rem;color:#888;margin-left:12px;'>{item['time']}</span>
+                    <div style='margin-top:0.6rem;'>{item['note'] if item['note'] else "<i>(Không có ghi chú)</i>"}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+    else:
+        st.info("Bạn chưa lưu cảm xúc nào hôm nay. Hãy chọn và lưu cảm xúc nhé!")
+
+# --- Footer ---
+st.markdown("""
+<div class="bmcx-footer">
+    <strong>💫 Lời nhắn từ Bee:</strong><br>
+    "Mỗi cảm xúc đều đáng trân trọng. Bạn hãy tự tin chia sẻ và chăm sóc cảm xúc của mình nhé! 🎨"
+</div>
+""", unsafe_allow_html=True)
+
