@@ -277,7 +277,7 @@ for idx, emo in enumerate(EMOTIONS):
     # Quan trọng: Dùng thẻ <a> (link) với query param "?select_emotion={idx}"
     # để Streamlit biết bạn đã click vào đâu.
     html_items.append(f"""
-    <a href="./?select_emotion={idx}" class="emotion-grid-item">
+    <a href="/Bảng_màu_cảm_xúc?select_emotion={idx}" class="emotion-grid-item">
         <div class="bmcx-emotion-circle{selected_class}" style="background:{emo['color']};">
             {emo['emoji']}
         </div>
