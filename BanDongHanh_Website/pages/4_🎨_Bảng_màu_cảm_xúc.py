@@ -24,11 +24,13 @@ st.set_page_config(
 # --- 5. ÁP DỤNG CSS CHUNG ---
 style.apply_global_style()
 
-# --- CSS giao diện (ĐÃ XÓA CSS BUTTON CỤC BỘ) ---
+# --- CSS giao diện (ĐÃ XÓA CSS BUTTON VÀ @MEDIA CỤC BỘ) ---
 st.markdown("""
 <style>
+/* --- 6. XÓA CSS BUTTON CỤC BỘ (GÂY LỖI) --- */
 /* (Khối .stButton > button đã bị xóa) */
 
+/* (Giữ lại CSS tùy chỉnh của trang) */
 .bmcx-title-feature {
     font-size:2.6rem; font-weight:700; color:#5d3fd3; text-align:center; margin-bottom:1.4rem; margin-top:0.7rem;
     letter-spacing:0.1px; display: flex; align-items: center; justify-content: center; gap: 1.1rem;
@@ -83,6 +85,12 @@ EMOTIONS = [
         "color": "#FFD600",
         "encourage": "Hãy lan tỏa nụ cười của bạn tới mọi người xung quanh nhé!"
     },
+    {
+        "label": "Buồn",
+        "emoji": "😢",
+        "color": "#64B5F6",
+        "encourage": "Bạn có thể chia sẻ với Bee hoặc bạn bè để cảm thấy nhẹ lòng hơn."
+    },
     # ... (các cảm xúc khác) ...
 ]
 
@@ -122,7 +130,6 @@ if "selected_emotion_idx" not in st.session_state:
     st.session_state.selected_emotion_idx = None
 if "emotion_note" not in st.session_state:
     st.session_state.emotion_note = ""
-# Bỏ 'emotion_history' vì sẽ đọc từ DB
 if "show_history" not in st.session_state:
     st.session_state.show_history = False
 if "stroke_color" not in st.session_state:
@@ -182,7 +189,6 @@ with col1:
         help="Chọn 'freedraw' để vẽ tự do, các công cụ khác để vẽ hình học."
     )
 with col2:
-    # Cập nhật: Dùng màu từ session_state để giữ màu nhất quán
     st.session_state.stroke_color = st.color_picker(
         "Màu bút:", 
         st.session_state.stroke_color
@@ -191,7 +197,7 @@ with col2:
 
 st.markdown('<div class="bmcx-palette-box">', unsafe_allow_html=True)
 st.markdown("#### Hãy chọn cảm xúc của bạn hôm nay:")
-emotion_cols = st.columns(len(EMOTIONS))
+emotion_cols = st.columns(len(EMOTIONS)) 
 for idx, emo in enumerate(EMOTIONS):
     with emotion_cols[idx]:
         selected = st.session_state.selected_emotion_idx == idx
@@ -200,7 +206,7 @@ for idx, emo in enumerate(EMOTIONS):
             key=f"emo_{idx}", 
             help=emo["label"],
             on_click=set_emotion,
-            args=(idx, emo["color"]) # Truyền cả index và màu vào callback
+            args=(idx, emo["color"])
         )
         st.markdown(
             f"""
@@ -216,7 +222,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 canvas_result = st_canvas(
     fill_color="rgba(255, 165, 0, 0.3)",
     stroke_width=stroke_width,
-    stroke_color=st.session_state.stroke_color, # Lấy màu từ state
+    stroke_color=st.session_state.stroke_color, 
     background_color=bg_color,
     height=500,
     drawing_mode=drawing_mode,
@@ -254,7 +260,7 @@ if st.session_state.selected_emotion_idx is not None:
 
 # --- 9. CẬP NHẬT LƯU VÀO DATABASE ---
 if st.session_state.selected_emotion_idx is not None:
-    emo = EMOTIONS[st.session_state.selected_emotion_idx] # Lấy lại emo
+    emo = EMOTIONS[st.session_state.selected_emotion_idx] 
     st.markdown('<div class="bmcx-note-box">', unsafe_allow_html=True)
     st.markdown("#### 📝 Bạn muốn chia sẻ thêm về cảm xúc của mình không?")
     st.session_state.emotion_note = st.text_area(
@@ -266,20 +272,16 @@ if st.session_state.selected_emotion_idx is not None:
     )
     st.markdown('</div>', unsafe_allow_html=True)
     if st.button("💾 Lưu cảm xúc hôm nay", type="primary", use_container_width=True):
-        # LƯU VÀO DATABASE
         try:
-            db.add_emotion_note(emo["label"], st.session_state.emotion_note)
+            db.add_emotion_note(emo["label"], st.session_state.emotion_note) # <-- 9. SỬA LỖI LƯU TRỮ
             st.success("✅ Đã lưu cảm xúc vào lịch sử của bạn!")
             st.balloons()
-            
-            # Reset state
             st.session_state.selected_emotion_idx = None
             st.session_state.emotion_note = ""
             st.rerun()
         except Exception as e:
             st.error(f"Lỗi khi lưu vào database: {e}")
             st.warning("Hãy đảm bảo bạn đã cập nhật file database.py để có bảng `emotion_notes` nhé!")
-
 
 st.write("---")
 
@@ -290,17 +292,15 @@ if st.button("📖 Xem/Ẩn lịch sử", key="show_history_btn"):
 
 if st.session_state.show_history:
     try:
-        emotion_history = db.get_emotion_notes() # Lấy từ DB
+        emotion_history = db.get_emotion_notes() # <-- 9. SỬA LỖI LƯU TRỮ
         if emotion_history:
             st.write(f"Bạn có **{len(emotion_history)}** ghi chú cảm xúc đã lưu.")
             for entry_id, emotion, note, timestamp in emotion_history:
-                # Lấy emoji tương ứng
-                emoji = "💖" # Mặc định
+                emoji = "💖" 
                 for emo_dict in EMOTIONS:
                     if emo_dict["label"] == emotion:
                         emoji = emo_dict["emoji"]
                         break
-                
                 try:
                     dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
                     formatted_date = dt.strftime("%d/%m/%Y lúc %H:%M")
