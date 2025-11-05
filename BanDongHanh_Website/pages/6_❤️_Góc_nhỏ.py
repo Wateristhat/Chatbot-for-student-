@@ -6,6 +6,7 @@ st.set_page_config(layout="wide")
 
 st.markdown("""
 <style>
+/* CSS TỔNG THỂ */
 .gn-assist-bigbox {
     background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
     border-radius: 38px; box-shadow: 0 8px 36px rgba(124,77,255,.13);
@@ -15,8 +16,7 @@ st.markdown("""
 .gn-assist-icon {font-size:3.2rem; margin-bottom:0.7rem;}
 .gn-assist-text {font-size:1.7rem; font-weight:700; color:#6d28d9; margin-bottom:1.1rem;}
 
-/* --- CSS ĐỂ LÀM CÁC NÚT BẤM TO HƠN --- */
-/* Cập nhật stButton để thêm style cho Nút Đỏ */
+/* --- CSS ĐỂ LÀM CÁC NÚT BẤM TO HƠN (BUTTONS BÌNH THƯỜNG) --- */
 .stButton > button {
     padding: 0.8rem 1.2rem;
     font-size: 1.15rem;
@@ -32,34 +32,46 @@ st.markdown("""
     border-color: #b39ddb;
 }
 
-/* Style riêng cho nút ĐỎ (thêm hoạt động) */
-#add_activity_btn > button {
-    background-color: #ff6347 !important; /* Màu đỏ nổi bật, tương tự như hình */
+/* ========================================================== */
+/* --- CSS MỚI CHO GIAO DIỆN NHẬP HOẠT ĐỘNG (DẠNG LỌ BIẾT ƠN) --- */
+/* 1. Style cho Khung Nhập Liệu (giống textarea) */
+.custom-textarea-style {
+    margin-bottom: 0px !important; /* Xích gần nút */
+}
+.custom-textarea-style label {
+    font-size: 1.15rem; /* Hiển thị lại label */
+    font-weight: 600;
+    color: #e65100; /* Màu cam đậm */
+    margin-bottom: 0.5rem;
+}
+/* Streamlit input field */
+.custom-textarea-style input {
+    border-radius: 15px; /* Bo tròn mạnh hơn */
+    border: none !important; /* Bỏ viền */
+    padding: 2rem 1.2rem; /* Làm bự ra */
+    font-size: 1.05rem;
+    background-color: #f9f9fb; /* Màu nền nhẹ */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Thêm bóng mờ */
+}
+
+
+/* 2. Style cho Nút Đỏ (Thêm hoạt động) */
+.stButton[key="add_activity_button"] > button {
+    background-color: #ff4d4d !important; /* Màu đỏ rực */
     color: white !important;
     font-weight: 700;
     border: none;
-    padding: 1rem 1.2rem;
+    padding: 1.2rem 1.2rem; /* Làm bự hơn */
     font-size: 1.2rem;
-    border-radius: 12px;
-    margin-top: 0.5rem; /* Tách biệt với input field */
+    border-radius: 15px; /* Giống input */
+    margin-top: 0.3rem !important; /* Xích gần input hơn */
+    width: 100%; /* Đảm bảo nút rộng bằng ô input */
+    box-shadow: 0 6px 15px rgba(255, 77, 77, 0.5); /* Bóng đổ nổi bật */
 }
-#add_activity_btn > button:hover {
-    background-color: #ff4d4d !important;
-    box-shadow: 0 4px 12px rgba(255, 99, 71, 0.4);
+.stButton[key="add_activity_button"] > button:hover {
+    background-color: #ff3333 !important;
 }
-
-/* CSS cho ô input tùy chỉnh */
-.custom-input-style label {
-    font-size: 0; /* Ẩn label mặc định của st.text_input */
-}
-.custom-input-style input {
-    border-radius: 10px;
-    border: 2px solid #ba68c8; /* Màu tím nhẹ */
-    padding: 1.2rem 1rem;
-    font-size: 1.05rem;
-    background-color: #f9f9fb;
-    box-shadow: 0 4px 12px rgba(186, 104, 200, 0.1);
-}
+/* ========================================================== */
 </style>
 """, unsafe_allow_html=True)
 st.markdown(f"""
@@ -69,7 +81,8 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# --- ASSISTANT BUTTONS ---
+# ... (Giữ nguyên code từ đây cho đến khu vực Checklist: các hoạt động đã chọn) ...
+
 col1, col2 = st.columns([2,2])
 with col1:
     if st.button("💬 Gợi ý hoạt động", key="suggest_activity"):
@@ -92,7 +105,6 @@ with col2:
         st.session_state.assistant_message = f"🤖 Trợ lý ảo: {motivation}"
         st.session_state.assistant_mode = "motivation"
 
-# --- ACTION LIST DATA ---
 RO_ACTIONS = [
     {"text": "Uống một ly nước đầy", "icon": "💧"},
     {"text": "Vươn vai và duỗi người trong 1 phút", "icon": "🤸‍♀️"},
@@ -104,13 +116,10 @@ RO_ACTIONS = [
     {"text": "Mỉm cười với chính mình trong gương", "icon": "😊"},
 ]
 unique_ro_actions = RO_ACTIONS
-
-# --- CHIA ĐỀU 2 CỘT ---
 half = (len(unique_ro_actions)+1) // 2
 left_col_actions = unique_ro_actions[:half]
 right_col_actions = unique_ro_actions[half:]
 
-# --- HIỂN THỊ MESSAGE TỪ ASSISTANT ---
 if "assistant_message" in st.session_state and st.session_state.assistant_message:
     st.markdown(f"""
     <div style="
@@ -130,7 +139,6 @@ if "assistant_message" in st.session_state and st.session_state.assistant_messag
     </div>
     """, unsafe_allow_html=True)
 
-# --- Title & grid (1A) ---
 st.markdown('<div style="font-size:2rem;font-weight:700;color:#8e24aa;text-align:center;margin-bottom:1.1rem;">🌈 Chọn từ ngân hàng hoạt động:</div>', unsafe_allow_html=True)
 
 if "selected_actions" not in st.session_state:
@@ -144,12 +152,11 @@ for idx, col_actions in enumerate([left_col_actions, right_col_actions]):
             btn_label = f'{act["icon"]} {act["text"]}'
             btn_key = f"action_{act['icon']}_{act['text']}"
             
-            if st.button(btn_label, key=btn_key, disabled=is_selected): # Disable nút đã chọn
+            if st.button(btn_label, key=btn_key, disabled=is_selected):
                 if not is_selected:
                     st.session_state.selected_actions.append(act["text"])
                 st.rerun()
 
-# --- Checklist: các hoạt động đã chọn (2B) ---
 if st.session_state.selected_actions:
     st.markdown('<div style="font-size:1.08rem;font-weight:600;color:#333;margin-top:1rem;margin-bottom:0.3rem;text-align:center;">📋 Danh sách việc đã chọn hôm nay:</div>', unsafe_allow_html=True)
     all_done = True
@@ -192,34 +199,31 @@ if st.session_state.selected_actions:
 
 # --- Hàm xử lý khi nhấn Enter (input) hoặc Nút Đỏ (button) ---
 def add_custom_activity():
-    # Lấy nội dung từ input
-    # Vì on_change kích hoạt hàm này, nó sử dụng key của input
     new_activity = st.session_state.custom_activity_input.strip()
     
-    # Kiểm tra không rỗng và chưa có trong danh sách
     if new_activity and new_activity not in st.session_state.selected_actions:
         st.session_state.selected_actions.append(new_activity)
-        st.session_state.custom_activity_input = "" # Xóa nội dung input sau khi thêm
-        st.rerun() # Re-run để cập nhật danh sách
+        st.session_state.custom_activity_input = "" 
+        st.rerun() 
 
 # --- KHUNG NHẬP HOẠT ĐỘNG TÙY CHỈNH (1B) ---
-st.markdown('<div class="custom-input-style" style="margin-top:1.2rem; margin-bottom:0.5rem;">', unsafe_allow_html=True)
 
-# 1. Khung Input (Placeholder đã chỉnh sửa)
+# 1. Khung Input (dạng TextArea)
+st.markdown('<div class="custom-textarea-style">', unsafe_allow_html=True)
+# Sử dụng st.text_input cho mục đích này (Streamlit không có st.textarea tương thích tốt với on_change)
+# Chúng ta dùng CSS để nó trông giống textarea hơn.
 st.text_input(
-    label="Thêm một hoạt động mới vào danh sách:",
-    placeholder="🚀 Nhập hoạt động bạn muốn làm...", # Bỏ "và nhấn Enter"
+    label="✍️ Thêm một hoạt động mới vào danh sách:",
+    placeholder="Nhập hoạt động bạn muốn làm...",
     key="custom_activity_input",
-    on_change=add_custom_activity # Vẫn giữ on_change để xử lý Enter
+    on_change=add_custom_activity
 )
 st.markdown('</div>', unsafe_allow_html=True)
 
-# 2. Nút Đỏ (Kích thước bằng input)
-st.markdown('<div id="add_activity_btn">', unsafe_allow_html=True)
+# 2. Nút Đỏ (Thêm hoạt động)
+# Nút này sẽ sử dụng CSS mới để trông giống nút đỏ của Lọ Biết Ơn.
 if st.button("✨ Thêm hoạt động vào danh sách", key="add_activity_button", on_click=add_custom_activity):
-    # Hàm add_custom_activity sẽ được gọi khi nhấn nút
     pass
-st.markdown('</div>', unsafe_allow_html=True)
 
 
 # --- Footer động viên (3) ---
