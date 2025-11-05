@@ -90,10 +90,7 @@ st.markdown("""
     background-color: #f3e8ff;  /* Đổi màu khi di chuột vào */
     border-color: #ba68c8;
 }
-@media (max-width:900px) {
-    .lttt-assist-bigbox, .lttt-box, .lttt-card, .lttt-footer {max-width:96vw;}
-    .lttt-title-feature { font-size:1.6rem; }
-}
+
 </style>
 """, unsafe_allow_html=True)
 
