@@ -248,55 +248,94 @@ with col2:
 # --- BẮT ĐẦU CODE THAY THẾ (Dán vào đây) ---
 
 # Đọc query param để xử lý click
-query_params = st.query_params
-if "select_emotion" in query_params:
-    try:
-        selected_idx = int(query_params["select_emotion"])
-        if 0 <= selected_idx < len(EMOTIONS):
-            st.session_state.selected_emotion_idx = selected_idx
-            st.session_state.emotion_note = ""
-        # Xóa query param sau khi xử lý
-        st.query_params.clear()
-        st.rerun()
-    except (ValueError, TypeError):
-        st.query_params.clear()
+# --- BẮT ĐẦU CODE SỬA LỖI (Dán vào đây) ---
+
+# Hàm callback để set trạng thái khi nút được nhấn
+# Quan trọng: Hàm này chỉ cập nhật session_state
+def select_emotion(idx):
+    st.session_state.selected_emotion_idx = idx
+    st.session_state.emotion_note = "" # Reset ghi chú khi chọn cảm xúc mới
 
 # Bắt đầu HỘP BẢNG MÀU (Giữ nguyên class của bạn)
 st.markdown('<div class="bmcx-palette-box">', unsafe_allow_html=True)
 st.markdown("#### Hãy chọn cảm xúc của bạn hôm nay:")
 
-# Tạo chuỗi HTML cho lưới cảm xúc
-html_items = []
-for idx, emo in enumerate(EMOTIONS):
-    selected = st.session_state.selected_emotion_idx == idx
-    
-    # Dùng class 'selected' của bạn để highlight
-    selected_class = ' selected' if selected else ''
-    
-    # Tạo từng mục HTML.
-    # Quan trọng: Dùng thẻ <a> (link) với query param "?select_emotion={idx}"
-    # để Streamlit biết bạn đã click vào đâu.
-    html_items.append(f"""
-    <a href="/Bảng_màu_cảm_xúc?select_emotion={idx}" class="emotion-grid-item">
-        <div class="bmcx-emotion-circle{selected_class}" style="background:{emo['color']};">
-            {emo['emoji']}
-        </div>
-        <div class="bmcx-emotion-label">{emo['label']}</div>
-    </a>
-    """)
+# Dùng st.columns để tạo lưới.
+# Nó sẽ tự động xếp 7 cột trên desktop và 1 cột (chồng lên nhau) trên mobile
+# Đây là cách làm native của Streamlit
+cols = st.columns(len(EMOTIONS))
 
-# Hiển thị toàn bộ lưới cảm xúc
-st.markdown(
-    f"""
-    <div class="emotion-grid-container">
-        {''.join(html_items)}
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+for idx, (col, emo) in enumerate(zip(cols, EMOTIONS)):
+    with col:
+        # Dùng st.button và gán hàm callback qua on_click
+        # Chúng ta dùng container để có thể nhấp vào cả khối
+        with st.container(border=False):
+            # Dùng st.markdown để tái tạo giao diện HTML của bạn
+            # Quan trọng: Không dùng thẻ <a>, chỉ dùng <div>
+            
+            selected = st.session_state.selected_emotion_idx == idx
+            selected_class = ' selected' if selected else ''
+            
+            # Tiêm CSS động cho từng nút bấm
+            # Chúng ta sẽ làm cho toàn bộ khối markdown này hoạt động như 1 nút
+            st.markdown(f"""
+            <div class="emotion-grid-item">
+                <div class="bmcx-emotion-circle{selected_class}" style="background:{emo['color']};">
+                    {emo['emoji']}
+                </div>
+                <div class="bmcx-emotion-label">{emo['label']}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Đây là "nút bấm ma"
+            # Nó trong suốt, nằm đè lên trên và nhận click
+            st.button(
+                label=f"select_{idx}", # Label ẩn, chỉ dùng cho key
+                on_click=select_emotion,
+                args=[idx],
+                key=f"btn_emo_{idx}",
+                use_container_width=True
+            )
+
+# Tiêm CSS để làm cho nút bấm trong suốt và đè lên trên
+# Đồng thời đảm bảo CSS của bạn vẫn hoạt động
+st.markdown("""
+<style>
+    /* CSS cho các nút bấm ma */
+    div[data-testid="stButton"] button[key*="btn_emo_"] {
+        position: absolute; /* Đặt nút đè lên trên */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        
+        /* Làm cho nút trong suốt */
+        background: transparent;
+        border: none;
+        color: transparent;
+        
+        /* Bỏ hiệu ứng hover/active của nút gốc */
+        box-shadow: none !important; 
+    }
+    
+    /* Khi hover vào container của nút, áp dụng hiệu ứng cho div HTML */
+    div[data-testid*="stVerticalBlock"] div[data-testid="stButton"][key*="btn_emo_"]:hover + div .bmcx-emotion-circle {
+        transform: scale(1.08);
+        box-shadow: 0 6px 20px rgba(77,36,175,0.18);
+    }
+    
+    /* Giữ cho container có vị trí tương đối để nút bấm ma hoạt động */
+    div[data-testid*="stVerticalBlock"] div[data-testid="stButton"][key*="btn_emo_"] > div {
+        position: relative;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 
 # Đóng HỘP BẢNG MÀU
 st.markdown('</div>', unsafe_allow_html=True)
+
+# --- KẾT THÚC CODE SỬA LỖI ---
 # --- KẾT THÚC CODE THAY THẾ ---
 
 canvas_result = st_canvas(
