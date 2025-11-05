@@ -75,24 +75,26 @@ st.markdown("""
     color: #5d3fd3;
 }
 
-/* --- BẮT ĐẦU CSS FINAL (FIX GIAO DIỆN) --- */
-/* (Đây là thay đổi duy nhất) */
+/* --- BẮT ĐẦU CSS MỚI (Flexbox Override) --- */
+/* (Đã xóa khối CSS display:grid bị lỗi) */
 @media (max-width: 768px) {
     
-    /* Target vào container st.columns (stHorizontalBlock) NẰM BÊN TRONG .bmcx-palette-box của bạn */
+    /* Target vào container st.columns (stHorizontalBlock)
+       NẰM BÊN TRONG .bmcx-palette-box của bạn
+    */
     .bmcx-palette-box div[data-testid="stHorizontalBlock"] {
-        /* Ép nó thành 1 lưới (grid) 2 cột */
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important; /* 2 cột bằng nhau */
-        gap: 20px !important; 
-        flex-direction: row !important; 
-        flex-wrap: wrap !important;
+        /* Ghi đè flex-direction: column của Streamlit */
+        flex-direction: row !important;  /* 1. Ép lại thành HÀNG NGANG */
+        flex-wrap: wrap !important;       /* 2. Cho phép CÁC HÀNG xuống dòng */
+        justify-content: center !important; /* 3. Căn giữa các cột */
     }
     
     /* Target vào từng cột con (stVerticalBlock) */
     .bmcx-palette-box div[data-testid="stVerticalBlock"] {
-        width: auto !important; /* Để cho lưới kiểm soát kích thước */
-        align-items: center; /* Căn giữa nội dung (nút + vòng tròn) */
+        /* Ép mỗi cột con chiếm 45% chiều rộng -> tạo thành 2 cột */
+        flex-basis: 45% !important; 
+        flex-grow: 0 !important;
+        align-items: center; /* Căn giữa nút và vòng tròn */
     }
 
     /* Tinh chỉnh lại vòng tròn và chữ cho đẹp trên mobile */
@@ -100,13 +102,13 @@ st.markdown("""
         width: 100px;
         height: 100px;
         font-size: 2rem;
-        margin: 0 18px 1rem 18px; /* Giảm khoảng cách dưới */
+        margin: 0 10px 1rem 10px; /* Giảm margin ngang */
     }
     .bmcx-palette-box .bmcx-emotion-label {
         font-size: 1rem;
     }
 }
-/* --- KẾT THÚC CSS FINAL --- */
+/* --- KẾT THÚC CSS MỚI --- */
 
 
 @media (max-width:900px) {
