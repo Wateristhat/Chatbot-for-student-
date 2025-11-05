@@ -264,7 +264,7 @@ with col1:
                 try:
                     with open(audio_file, 'rb') as f:
                         audio_bytes = f.read()
-                    st.audio(audio_bytes, format=''audio/mpeg', autoplay=True)
+                    st.audio(audio_bytes, format='audio/mpeg', autoplay=True)
                     os.unlink(audio_file)  # Xóa file tạm
                 except Exception as e:
                     st.error(f"Không thể phát âm thanh: {e}")
@@ -330,7 +330,7 @@ if gratitude_notes:
                         try:
                             with open(audio_file, 'rb') as f:
                                 audio_bytes = f.read()
-                            st.audio(audio_bytes, format=''audio/mpeg', autoplay=True)
+                            st.audio(audio_bytes, format='audio/mpeg', autoplay=True)
                             os.unlink(audio_file)
                         except Exception as e:
                             st.error(f"Không thể phát âm thanh: {e}")
@@ -361,6 +361,7 @@ st.markdown("""
     Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
