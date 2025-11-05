@@ -6,7 +6,7 @@ st.set_page_config(layout="wide")
 
 st.markdown("""
 <style>
-/* CSS TỔNG THỂ */
+/* CSS TỔNG THỂ VÀ CHUNG */
 .gn-assist-bigbox {
     background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
     border-radius: 38px; box-shadow: 0 8px 36px rgba(124,77,255,.13);
@@ -34,42 +34,56 @@ st.markdown("""
 
 /* ========================================================== */
 /* --- CSS MỚI CHO GIAO DIỆN NHẬP HOẠT ĐỘNG (DẠNG LỌ BIẾT ƠN) --- */
-/* 1. Style cho Khung Nhập Liệu (giống textarea) */
+
+/* 1. Style cho Khung Nhập Liệu */
 .custom-textarea-style {
-    margin-bottom: 0px !important; /* Xích gần nút */
+    margin-bottom: 0px !important; 
 }
 .custom-textarea-style label {
-    font-size: 1.15rem; /* Hiển thị lại label */
+    font-size: 1.15rem;
     font-weight: 600;
-    color: #e65100; /* Màu cam đậm */
+    color: #e65100;
     margin-bottom: 0.5rem;
+    display: block; /* Đảm bảo label chiếm dòng riêng */
 }
-/* Streamlit input field */
-.custom-textarea-style input {
-    border-radius: 15px; /* Bo tròn mạnh hơn */
-    border: none !important; /* Bỏ viền */
-    padding: 2rem 1.2rem; /* Làm bự ra */
-    font-size: 1.05rem;
-    background-color: #f9f9fb; /* Màu nền nhẹ */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Thêm bóng mờ */
+/* Streamlit input field - Force large size and light color */
+.custom-textarea-style div[data-baseweb="input"] input {
+    border-radius: 15px !important; 
+    border: none !important; 
+    padding: 1.8rem 1.2rem !important; /* Làm bự ra */
+    font-size: 1.05rem !important;
+    background-color: #f9f9fb !important; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important; 
 }
-
 
 /* 2. Style cho Nút Đỏ (Thêm hoạt động) */
-.stButton[key="add_activity_button"] > button {
+/* Rất quan trọng: Nhắm mục tiêu vào container của nút để buộc nó dài ra */
+div.stButton button[key="add_activity_button"] {
     background-color: #ff4d4d !important; /* Màu đỏ rực */
     color: white !important;
-    font-weight: 700;
-    border: none;
-    padding: 1.2rem 1.2rem; /* Làm bự hơn */
-    font-size: 1.2rem;
-    border-radius: 15px; /* Giống input */
+    font-weight: 700 !important;
+    border: none !important;
+    padding: 1.2rem 1.2rem !important; /* Làm bự hơn */
+    font-size: 1.2rem !important;
+    border-radius: 15px !important; /* Giống input */
     margin-top: 0.3rem !important; /* Xích gần input hơn */
-    width: 100%; /* Đảm bảo nút rộng bằng ô input */
-    box-shadow: 0 6px 15px rgba(255, 77, 77, 0.5); /* Bóng đổ nổi bật */
+    width: 100% !important; /* BUỘC NÚT DÀI 100% */
+    box-shadow: 0 6px 15px rgba(255, 77, 77, 0.5) !important; /* Bóng đổ nổi bật */
 }
-.stButton[key="add_activity_button"] > button:hover {
+div.stButton button[key="add_activity_button"]:hover {
     background-color: #ff3333 !important;
+}
+
+/* Giảm khoảng cách giữa input và button */
+.stContainer {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Đặt input và button vào cùng 1 container để kiểm soát khoảng cách */
+#custom-activity-section {
+    padding: 0 !important;
+    margin-bottom: 1.5rem !important; /* Khoảng cách với footer */
 }
 /* ========================================================== */
 </style>
@@ -81,7 +95,8 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ... (Giữ nguyên code từ đây cho đến khu vực Checklist: các hoạt động đã chọn) ...
+# ... (Giữ nguyên code phần header, actions data, grid, và checklist) ...
+# Vì các phần này không thay đổi.
 
 col1, col2 = st.columns([2,2])
 with col1:
@@ -206,24 +221,31 @@ def add_custom_activity():
         st.session_state.custom_activity_input = "" 
         st.rerun() 
 
-# --- KHUNG NHẬP HOẠT ĐỘNG TÙY CHỈNH (1B) ---
+# --- KHU VỰC CHỨA INPUT VÀ BUTTON (1B) ---
+# Sử dụng st.container() để kiểm soát chặt chẽ vị trí
+with st.container():
+    st.markdown('<div id="custom-activity-section">', unsafe_allow_html=True)
+    
+    # 1. Khung Input (dạng TextArea)
+    st.markdown('<div class="custom-textarea-style">', unsafe_allow_html=True)
+    st.text_input(
+        label="✍️ Thêm một hoạt động mới vào danh sách:",
+        placeholder="Nhập hoạt động bạn muốn làm...",
+        key="custom_activity_input",
+        on_change=add_custom_activity
+    )
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# 1. Khung Input (dạng TextArea)
-st.markdown('<div class="custom-textarea-style">', unsafe_allow_html=True)
-# Sử dụng st.text_input cho mục đích này (Streamlit không có st.textarea tương thích tốt với on_change)
-# Chúng ta dùng CSS để nó trông giống textarea hơn.
-st.text_input(
-    label="✍️ Thêm một hoạt động mới vào danh sách:",
-    placeholder="Nhập hoạt động bạn muốn làm...",
-    key="custom_activity_input",
-    on_change=add_custom_activity
-)
-st.markdown('</div>', unsafe_allow_html=True)
+    # 2. Nút Đỏ (Thêm hoạt động)
+    # Nút này sẽ dài 100% nhờ CSS selector mới
+    if st.button("✨ Thêm hoạt động vào danh sách", key="add_activity_button", on_click=add_custom_activity):
+        pass
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# 2. Nút Đỏ (Thêm hoạt động)
-# Nút này sẽ sử dụng CSS mới để trông giống nút đỏ của Lọ Biết Ơn.
-if st.button("✨ Thêm hoạt động vào danh sách", key="add_activity_button", on_click=add_custom_activity):
-    pass
+
+# --- Footer động viên (3) ---
+st.markdown('<div style="background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:10px;padding:0.7rem 1rem;text-align:center;font-size:0.98rem;margin:1.5rem 0 1.1rem 0;color:#333;">💜 <strong>Nhớ nhé:</strong> Mỗi hành động nhỏ đều là một bước tiến lớn trong việc chăm sóc bản thân. Hãy kiên nhẫn và yêu thương chính mình! 💜</div>', unsafe_allow_html=True)
 
 
 # --- Footer động viên (3) ---
