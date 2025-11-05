@@ -48,7 +48,6 @@ def load_stories():
                 "title": "Chuyện tảng đá",
                 "content": "Một chàng trai trẻ liên tục thất bại nên rất chán nản. Anh đến hỏi một ông lão thông thái. Ông lão đưa anh một hòn đá và nói: 'Cậu hãy mang hòn đá này ra chợ bán, nhưng không được bán nó, chỉ cần xem người ta trả giá bao nhiêu.' Ở chợ, người ta chỉ trả vài đồng. Ông lão lại bảo anh mang vào tiệm vàng, ông chủ tiệm trả giá 500 đồng. Cuối cùng, anh mang đến một chuyên gia đá quý, người này hét lên: 'Đây là một viên ngọc quý hiếm, vô giá!'. Ông lão nói: 'Cuộc đời con cũng giống như hòn đá này. Giá trị của con không phải do người khác quyết định, mà do con đặt mình vào đâu.'"
             },
-            # --- 5 TRUYỆN TRUYỀN CẢM HỨNG MỚI ĐƯỢC THÊM VÀO ---
             {
                 "title": "Bảy lần ngã, Tám lần đứng dậy",
                 "content": "Một võ sĩ Sumo đang học việc bị mọi người chế giễu vì vóc dáng nhỏ bé và liên tục thất bại trong các trận đấu tập. Anh nản lòng và muốn bỏ cuộc. Người thầy của anh chỉ nói: 'Thất bại không phải là xấu hổ. Đáng xấu hổ là khi con không chịu đứng dậy sau thất bại.' Võ sĩ nhớ lời thầy, mỗi khi ngã, anh lại đứng dậy, tập luyện điên cuồng. Cuối cùng, anh trở thành một trong những đô vật vĩ đại nhất. Bài học: Thành công không đến từ việc không bao giờ thất bại, mà đến từ sự kiên trì và khả năng phục hồi sau mỗi lần gục ngã. (Nana korobi ya oki)."
@@ -69,7 +68,6 @@ def load_stories():
                 "title": "Hố sâu và chiếc thang",
                 "content": "Một người đang đi trên đường thì bị rơi xuống một cái hố sâu. Anh ta cố gắng kêu cứu nhưng không ai nghe thấy. Anh tuyệt vọng. Một lúc sau, một người đi qua, thấy anh ta và quăng xuống một sợi dây thừng. Anh ta leo lên được. Sau này, anh ta thấy một người khác cũng bị rơi xuống hố đó. Thay vì quăng dây thừng, anh ta nhảy xuống hố. Người bị nạn hoảng hốt: 'Anh làm gì vậy?' Anh ta mỉm cười và nói: 'Tôi hiểu cảm giác của anh. Tôi đã từng ở đây. Tôi biết đường ra.' Bài học: Sự đồng cảm và kinh nghiệm vượt qua khó khăn là món quà lớn nhất mà chúng ta có thể chia sẻ với người khác."
             }
-            # --- KẾT THÚC CÁC TRUYỆN MỚI ---
         ],
         "Truyện ngụ ngôn": [
             {
@@ -79,12 +77,34 @@ def load_stories():
             {
                 "title": "Cáo và chùm nho",
                 "content": "Một con cáo đói đi qua một vườn nho. Nó thấy một chùm nho chín mọng lủng lẳng trên giàn cao. Cáo nhảy lên nhiều lần nhưng không thể với tới. Cuối cùng, nó bỏ đi và tự nhủ: 'Nho còn xanh lắm, ăn vào chỉ chua thôi!'. Bài học: Nhiều người thường chê bai những thứ họ không thể đạt được để tự an ủi bản thân."
+            },
+            # --- 5 TRUYỆN NGỤ NGÔN MỚI ĐƯỢC THÊM VÀO ---
+            {
+                "title": "Thỏ và rùa",
+                "content": "Một con thỏ kiêu ngạo luôn khoe khoang về tốc độ của mình và thách thức một con rùa chậm chạp thi chạy. Trong cuộc đua, thỏ chạy nhanh hơn rùa rất nhiều và tự tin rằng mình sẽ thắng, nên nó dừng lại và ngủ một giấc. Rùa cứ từ từ bò, không ngừng nghỉ. Khi thỏ tỉnh dậy, nó thấy rùa đã bò đến đích và thắng cuộc. Bài học: Chậm mà chắc, kiên trì và không tự mãn mới là chìa khóa của thành công."
+            },
+            {
+                "title": "Kiến và ve sầu",
+                "content": "Suốt mùa hè, kiến chăm chỉ tha mồi và dự trữ lương thực cho mùa đông, trong khi ve sầu chỉ biết ca hát và vui chơi. Khi mùa đông đến, ve sầu đói rét và gần như chết cóng, nó đến xin kiến thức ăn. Kiến từ chối và nói: 'Mùa hè bạn ca hát, thì mùa đông bạn hãy nhảy múa đi.' Bài học: Phải biết nhìn xa trông rộng, chăm chỉ làm việc và chuẩn bị cho tương lai, thay vì chỉ sống cho hiện tại."
+            },
+            {
+                "title": "Bó đũa",
+                "content": "Một người cha già gọi các con lại và đưa cho chúng một bó đũa, yêu cầu chúng bẻ gãy. Từng người một cố gắng nhưng không ai bẻ gãy được. Sau đó, ông tháo bó đũa ra và yêu cầu chúng bẻ từng chiếc. Lần này, mọi người đều dễ dàng bẻ gãy. Người cha nói: 'Các con thấy không, nếu các con đoàn kết với nhau, không ai có thể đánh bại được các con. Nhưng nếu các con chia rẽ, từng người sẽ dễ dàng bị đánh bại.' Bài học: Sức mạnh nằm ở sự đoàn kết và hợp lực."
+            },
+            {
+                "title": "Chó sói và cừu",
+                "content": "Một con chó sói muốn ăn thịt một con cừu đang lạc đàn. Nó giả vờ bị thương và kêu gọi lòng thương hại của cừu. Cừu thấy sói đáng thương nên tiến lại gần. Ngay lập tức, sói bật dậy và vồ lấy cừu. Bài học: Đừng tin vào lời nói ngọt ngào hay vẻ ngoài đáng thương của kẻ thù, đặc biệt là khi bạn đang ở trong tình thế dễ bị tổn thương."
+            },
+            {
+                "title": "Chim bồ câu và kiến",
+                "content": "Một con kiến bị trượt chân và rơi xuống sông. Một con chim bồ câu thấy vậy, nhanh chóng thả một chiếc lá xuống nước. Kiến bám vào chiếc lá và thoát chết. Ít lâu sau, một người thợ săn giương súng định bắn bồ câu. Kiến nhìn thấy, bèn bò đến và cắn vào chân người thợ săn. Người thợ săn giật mình làm rơi súng, bồ câu nghe tiếng động nên bay đi thoát nạn. Bài học: Hãy luôn giúp đỡ người khác khi họ gặp khó khăn, vì một ngày nào đó, bạn cũng sẽ nhận lại sự giúp đỡ."
             }
+            # --- KẾT THÚC CÁC TRUYỆN MỚI ---
         ],
         "Truyện chữa lành": [
             {
                 "title": "Dòng sông không vội vã",
-                "content": "Không một dòng sông nào vội vã. Nó chảy theo nhịp điệu của riêng mình, lúc êm đềm, lúc cuộn trào, nhưng luôn tiến về phía trước. Dòng sông biết rằng, rồi nó sẽ đến được biển lớn. Hãy sống như một dòng sông, chấp nhận mọi khúc quanh của cuộc đời và tin tưởng vào hành trình của chính mình. Đừng so sánh tốc độ của bạn với người khác, vì mỗi người đều có một con đường riêng."
+                "content": "Không một dòng sông nào vội vã. Nó chảy theo nhịp điệu của riêng mình, lúc êm đềm, lúc cuộn trào, nhưng luôn tiến về phía trước. Dòng sông biết rằng, rồi nó sẽ đến được biển lớn. Hãy sống như một một dòng sông, chấp nhận mọi khúc quanh của cuộc đời và tin tưởng vào hành trình của chính mình. Đừng so sánh tốc độ của bạn với người khác, vì mỗi người đều có một con đường riêng."
             },
             {
                 "title": "Chiếc bình nứt",
@@ -157,4 +177,3 @@ if selected_category:
                         st.audio(fp, format="audio/mp3")
                     except Exception as e:
                         st.error(f"Lỗi khi tạo âm thanh: {e}")
-
