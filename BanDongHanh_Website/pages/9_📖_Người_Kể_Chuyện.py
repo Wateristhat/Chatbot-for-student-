@@ -36,7 +36,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- NỘI DUNG TRUYỆN (ĐÃ PHỤC HỒI ĐẦY ĐỦ) ---
-# --- NỘI DUNG TRUYỆN (ĐÃ FIX LỖI CÚ PHÁP LẦN CUỐI VÀ CẬP NHẬT TRUYỆN) ---
 @st.cache_data
 def load_stories():
     return {
@@ -49,61 +48,29 @@ def load_stories():
                 "title": "Chuyện tảng đá",
                 "content": "Một chàng trai trẻ liên tục thất bại nên rất chán nản. Anh đến hỏi một ông lão thông thái. Ông lão đưa anh một hòn đá và nói: 'Cậu hãy mang hòn đá này ra chợ bán, nhưng không được bán nó, chỉ cần xem người ta trả giá bao nhiêu.' Ở chợ, người ta chỉ trả vài đồng. Ông lão lại bảo anh mang vào tiệm vàng, ông chủ tiệm trả giá 500 đồng. Cuối cùng, anh mang đến một chuyên gia đá quý, người này hét lên: 'Đây là một viên ngọc quý hiếm, vô giá!'. Ông lão nói: 'Cuộc đời con cũng giống như hòn đá này. Giá trị của con không phải do người khác quyết định, mà do con đặt mình vào đâu.'"
             },
+            # --- 5 TRUYỆN TRUYỀN CẢM HỨNG MỚI ĐƯỢC THÊM VÀO ---
             {
-                "title": "Góc nhìn của con mèo",
-                "content": "Một con mèo đuổi bắt một cái đuôi không ngừng nghỉ. Nó rất thất vọng vì không thể bắt được. Một con mèo già nằm đó nói: 'Cháu đừng cố gắng bắt đuôi nữa. Hãy cứ đứng yên, và cái đuôi sẽ tự đến với cháu.' Bài học: Khi chúng ta quá tập trung vào mục tiêu bên ngoài, chúng ta sẽ bỏ lỡ những điều đang ở ngay bên trong mình. Hãy sống chậm lại và tận hưởng hiện tại."
+                "title": "Bảy lần ngã, Tám lần đứng dậy",
+                "content": "Một võ sĩ Sumo đang học việc bị mọi người chế giễu vì vóc dáng nhỏ bé và liên tục thất bại trong các trận đấu tập. Anh nản lòng và muốn bỏ cuộc. Người thầy của anh chỉ nói: 'Thất bại không phải là xấu hổ. Đáng xấu hổ là khi con không chịu đứng dậy sau thất bại.' Võ sĩ nhớ lời thầy, mỗi khi ngã, anh lại đứng dậy, tập luyện điên cuồng. Cuối cùng, anh trở thành một trong những đô vật vĩ đại nhất. Bài học: Thành công không đến từ việc không bao giờ thất bại, mà đến từ sự kiên trì và khả năng phục hồi sau mỗi lần gục ngã. (Nana korobi ya oki)."
             },
             {
-                "title": "Hai người đẽo tượng",
-                "content": "Hai người thợ đẽo tượng cùng làm việc trên một tảng đá. Người thứ nhất đẽo vội vàng, nhưng tượng bị lỗi. Người thứ hai kiên nhẫn, điêu khắc từng chút một và tạo ra một tác phẩm vĩ đại. Bài học: Sự vội vã chỉ dẫn đến sai lầm. Hãy kiên nhẫn và dành đủ thời gian cho những mục tiêu lớn trong đời."
+                "title": "Chiếc gương và người đánh giày",
+                "content": "Một người đàn ông giàu có muốn mua một chiếc gương lớn và hoàn hảo. Ông đến một tiệm gương và hỏi liệu có chiếc gương nào không tì vết không. Người thợ gương trả lời: 'Không có chiếc gương nào hoàn hảo, thưa ngài. Chỉ có gương và bụi.' Sau đó, ông thấy một người đánh giày với khuôn mặt rạng rỡ, dù công việc rất vất vả. Ông hỏi bí quyết. Người đánh giày đáp: 'Tôi luôn thấy hạnh phúc khi làm việc của mình, và tôi không bao giờ nhìn vào những thứ không phải là công việc của tôi.' Bài học: Hạnh phúc không nằm ở sự hoàn hảo hay giàu có, mà ở cách chúng ta nhìn nhận công việc và cuộc sống của mình."
             },
             {
-                "title": "Tấm gương trong suốt",
-                "content": "Một tấm gương bị dính đầy bụi, không thể phản chiếu rõ ràng. Nó than thở với người chủ. Người chủ bảo: 'Ngươi không cần phải làm gì cả. Chỉ cần đợi ta lau sạch bụi bặm đi thôi'. Bài học: Tâm trí của chúng ta cũng vậy. Khi chúng ta cảm thấy bối rối hay không rõ ràng, điều cần làm không phải là cố gắng tìm câu trả lời, mà là loại bỏ sự căng thẳng và lo lắng (bụi bặm) để tâm trí tự nhiên trở nên trong sáng."
+                "title": "Quy tắc của cây Tre",
+                "content": "Cây tre là biểu tượng của sự kiên cường. Sau khi gieo trồng, người nông dân phải mất đến 5 năm để chăm sóc mà không thấy bất kỳ sự phát triển nào trên mặt đất. Nhưng trong 5 năm đó, rễ tre đã lan rộng và đan xen vào nhau dưới lòng đất. Và rồi, sau 5 năm, cây tre Trung Quốc có thể cao thêm 90 feet (khoảng 27 mét) chỉ trong 6 tuần. Bài học: Sự kiên nhẫn và nỗ lực âm thầm là nền tảng để đạt được sự phát triển đột phá. Đừng nản lòng khi chưa thấy kết quả ngay lập tức."
+            },
+            {
+                "title": "Sự lựa chọn của người chèo thuyền",
+                "content": "Một người chèo thuyền luôn than phiền về thời tiết xấu, dòng nước ngược và những cơn gió mạnh. Một người chèo thuyền khác mỉm cười và nói: 'Thời tiết và dòng nước luôn là như vậy. Thay vì than phiền, hãy học cách dùng mái chèo để vượt qua chúng.' Người chèo thuyền đầu tiên đã nhận ra rằng anh ta không thể thay đổi được thế giới, nhưng anh ta có thể thay đổi cách anh ta hành động và phản ứng. Bài học: Cuộc sống đầy rẫy những trở ngại ngoài tầm kiểm soát của chúng ta. Sức mạnh thật sự là khả năng điều chỉnh và tận dụng những gì chúng ta có."
+            },
+            {
+                "title": "Hố sâu và chiếc thang",
+                "content": "Một người đang đi trên đường thì bị rơi xuống một cái hố sâu. Anh ta cố gắng kêu cứu nhưng không ai nghe thấy. Anh tuyệt vọng. Một lúc sau, một người đi qua, thấy anh ta và quăng xuống một sợi dây thừng. Anh ta leo lên được. Sau này, anh ta thấy một người khác cũng bị rơi xuống hố đó. Thay vì quăng dây thừng, anh ta nhảy xuống hố. Người bị nạn hoảng hốt: 'Anh làm gì vậy?' Anh ta mỉm cười và nói: 'Tôi hiểu cảm giác của anh. Tôi đã từng ở đây. Tôi biết đường ra.' Bài học: Sự đồng cảm và kinh nghiệm vượt qua khó khăn là món quà lớn nhất mà chúng ta có thể chia sẻ với người khác."
             }
+            # --- KẾT THÚC CÁC TRUYỆN MỚI ---
         ],
-        "Truyện ngụ ngôn": [
-            {
-                "title": "Ếch ngồi đáy giếng",
-                "content": "Có một con ếch sống lâu năm trong một cái giếng. Nó nhìn lên và chỉ thấy một khoảng trời bé bằng miệng giếng. Nó tự hào nghĩ rằng bầu trời chỉ to có vậy. Một ngày, trời mưa to, nước giếng dâng lên và đưa ếch ra ngoài. Lần đầu tiên, nó thấy một bầu trời rộng lớn bao la và nhận ra sự hiểu biết hạn hẹp của mình. Bài học: Môi trường sống hạn hẹp có thể che lấp tầm nhìn của chúng ta. Đừng vội cho rằng những gì mình biết là tất cả."
-            },
-            {
-                "title": "Cáo và chùm nho",
-                "content": "Một con cáo đói đi qua một vườn nho. Nó thấy một chùm nho chín mọng lủng lẳng trên giàn cao. Cáo nhảy lên nhiều lần nhưng không thể với tới. Cuối cùng, nó bỏ đi và tự nhủ: 'Nho còn xanh lắm, ăn vào chỉ chua thôi!'. Bài học: Nhiều người thường chê bai những thứ họ không thể đạt được để tự an ủi bản thân."
-            }
-        ],
-        "Truyện chữa lành": [
-            {
-                "title": "Dòng sông không vội vã",
-                "content": "Không một dòng sông nào vội vã. Nó chảy theo nhịp điệu của riêng mình, lúc êm đềm, lúc cuộn trào, nhưng luôn tiến về phía trước. Dòng sông biết rằng, rồi nó sẽ đến được biển lớn. Hãy sống như một dòng sông, chấp nhận mọi khúc quanh của cuộc đời và tin tưởng vào hành trình của chính mình. Đừng so sánh tốc độ của bạn với người khác, vì mỗi người đều có một con đường riêng."
-            },
-            {
-                "title": "Chiếc bình nứt",
-                "content": "Một người gánh nước có hai chiếc bình, một chiếc lành lặn và một chiếc bị nứt. Chiếc bình nứt luôn cảm thấy tự ti vì nó chỉ giữ được một nửa phần nước. Một ngày, nó xin lỗi người chủ. Người chủ mỉm cười và nói: 'Con có thấy những luống hoa xinh đẹp bên đường không? Đó là nhờ ta đã gieo hạt ở phía bên con. Mỗi ngày, những giọt nước từ vết nứt của con đã tưới cho chúng'. Bài học: Những khuyết điểm của bạn có thể lại là điều tạo nên vẻ đẹp và giá trị riêng biệt mà bạn không ngờ tới."
-            }
-        ]
-    }
-STORIES = load_stories()
-        "Truyện ngụ ngôn": [
-            {
-                "title": "Ếch ngồi đáy giếng",
-                "content": "Có một con ếch sống lâu năm trong một cái giếng. Nó nhìn lên và chỉ thấy một khoảng trời bé bằng miệng giếng. Nó tự hào nghĩ rằng bầu trời chỉ to có vậy. Một ngày, trời mưa to, nước giếng dâng lên và đưa ếch ra ngoài. Lần đầu tiên, nó thấy một bầu trời rộng lớn bao la và nhận ra sự hiểu biết hạn hẹp của mình. Bài học: Môi trường sống hạn hẹp có thể che lấp tầm nhìn của chúng ta. Đừng vội cho rằng những gì mình biết là tất cả."
-            },
-            {
-                "title": "Cáo và chùm nho",
-                "content": "Một con cáo đói đi qua một vườn nho. Nó thấy một chùm nho chín mọng lủng lẳng trên giàn cao. Cáo nhảy lên nhiều lần nhưng không thể với tới. Cuối cùng, nó bỏ đi và tự nhủ: 'Nho còn xanh lắm, ăn vào chỉ chua thôi!'. Bài học: Nhiều người thường chê bai những thứ họ không thể đạt được để tự an ủi bản thân."
-            }
-        ],
-        "Truyện chữa lành": [
-            {
-                "title": "Dòng sông không vội vã",
-                "content": "Không một dòng sông nào vội vã. Nó chảy theo nhịp điệu của riêng mình, lúc êm đềm, lúc cuộn trào, nhưng luôn tiến về phía trước. Dòng sông biết rằng, rồi nó sẽ đến được biển lớn. Hãy sống như một dòng sông, chấp nhận mọi khúc quanh của cuộc đời và tin tưởng vào hành trình của chính mình. Đừng so sánh tốc độ của bạn với người khác, vì mỗi người đều có một con đường riêng."
-            },
-            {
-                "title": "Chiếc bình nứt",
-                "content": "Một người gánh nước có hai chiếc bình, một chiếc lành lặn và một chiếc bị nứt. Chiếc bình nứt luôn cảm thấy tự ti vì nó chỉ giữ được một nửa phần nước. Một ngày, nó xin lỗi người chủ. Người chủ mỉm cười và nói: 'Con có thấy những luống hoa xinh đẹp bên đường không? Đó là nhờ ta đã gieo hạt ở phía bên con. Mỗi ngày, những giọt nước từ vết nứt của con đã tưới cho chúng'. Bài học: Những khuyết điểm của bạn có thể lại là điều tạo nên vẻ đẹp và giá trị riêng biệt mà bạn không ngờ tới."
-            },
-        ]
         "Truyện ngụ ngôn": [
             {
                 "title": "Ếch ngồi đáy giếng",
@@ -190,5 +157,4 @@ if selected_category:
                         st.audio(fp, format="audio/mp3")
                     except Exception as e:
                         st.error(f"Lỗi khi tạo âm thanh: {e}")
-
 
