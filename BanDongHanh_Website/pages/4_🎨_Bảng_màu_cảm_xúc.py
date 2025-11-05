@@ -219,7 +219,7 @@ with col2:
         tts = gTTS(text=msg, lang='vi', slow=False)
         tts.write_to_fp(audio_bytes)
         audio_bytes.seek(0)
-        st.audio(audio_bytes.read(), format="audio/mp3")
+        st.audio(audio_bytes.read(), format="audio/mpeg")
 
 st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
 
@@ -381,7 +381,7 @@ if st.session_state.selected_emotion_idx is not None:
             tts = gTTS(text=emo['encourage'], lang='vi', slow=False)
             tts.write_to_fp(audio_bytes)
             audio_bytes.seek(0)
-            st.audio(audio_bytes.read(), format="audio/mp3")
+            st.audio(audio_bytes.read(), format="audio/mpeg")
 
 # --- Nhập ghi chú cảm xúc ---
 if st.session_state.selected_emotion_idx is not None:
