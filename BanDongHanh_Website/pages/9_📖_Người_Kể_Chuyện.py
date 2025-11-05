@@ -107,7 +107,7 @@ with col2:
         tts = gTTS(text=msg, lang='vi', slow=False)
         tts.write_to_fp(audio_bytes)
         audio_bytes.seek(0)
-        st.audio(audio_bytes.read(), format="audio/mp3")
+        st.audio(audio_bytes.read(), format="audio/mpeg")
 
 st.markdown("⬅️ [Quay về Trang chủ](/)", unsafe_allow_html=True)
 st.write("---")
@@ -132,6 +132,6 @@ if selected_category:
                         fp = BytesIO()
                         tts.write_to_fp(fp)
                         fp.seek(0)
-                        st.audio(fp, format="audio/mp3")
+                        st.audio(fp, format="audio/mpeg")
                     except Exception as e:
                         st.error(f"Lỗi khi tạo âm thanh: {e}")
