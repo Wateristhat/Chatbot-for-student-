@@ -171,7 +171,7 @@ def create_tts_button_enhanced(text, key_suffix, button_text="🔊 Đọc to"):
                 else: st.success("🎵 Đã tạo âm thanh bằng Google TTS")
                 
                 # --- 6. SỬA LỖI ÂM THANH: XÓA AUTOPLAY=TRUE ---
-                st.audio(audio_data, format="audio/mp3") 
+                st.audio(audio_data, format="audio/mpeg") 
             else:
                 error_msg = get_error_message(result_code)
                 if "network" in result_code.lower(): st.error(error_msg)
