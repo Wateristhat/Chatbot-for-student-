@@ -4,7 +4,7 @@ import random
 from datetime import datetime
 from gtts import gTTS
 from io import BytesIO
-   
+    
 st.set_page_config(page_title="🎨 Bảng Màu Cảm Xúc", page_icon="🎨", layout="wide")
 
 # --- CSS giao diện pastel trải ngang, đồng bộ Góc An Yên ---
@@ -57,54 +57,42 @@ st.markdown("""
     background:#f3e5f5; border-left:5px solid #ba68c8; border-radius:15px; padding:1rem 1.3rem;
     text-align:center; font-size:1.13rem; margin:0.7rem 0 1rem 0; color:#333; max-width:1200px; margin-left:auto; margin-right:auto;
 }
-/* --- BẮT ĐẦU CODE FIX RESPONSIVE (Dán vào đây) --- */
 
-/* Bọc ngoài 7 mục, dùng flexbox cho desktop */
-.emotion-grid-container {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: space-around;
-    padding: 1.5rem 0.5rem;
+/* --- BẮT ĐẦU PHẦN CHỈNH SỬA (1. CSS) --- */
+/* (Xóa bỏ .emotion-grid-container và .emotion-grid-item bị lỗi) */
+
+/* CSS "Công tắc" mới để ẩn/hiện layout */
+/* Mặc định (desktop): hiện layout desktop, ẩn layout mobile */
+.desktop-view {
+    display: block;
+}
+.mobile-view {
+    display: none;
 }
 
-/* Từng mục cảm xúc (gồm vòng tròn + chữ) */
-.emotion-grid-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-decoration: none !important; /* Bỏ gạch chân của link */
-    color: #222;
-}
-.emotion-grid-item .bmcx-emotion-label {
-    text-decoration: none !important;
-}
-
-/* Đoạn media query này chính là yêu cầu của bạn.
-   Khi màn hình <= 768px (điện thoại), nó sẽ được áp dụng.
-*/
+/* Khi màn hình <= 768px (mobile): ẩn layout desktop, hiện layout mobile */
 @media (max-width: 768px) {
-    .emotion-grid-container {
-        /* Chuyển sang CSS Grid */
-        display: grid;
-        
-        /* Yêu cầu 2 cột */
-        grid-template-columns: 1fr 1fr;
-        
-        /* Khoảng cách giữa các ô */
-        gap: 24px;
-        padding: 1rem;
+    .desktop-view {
+        display: none;
+    }
+    .mobile-view {
+        display: block;
     }
     
-    .bmcx-emotion-circle {
-        /* Cho vòng tròn nhỏ lại một chút trên di động */
+    /* Tinh chỉnh lại vòng tròn và chữ cho đẹp trên mobile */
+    .mobile-view .bmcx-emotion-circle {
         width: 100px;
         height: 100px;
         font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    .mobile-view .bmcx-emotion-label {
+        font-size: 1rem;
     }
 }
-/* --- KẾT THÚC CODE FIX RESPONSIVE --- */
+/* --- KẾT THÚC PHẦN CHỈNH SỬA (1. CSS) --- */
 
-/* Dòng @media (max-width:900px) { ... } có sẵn của bạn nằm ở đây */
+
 /* --- CSS ĐỂ LÀM CÁC NÚT BẤM TO HƠN --- */
 .stButton > button {
     padding: 0.8rem 1.2rem;
@@ -125,6 +113,7 @@ st.markdown("""
 @media (max-width:900px) {
     .bmcx-assist-bigbox, .bmcx-palette-box, .bmcx-history-box, .bmcx-note-box, .bmcx-footer {max-width:96vw;}
     .bmcx-title-feature { font-size:1.3rem; }
+    /* (Đã xóa dòng .bmcx-emotion-circle bị xung đột ở đây) */
 }
 </style>
 """, unsafe_allow_html=True)
@@ -245,59 +234,80 @@ with col2:
         default_color = "#FF5733"
     stroke_color = st.color_picker("Màu bút:", default_color)
     bg_color = st.color_picker("Màu nền:", "#FFFFFF")
-# --- BẮT ĐẦU CODE THAY THẾ (Dán vào đây) ---
 
-# Đọc query param để xử lý click
-query_params = st.query_params
-if "select_emotion" in query_params:
-    try:
-        selected_idx = int(query_params["select_emotion"])
-        if 0 <= selected_idx < len(EMOTIONS):
-            st.session_state.selected_emotion_idx = selected_idx
-            st.session_state.emotion_note = ""
-        # Xóa query param sau khi xử lý
-        st.query_params.clear()
-        st.rerun()
-    except (ValueError, TypeError):
-        st.query_params.clear()
+# --- BẮT ĐẦU PHẦN CHỈNH SỬA (2. PYTHON) ---
+# (Xóa bỏ toàn bộ code query_params và <a href> bị lỗi)
 
 # Bắt đầu HỘP BẢNG MÀU (Giữ nguyên class của bạn)
 st.markdown('<div class="bmcx-palette-box">', unsafe_allow_html=True)
 st.markdown("#### Hãy chọn cảm xúc của bạn hôm nay:")
 
-# Tạo chuỗi HTML cho lưới cảm xúc
-html_items = []
+# --- 1. LAYOUT CHO DESKTOP (7 CỘT) ---
+# Layout này sẽ được bọc trong class "desktop-view"
+st.markdown('<div class="desktop-view">', unsafe_allow_html=True)
+emotion_cols_desk = st.columns(len(EMOTIONS))
 for idx, emo in enumerate(EMOTIONS):
-    selected = st.session_state.selected_emotion_idx == idx
-    
-    # Dùng class 'selected' của bạn để highlight
-    selected_class = ' selected' if selected else ''
-    
-    # Tạo từng mục HTML.
-    # Quan trọng: Dùng thẻ <a> (link) với query param "?select_emotion={idx}"
-    # để Streamlit biết bạn đã click vào đâu.
-    html_items.append(f"""
-    <a href="/Bảng_màu_cảm_xúc?select_emotion={idx}" class="emotion-grid-item">
-        <div class="bmcx-emotion-circle{selected_class}" style="background:{emo['color']};">
-            {emo['emoji']}
-        </div>
-        <div class="bmcx-emotion-label">{emo['label']}</div>
-    </a>
-    """)
+    with emotion_cols_desk[idx]:
+        selected = st.session_state.selected_emotion_idx == idx
+        # Dùng st.button gốc, đảm bảo 100% chạy đúng
+        if st.button(f"{emo['emoji']}", key=f"emo_desk_{idx}", help=emo["label"]):
+            st.session_state.selected_emotion_idx = idx
+            st.session_state.emotion_note = ""
+            st.rerun()
+        
+        # Dùng lại CSS vòng tròn đẹp của bạn
+        st.markdown(
+            f"""
+            <div class="bmcx-emotion-circle{' selected' if selected else ''}" style="background:{emo['color']};">
+                {emo['emoji']}
+            </div>
+            <div class="bmcx-emotion-label">{emo['label']}</div>
+            """,
+            unsafe_allow_html=True
+        )
+st.markdown('</div>', unsafe_allow_html=True)
 
-# Hiển thị toàn bộ lưới cảm xúc
-st.markdown(
-    f"""
-    <div class="emotion-grid-container">
-        {''.join(html_items)}
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+
+# --- 2. LAYOUT CHO MOBILE (2 CỘT) ---
+# Layout này sẽ được bọc trong class "mobile-view"
+st.markdown('<div class="mobile-view">', unsafe_allow_html=True)
+
+# Lặp để tạo các hàng, mỗi hàng 2 cột
+for i in range(0, len(EMOTIONS), 2):
+    # Lấy 2 cảm xúc (hoặc 1 nếu là hàng cuối cùng)
+    emo_pair = EMOTIONS[i : i + 2]
+    emotion_cols_mob = st.columns(2)
+    
+    for j, emo in enumerate(emo_pair):
+        with emotion_cols_mob[j]:
+            # Tính lại index gốc
+            idx = i + j
+            selected = st.session_state.selected_emotion_idx == idx
+            
+            # Dùng st.button gốc với key khác
+            if st.button(f"{emo['emoji']}", key=f"emo_mob_{idx}", help=emo["label"]):
+                st.session_state.selected_emotion_idx = idx
+                st.session_state.emotion_note = ""
+                st.rerun()
+                
+            # Dùng lại CSS vòng tròn đẹp của bạn
+            st.markdown(
+                f"""
+                <div class="bmcx-emotion-circle{' selected' if selected else ''}" style="background:{emo['color']};">
+                    {emo['emoji']}
+                </div>
+                <div class="bmcx-emotion-label">{emo['label']}</div>
+                """,
+                unsafe_allow_html=True
+            )
+            
+st.markdown('</div>', unsafe_allow_html=True)
+
 
 # Đóng HỘP BẢNG MÀU
 st.markdown('</div>', unsafe_allow_html=True)
-# --- KẾT THÚC CODE THAY THẾ ---
+# --- KẾT THÚC PHẦN CHỈNH SỬA (2. PYTHON) ---
+
 
 canvas_result = st_canvas(
     fill_color="rgba(255, 165, 0, 0.3)",
@@ -391,5 +401,3 @@ st.markdown("""
     "Mỗi cảm xúc đều đáng trân trọng. Bạn hãy tự tin chia sẻ và chăm sóc cảm xúc của mình nhé! 🎨"
 </div>
 """, unsafe_allow_html=True)
-
-
