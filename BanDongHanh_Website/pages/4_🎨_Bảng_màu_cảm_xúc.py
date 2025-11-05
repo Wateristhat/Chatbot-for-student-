@@ -72,8 +72,11 @@ st.markdown("""
     display: flex;
     flex-direction: column;
     align-items: center;
-    text-decoration: none; /* Bỏ gạch chân của link */
+    text-decoration: none !important; /* Bỏ gạch chân của link */
     color: #222;
+}
+.emotion-grid-item .bmcx-emotion-label {
+    text-decoration: none !important;
 }
 
 /* Đoạn media query này chính là yêu cầu của bạn.
@@ -274,7 +277,7 @@ for idx, emo in enumerate(EMOTIONS):
     # Quan trọng: Dùng thẻ <a> (link) với query param "?select_emotion={idx}"
     # để Streamlit biết bạn đã click vào đâu.
     html_items.append(f"""
-    <a href="?select_emotion={idx}" class="emotion-grid-item">
+    <a href="./?select_emotion={idx}" class="emotion-grid-item">
         <div class="bmcx-emotion-circle{selected_class}" style="background:{emo['color']};">
             {emo['emoji']}
         </div>
