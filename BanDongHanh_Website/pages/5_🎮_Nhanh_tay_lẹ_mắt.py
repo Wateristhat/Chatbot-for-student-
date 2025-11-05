@@ -22,7 +22,7 @@ def create_tts_button(text, key_suffix, button_text="🔊 Đọc to"):
     if st.button(button_text, key=f"tts_{key_suffix}"):
         audio_data = text_to_speech(text)
         if audio_data:
-            st.audio(audio_data, format="audio/mp3")
+            st.audio(audio_data, format="audio/mpeg")
 
 # --- HƯỚNG DẪN & ĐỘNG VIÊN ---
 st.markdown("""
