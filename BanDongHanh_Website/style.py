@@ -11,14 +11,12 @@ def apply_global_style():
             font-family: 'Quicksand', Arial, sans-serif;
         }
 
-        /* --- (MỚI) SỬA LỖI CHIỀU CAO SIDEBAR KHÔNG ĐỒNG ĐỀU --- */
+        /* --- SỬA LỖI CHIỀU CAO SIDEBAR --- */
         [data-testid="stSidebarNavItems"] li a {
             height: 2.75rem; 
             display: flex;
             align-items: center;
         }
-        /* --- (KẾT THÚC PHẦN MỚI) --- */
-
 
         /* --- STYLE CHUNG CHO CÁC NÚT BẤM --- */
         .stButton > button {
@@ -60,15 +58,11 @@ def apply_global_style():
         }
 
         /* --- CÁC CLASS GIAO DIỆN DÙNG CHUNG --- */
-
-        /* Tiêu đề chính của trang */
         .app-title-feature {
             font-size: 2.6rem; font-weight: 700; color: #5d3fd3; text-align: center;
             margin-bottom: 1.4rem; margin-top: 0.7rem; display: flex; align-items: center;
             justify-content: center; gap: 1.1rem;
         }
-        
-        /* Khung trợ lý ảo màu tím */
         .app-assist-box {
             background: linear-gradient(120deg, #e0e7ff 0%, #f3e8ff 100%);
             border-radius: 38px; box-shadow: 0 8px 36px rgba(124,77,255,.13);
@@ -78,8 +72,6 @@ def apply_global_style():
         }
         .app-assist-icon { font-size: 3.2rem; margin-bottom: 0.7rem; }
         .app-assist-text { font-size: 1.7rem; font-weight: 700; color: #6d28d9; margin-bottom: 1.1rem; }
-
-        /* Khung nội dung/thẻ card chung */
         .app-card {
             background: #fff;
             border-radius: 16px;
@@ -93,43 +85,42 @@ def apply_global_style():
         @media (max-width: 900px) {
             
             /* --- NÚT BẤM (BUTTONS) --- */
-            /* Ép tất cả các nút (ngoại trừ nút đặc biệt) phải rộng 100% */
             .stButton > button {
                 width: 100% !important;
                 max-width: 100% !important;
-                margin-bottom: 0.8rem !important; /* Thêm khoảng cách giữa các nút */
+                margin-bottom: 0.8rem !important; 
             }
 
             /* --- KHUNG TRỢ LÝ (ASSISTANT BOXES) --- */
-            /* Thu nhỏ tất cả các hộp "trợ lý" lớn */
             .app-assist-box, .lo-assist-bigbox, .bmcx-assist-bigbox, 
             .lttt-assist-bigbox, .gn-assist-bigbox, .nkc-assist-bigbox {
-                padding: 2rem 1rem !important; /* Giảm padding */
-                max-width: 96vw !important; /* Vừa màn hình */
+                padding: 2rem 1rem !important; 
+                max-width: 96vw !important; 
             }
 
             /* --- TIÊU ĐỀ TRANG (TITLES) --- */
-            /* Thu nhỏ tất cả các tiêu đề trang */
             .app-title-feature, .lo-title-feature, .bmcx-title-feature, 
-            .lttt-title-feature, .gn-title, .nkc-title-feature {
-                font-size: 1.8rem !important; /* Giảm cỡ chữ */
+            .lttt-title-feature, .gn-title, .nkc-title-feature, .game-title {
+                font-size: 1.8rem !important; 
+            }
+            .game-subtitle {
+                font-size: 1.3rem !important;
             }
 
             /* --- TEXT TRỢ LÝ (ASSISTANT TEXT) --- */
-            /* Thu nhỏ tất cả các text trợ lý */
             .app-assist-text, .lo-assist-text, .bmcx-assist-text, 
             .lttt-assist-text, .gn-assist-text, .nkc-assist-text {
-                font-size: 1.2rem !important; /* Giảm cỡ chữ */
+                font-size: 1.2rem !important; 
             }
 
             /* --- CÁC HỘP NỘI DUNG (CONTENT CARDS) --- */
-            /* Thu nhỏ các hộp nội dung khác (lọ, timeline, footer...) */
             .app-card, .lo-box, .timeline-item, .lo-footer, 
             .bmcx-palette-box, .bmcx-note-box, .bmcx-history-box, .bmcx-footer,
             .lttt-box, .lttt-card, .lttt-footer, .lttt-history-box,
             .gn-checklist-item, .gn-congrats, .gn-footer,
             .nkc-story-card, .nkc-footer, .encouragement-box,
-            .assistant-card, .exercise-card, .inclusive-instruction, .progress-container {
+            .assistant-card, .exercise-card, .inclusive-instruction, .progress-container,
+            .hotline-container, .emergency-warning-box {
                 max-width: 96vw !important;
                 padding-left: 0.8rem !important;
                 padding-right: 0.8rem !important;
@@ -139,24 +130,26 @@ def apply_global_style():
             /* --- CÁC TRƯỜNG HỢP ĐẶC BIỆT --- */
 
             /* (Trang chủ) Thu nhỏ menu */
-            .menu-card {
-                padding: 1rem 0.8rem;
-                gap: 1rem;
-            }
+            .menu-card { padding: 1rem 0.8rem; gap: 1rem; }
             .menu-icon { font-size: 1.8rem; }
             .menu-title { font-size: 1.05rem; }
             .menu-desc { font-size: 0.9rem; }
 
             /* (Bảng Màu) Thu nhỏ các vòng tròn emoji */
             .bmcx-emotion-circle {
-                width: 80px !important;
-                height: 80px !important;
+                width: 80px !important; height: 80px !important;
                 font-size: 1.5rem !important;
                 margin: 0 5px 1rem 5px !important;
             }
-            .bmcx-emotion-label {
-                font-size: 0.9rem !important;
+            .bmcx-emotion-label { font-size: 0.9rem !important; }
+            
+            /* --- (MỚI) SỬA LỖI GAME BỊ CẮT 1/2 --- */
+            canvas[width] { /* Chỉ nhắm vào canvas của game */
+                width: 100% !important;     /* Ép canvas vừa 100% màn hình */
+                max-width: 100% !important;
+                height: auto !important;     /* Tự động chỉnh chiều cao */
             }
+
         }
         /* --- KẾT THÚC SIÊU KHỐI --- */
 
