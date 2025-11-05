@@ -50,7 +50,7 @@ def load_stories():
             },
             {
                 "title": "Bảy lần ngã, Tám lần đứng dậy",
-                "content": "Một võ sĩ Sumo đang học việc bị mọi người chế giễu vì vóc dáng nhỏ bé và liên tục thất bại trong các trận đấu tập. Anh nản lòng và muốn bỏ cuộc. Người thầy của anh chỉ nói: 'Thất bại không phải là xấu hổ. Đáng xấu hổ là khi con không chịu đứng dậy sau thất bại.' Võ sĩ nhớ lời thầy, mỗi khi ngã, anh lại đứng dậy, tập luyện điên cuồng. Cuối cùng, anh trở thành một trong những đô vật vĩ đại nhất. Bài học: Thành công không đến từ việc không bao giờ thất bại, mà đến từ sự kiên trì và khả năng phục hồi sau mỗi lần gục ngã. (Nana korobi ya oki)."
+                "content": "Một võ sĩ Sumo đang học việc bị mọi người chế giễu vì vóc dáng nhỏ bé và liên tục thất bại trong các trận đấu tập. Anh nản lòng và muốn bỏ cuộc. Người thầy của anh chỉ nói: 'Thất bại không phải là xấu hổ. Đáng xấu hổ là khi con không chịu đứng dậy sau thất bại.' Võ sĩ nhớ lời thầy, mỗi khi ngã, anh lại đứng dậy, tập luyện điên cuồng. Cuối cùng, anh trở thành một trong những đô vật vĩ đại nhất. Bài học: Thành công không đến từ việc không bao giờ thất bại, mà đến từ sự kiên trì và khả năng phục hồi sau mỗi lần gục ngã."
             },
             {
                 "title": "Chiếc gương và người đánh giày",
@@ -67,7 +67,29 @@ def load_stories():
             {
                 "title": "Hố sâu và chiếc thang",
                 "content": "Một người đang đi trên đường thì bị rơi xuống một cái hố sâu. Anh ta cố gắng kêu cứu nhưng không ai nghe thấy. Anh tuyệt vọng. Một lúc sau, một người đi qua, thấy anh ta và quăng xuống một sợi dây thừng. Anh ta leo lên được. Sau này, anh ta thấy một người khác cũng bị rơi xuống hố đó. Thay vì quăng dây thừng, anh ta nhảy xuống hố. Người bị nạn hoảng hốt: 'Anh làm gì vậy?' Anh ta mỉm cười và nói: 'Tôi hiểu cảm giác của anh. Tôi đã từng ở đây. Tôi biết đường ra.' Bài học: Sự đồng cảm và kinh nghiệm vượt qua khó khăn là món quà lớn nhất mà chúng ta có thể chia sẻ với người khác."
+            },
+            # --- 5 TRUYỆN TRUYỀN CẢM HỨNG MỚI ĐƯỢC THÊM VÀO ---
+            {
+                "title": "Người thợ gốm và chiếc bình hỏng",
+                "content": "Một người thợ gốm luôn giữ lại những chiếc bình bị nứt hoặc méo mó, dù chúng không bán được. Khi người học việc hỏi tại sao, ông nói: 'Bình lành lặn dùng để đựng nước, nhưng những chiếc bình hỏng này lại tạo ra âm thanh độc đáo khi gió thổi qua. Chúng dùng để tạo ra âm nhạc.' Bài học: Những khiếm khuyết hay sai lầm của bạn không phải là vô dụng. Chúng có thể tạo ra những giá trị và ý nghĩa khác biệt mà bạn không ngờ tới."
+            },
+            {
+                "title": "Nghệ sĩ vĩ cầm trên phố",
+                "content": "Một nghệ sĩ vĩ cầm nổi tiếng thế giới, đã bán hết vé cho các buổi hòa nhạc lớn, quyết định xuống ga tàu điện ngầm để chơi nhạc trong giờ cao điểm. Anh chơi những bản nhạc kinh điển bằng cây đàn trị giá hàng triệu đô la. Hầu hết mọi người đi ngang qua đều vội vã, chỉ có vài người dừng lại nghe trong chốc lát và bỏ một ít tiền lẻ. Bài học: Giá trị và tài năng thực sự không được định đoạt bởi bối cảnh. Đừng bao giờ chờ đợi sự công nhận của đám đông. Điều quan trọng là bạn có dám theo đuổi đam mê của mình, dù ở nơi nào hay không."
+            },
+            {
+                "title": "Chiếc thuyền buồm ngược gió",
+                "content": "Hai chiếc thuyền buồm cùng căng buồm ra khơi. Một chiếc than phiền: 'Gió ngược quá, tôi không thể đi được.' Chiếc kia, bằng cách điều chỉnh góc cánh buồm, lại dùng chính sức gió ngược đó để đẩy mình tiến lên. Bài học: Cuộc sống không phải là việc chờ đợi những cơn gió thuận lợi, mà là học cách điều chỉnh cánh buồm để đi đến đích bằng mọi loại gió. Khó khăn có thể là lực đẩy nếu chúng ta biết cách xoay chuyển tình thế."
+            },
+            {
+                "title": "Sự kiên nhẫn của chiếc đồng hồ cát",
+                "content": "Một chiếc đồng hồ cát không bao giờ cố gắng đẩy cát nhanh hơn. Nó chỉ lật lại và để cho cát chảy theo đúng nhịp điệu tự nhiên của nó. Nếu cố gắng ép buộc tốc độ, nó sẽ bị tắc nghẽn và ngừng hoạt động. Bài học: Mọi thứ trong cuộc sống đều có thời điểm của nó. Thay vì cố gắng vội vã, hãy kiên nhẫn và tin tưởng vào quá trình. Hãy để mọi thứ diễn ra một cách tự nhiên."
+            },
+            {
+                "title": "Phép màu của sự bắt đầu",
+                "content": "Nhà văn người Brazil Paulo Coelho từng nói: 'Khi bạn thực sự muốn điều gì đó, cả vũ trụ sẽ hợp lực giúp bạn đạt được điều đó.' Nhiều người trì hoãn ước mơ vì sợ thất bại. Nhưng câu chuyện này dạy rằng, bước đi đầu tiên, dù nhỏ bé đến đâu, là điều kiện tiên quyết để tạo ra 'phép màu' của sự hỗ trợ từ bên ngoài. Bài học: Hãy bắt đầu. Chỉ khi bạn bắt đầu hành động, những cơ hội, sự giúp đỡ và nguồn lực cần thiết mới xuất hiện để hỗ trợ bạn trên hành trình của mình."
             }
+            # --- KẾT THÚC CÁC TRUYỆN MỚI ---
         ],
         "Truyện ngụ ngôn": [
             {
@@ -78,7 +100,6 @@ def load_stories():
                 "title": "Cáo và chùm nho",
                 "content": "Một con cáo đói đi qua một vườn nho. Nó thấy một chùm nho chín mọng lủng lẳng trên giàn cao. Cáo nhảy lên nhiều lần nhưng không thể với tới. Cuối cùng, nó bỏ đi và tự nhủ: 'Nho còn xanh lắm, ăn vào chỉ chua thôi!'. Bài học: Nhiều người thường chê bai những thứ họ không thể đạt được để tự an ủi bản thân."
             },
-            # --- 5 TRUYỆN NGỤ NGÔN MỚI ĐƯỢC THÊM VÀO ---
             {
                 "title": "Thỏ và rùa",
                 "content": "Một con thỏ kiêu ngạo luôn khoe khoang về tốc độ của mình và thách thức một con rùa chậm chạp thi chạy. Trong cuộc đua, thỏ chạy nhanh hơn rùa rất nhiều và tự tin rằng mình sẽ thắng, nên nó dừng lại và ngủ một giấc. Rùa cứ từ từ bò, không ngừng nghỉ. Khi thỏ tỉnh dậy, nó thấy rùa đã bò đến đích và thắng cuộc. Bài học: Chậm mà chắc, kiên trì và không tự mãn mới là chìa khóa của thành công."
@@ -99,7 +120,6 @@ def load_stories():
                 "title": "Chim bồ câu và kiến",
                 "content": "Một con kiến bị trượt chân và rơi xuống sông. Một con chim bồ câu thấy vậy, nhanh chóng thả một chiếc lá xuống nước. Kiến bám vào chiếc lá và thoát chết. Ít lâu sau, một người thợ săn giương súng định bắn bồ câu. Kiến nhìn thấy, bèn bò đến và cắn vào chân người thợ săn. Người thợ săn giật mình làm rơi súng, bồ câu nghe tiếng động nên bay đi thoát nạn. Bài học: Hãy luôn giúp đỡ người khác khi họ gặp khó khăn, vì một ngày nào đó, bạn cũng sẽ nhận lại sự giúp đỡ."
             }
-            # --- KẾT THÚC CÁC TRUYỆN MỚI ---
         ],
         "Truyện chữa lành": [
             {
