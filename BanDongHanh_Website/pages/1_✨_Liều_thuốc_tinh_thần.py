@@ -134,7 +134,7 @@ with col2:
         tts = gTTS(text=msg, lang='vi', slow=False)
         tts.write_to_fp(audio_bytes)
         audio_bytes.seek(0)
-        st.audio(audio_bytes.read(), format="audio/mp3")
+        st.audio(audio_bytes.read(), format="audio/mpeg")
 
 # --- Hộp chọn động viên ---
 st.markdown('<div class="lttt-box">🐝 Chọn điều bạn cần nhất, Bee sẽ gửi động viên phù hợp! Bạn có thể nghe hoặc lưu lại nhé! 🌈</div>', unsafe_allow_html=True)
@@ -200,7 +200,7 @@ def play_encouragement_audio(message_data):
     with st.spinner("🎵 Đang chuẩn bị âm thanh cho bạn..."):
         audio_data = create_audio_with_tts(full_text)
         if audio_data:
-            st.audio(audio_data, format="audio/mp3")
+            st.audio(audio_data, format="audio/mpeg")
             st.balloons()
         else:
             st.info("🔊 Không thể tạo âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
