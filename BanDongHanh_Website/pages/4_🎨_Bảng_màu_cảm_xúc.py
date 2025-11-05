@@ -74,11 +74,6 @@ st.markdown("""
     border-color: #5d3fd3;
     color: #5d3fd3;
 }
-@media (max-width:900px) {
-    .bmcx-assist-bigbox, .bmcx-palette-box, .bmcx-history-box, .bmcx-note-box, .bmcx-footer {max-width:96vw;}
-    .bmcx-title-feature { font-size:1.3rem; }
-    .bmcx-emotion-circle {width:90px;height:90px;font-size:1.4rem;}
-}
 </style>
 """, unsafe_allow_html=True)
 
