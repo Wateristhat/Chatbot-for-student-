@@ -49,6 +49,10 @@ st.markdown("""
     padding: 2.2rem 1.2rem 1.2rem 1.2rem; margin-bottom:2.2rem; margin-top:0.2rem;
     text-align: center; border: 3px solid #b39ddb; max-width:1200px; margin-left:auto; margin-right:auto;
 }
+
+/* --- 10. (SỬA) CSS ĐỂ SỬA LỖI GIAO DIỆN BỊ VỠ --- */
+
+/* Đây là CSS cho vòng tròn (nhưng nó sẽ bị CSS "small" bên dưới ghi đè) */
 .bmcx-emotion-circle {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     width: 120px; height: 120px; border-radius: 50%; color: #fff; font-size: 2.3rem; font-weight:700;
@@ -59,6 +63,8 @@ st.markdown("""
     border: 5px solid #5d3fd3; box-shadow: 0 6px 20px rgba(77,36,175,0.18); transform: scale(1.08);
 }
 .bmcx-emotion-label {font-size:1.15rem; font-weight:600; color:#222; margin-top:0.6rem;}
+
+/* (CSS tùy chỉnh của trang) */
 .bmcx-note-box {
     background: #f2fcfa; border-radius: 16px; padding: 1.3rem 1.5rem; font-size:1.13rem; color:#555;
     max-width:900px; margin-left:auto; margin-right:auto; margin-bottom:1.1rem; border-left:5px solid #80deea;
@@ -71,9 +77,6 @@ st.markdown("""
     background:#f3e5f5; border-left:5px solid #ba68c8; border-radius:15px; padding:1rem 1.3rem;
     text-align:center; font-size:1.13rem; margin:0.7rem 0 1rem 0; color:#333; max-width:1200px; margin-left:auto; margin-right:auto;
 }
-
-/* --- 6. XÓA KHỐI @media (ĐÃ GỘP VÀO STYLE.PY) --- */
-/* (Khối @media (max-width:900px) đã bị xóa khỏi đây) */
 
 /* --- 10. (MỚI) CSS ĐỂ SỬA LỖI GIAO DIỆN BỊ VỠ --- */
 .emotion-flex-container {
@@ -107,7 +110,7 @@ st.markdown("""
      color: transparent !important; /* Ẩn emoji của nút */
 }
 /* Làm cho vòng tròn nằm "dưới" nút bấm + THU NHỎ */
-.bmcx-emotion-circle {
+.bmcx-emotion-circle-small {
      margin-top: -110px; /* Kéo vòng tròn lên trên (100px + 10px margin) */
      z-index: -1; /* Đưa vòng tròn ra sau nút bấm */
      /* Thu nhỏ vòng tròn (theo yêu cầu của bạn) */
@@ -118,11 +121,14 @@ st.markdown("""
      margin-left: auto; /* Căn giữa */
      margin-right: auto; /* Căn giữa */
 }
-.bmcx-emotion-label {
+.bmcx-emotion-label-small {
     font-size: 1rem !important;
     margin-top: -10px !important; /* Kéo chữ lên */
     font-weight: 600; color:#222;
 }
+
+/* --- 6. XÓA KHỐI @media (ĐÃ GỘP VÀO STYLE.PY) --- */
+/* (Khối @media (max-width:900px) đã bị xóa khỏi đây) */
 </style>
 """, unsafe_allow_html=True)
 
