@@ -52,10 +52,35 @@ game_file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__
 try:
     with open(game_file_path, "r", encoding="utf-8") as file:
         game_html_content = file.read()
-    st.components.v1.html(game_html_content, height=1200, scrolling=False)
+    
+    # --- 1. ĐOẠN CODE SỬA LỖI MÀN HÌNH BỊ CẮT ---
+    # Tiêm CSS vào file HTML để ép game co lại vừa màn hình
+    game_responsive_css = """
+    <style>
+        body, html {
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden; /* Ẩn thanh cuộn của game */
+        }
+        /* Nhắm vào thẻ canvas của game (thẻ vẽ game) */
+        canvas {
+            width: 100% !important;     /* Ép canvas vừa 100% màn hình */
+            max-width: 100vw !important;
+            height: auto !important;     /* Tự động chỉnh chiều cao */
+            object-fit: contain; 
+        }
+    </style>
+    """
+    # Thêm CSS vào đầu file game
+    game_html_content_fixed = game_responsive_css + game_html_content
+    # --- KẾT THÚC ĐOẠN CODE SỬA LỖI ---
+
+    # --- 2. SỬA LỖI CHIỀU CAO GAME ---
+    # Giảm chiều cao (height) từ 1200 xuống 600 để vừa màn hình điện thoại
+    st.components.v1.html(game_html_content_fixed, height=600, scrolling=False) 
     st.info("👉 Nhấn phím SPACE (máy tính) hoặc chạm vào màn hình (điện thoại) để chơi game!")
 except Exception as e:
-    st.error(f"Không thể tải game. Kiểm tra file game.html trong thư mục BanDongHanh_Website. Chi tiết lỗi: {e}")
+    st.error(f"Không thể tải game. Kiểm tra file game.html. Chi tiết lỗi: {e}")
 
 # --- ĐỘNG VIÊN KHI CHƠI GAME ---
 st.write("---")
