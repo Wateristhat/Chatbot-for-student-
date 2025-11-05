@@ -27,9 +27,10 @@ style.apply_global_style()
 # --- CSS giao diện (ĐÃ XÓA CSS BUTTON VÀ @MEDIA CỤC BỘ) ---
 st.markdown("""
 <style>
+/* --- 6. XÓA CSS BUTTON CỤC BỘ (GÂY LỖI) --- */
 /* (Khối .stButton > button đã bị xóa) */
-/* (Khối @media đã bị xóa) */
 
+/* (Giữ lại CSS tùy chỉnh của trang) */
 .bmcx-title-feature {
     font-size:2.6rem; font-weight:700; color:#5d3fd3; text-align:center; margin-bottom:1.4rem; margin-top:0.7rem;
     letter-spacing:0.1px; display: flex; align-items: center; justify-content: center; gap: 1.1rem;
@@ -71,7 +72,10 @@ st.markdown("""
     text-align:center; font-size:1.13rem; margin:0.7rem 0 1rem 0; color:#333; max-width:1200px; margin-left:auto; margin-right:auto;
 }
 
-/* --- 6. (MỚI) CSS ĐỂ SỬA LỖI GIAO DIỆN BỊ VỠ --- */
+/* --- 6. XÓA KHỐI @media (ĐÃ GỘP VÀO STYLE.PY) --- */
+/* (Khối @media (max-width:900px) đã bị xóa khỏi đây) */
+
+/* --- 10. (MỚI) CSS ĐỂ SỬA LỖI GIAO DIỆN BỊ VỠ --- */
 .emotion-flex-container {
     display: flex;
     flex-wrap: wrap; /* Tự động ngắt dòng */
@@ -79,19 +83,21 @@ st.markdown("""
     gap: 10px; /* Khoảng cách giữa các emoji */
 }
 .emotion-item-wrapper {
-    width: 130px; /* Độ rộng cho mỗi emoji (bao gồm nút + vòng tròn) */
+    /* Đặt kích thước cho 1 item (đủ cho 2 item/hàng trên đt) */
+    width: 140px; 
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
+    cursor: pointer; /* Biến cả cục thành con trỏ */
 }
-/* Thu nhỏ nút bấm emoji (vì nó nằm đè lên vòng tròn) */
+/* Thu nhỏ nút bấm emoji (nút thật) */
 .emotion-item-wrapper .stButton > button {
-     width: 60px !important; 
-     height: 60px !important;
-     min-width: 60px !important;
-     min-height: 60px !important;
-     font-size: 1.5rem !important;
+     width: 100px !important; /* Phải đủ to để bấm vào vòng tròn */
+     height: 100px !important;
+     min-width: 100px !important;
+     min-height: 100px !important;
+     font-size: 2rem !important;
      padding: 0 !important;
      margin-bottom: 10px !important;
      /* Ẩn nút bấm đi */
@@ -100,12 +106,23 @@ st.markdown("""
      box-shadow: none !important;
      color: transparent !important; /* Ẩn emoji của nút */
 }
-/* Làm cho vòng tròn nằm "dưới" nút bấm */
+/* Làm cho vòng tròn nằm "dưới" nút bấm + THU NHỎ */
 .bmcx-emotion-circle {
-     margin-top: -70px; /* Kéo vòng tròn lên trên */
+     margin-top: -110px; /* Kéo vòng tròn lên trên (100px + 10px margin) */
      z-index: -1; /* Đưa vòng tròn ra sau nút bấm */
+     /* Thu nhỏ vòng tròn (theo yêu cầu của bạn) */
+     width: 100px !important;
+     height: 100px !important;
+     font-size: 2rem !important;
+     margin-bottom: 1rem !important;
+     margin-left: auto; /* Căn giữa */
+     margin-right: auto; /* Căn giữa */
 }
-
+.bmcx-emotion-label {
+    font-size: 1rem !important;
+    margin-top: -10px !important; /* Kéo chữ lên */
+    font-weight: 600; color:#222;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -229,7 +246,7 @@ with col2:
 st.markdown('<div class="bmcx-palette-box">', unsafe_allow_html=True)
 st.markdown("#### Hãy chọn cảm xúc của bạn hôm nay:")
 
-# --- 6. SỬA LỖI GIAO DIỆN BỊ VỠ (XÓA st.columns) ---
+# --- 10. SỬA LỖI GIAO DIỆN BỊ VỠ (XÓA st.columns) ---
 st.markdown('<div class="emotion-flex-container">', unsafe_allow_html=True) # Bắt đầu flex container
 
 # (XÓA DÒNG emotion_cols = st.columns(len(EMOTIONS)))
@@ -241,7 +258,6 @@ for idx, emo in enumerate(EMOTIONS):
     selected = st.session_state.selected_emotion_idx == idx
     
     # NÚT BẤM (đã được CSS ẩn đi, nhưng vẫn bấm được)
-    # Nút bấm này dùng emoji của chính nó, KHÔNG PHẢI emoji của cảm xúc
     if st.button(f"{emo['emoji']}", key=f"emo_{idx}", help=emo["label"]):
         set_emotion(idx, emo["color"]) # Dùng callback
         st.rerun()
@@ -249,10 +265,10 @@ for idx, emo in enumerate(EMOTIONS):
     # VÒNG TRÒN MÀU (nằm bên dưới nút)
     st.markdown(
         f"""
-        <div class="bmcx-emotion-circle{' selected' if selected else ''}" style="background:{emo['color']};">
+        <div class="bmcx-emotion-circle bmcx-emotion-circle-small {' selected' if selected else ''}" style="background:{emo['color']};">
             {emo['emoji']}
         </div>
-        <div class="bmcx-emotion-label">{emo['label']}</div>
+        <div class="bmcx-emotion-label bmcx-emotion-label-small">{emo['label']}</div>
         """,
         unsafe_allow_html=True
     )
