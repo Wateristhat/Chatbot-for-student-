@@ -94,7 +94,8 @@ st.markdown("""
     }
 
     /* 3. CSS ĐỂ TRƯỢT NGANG (st.columns) */
-    .bmcx-palette-box div[data-testid="stHorizontalBlock"] {
+    /* Target vào st.columns(7) nằm NGAY SAU class .scroll-tip */
+    .scroll-tip + div[data-testid="stHorizontalBlock"] {
         flex-direction: row !important;
         flex-wrap: nowrap !important;
         overflow-x: auto !important;
@@ -102,20 +103,23 @@ st.markdown("""
         padding: 10px 0;
     }
     
-    .bmcx-palette-box div[data-testid="stVerticalBlock"] {
+    /* Target vào các cột con BÊN TRONG block trượt ngang */
+    .scroll-tip + div[data-testid="stHorizontalBlock"] > div[data-testid="stVerticalBlock"] {
         flex-shrink: 0 !important;
         align-items: center; 
         width: 140px !important; 
     }
 
     /* 4. Tinh chỉnh vòng tròn cho vừa */
-    .bmcx-palette-box .bmcx-emotion-circle {
+    /* Target vòng tròn BÊN TRONG block trượt ngang */
+    .scroll-tip + div[data-testid="stHorizontalBlock"] .bmcx-emotion-circle {
         width: 100px;
         height: 100px;
         font-size: 2rem;
         margin: 0 10px 1rem 10px;
     }
-    .bmcx-palette-box .bmcx-emotion-label {
+    /* Target nhãn BÊN TRONG block trượt ngang */
+    .scroll-tip + div[data-testid="stHorizontalBlock"] .bmcx-emotion-label {
         font-size: 1rem;
     }
 }
@@ -251,6 +255,7 @@ st.markdown('<div class="bmcx-palette-box">', unsafe_allow_html=True)
 st.markdown("#### Hãy chọn cảm xúc của bạn hôm nay:")
 
 # --- THAY ĐỔI 2: THÊM GHI CHÚ (THEO Ý BẠN) ---
+# Dòng này rất QUAN TRỌNG để CSS mới hoạt động
 st.markdown("<div class='scroll-tip'><strong><i>(Lướt sang trái/phải để xem tất cả)</i></strong></div>", unsafe_allow_html=True)
 # --- KẾT THÚC THAY ĐỔI 2 ---
 
