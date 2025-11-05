@@ -75,48 +75,61 @@ st.markdown("""
     color: #5d3fd3;
 }
 
-/* --- BẮT ĐẦU CSS "HAI LAYOUT" (Đã sửa) --- */
-/* Kỹ thuật: 
-  - Tạo 2 st.container(), một cho desktop, một cho mobile.
-  - Đặt 1 "marker" (div .desktop-only / .mobile-only) vào mỗi container.
-  - Dùng CSS :has() để tìm container chứa marker và ẩn/hiện nó.
-*/
+/* --- BẮT ĐẦU CSS MỚI (Trượt ngang + Ghi chú) --- */
 
-/* 1. Mặc định (desktop): HIỆN desktop, ẨN mobile */
-div[data-testid="stVerticalBlock"]:has(> div.desktop-only) {
-    display: block !important;
-}
-div[data-testid="stVerticalBlock"]:has(> div.mobile-only) {
-    display: none !important;
+/* 1. Ẩn ghi chú trượt trên desktop */
+.scroll-tip {
+    display: none;
 }
 
-/* 2. Khi màn hình hẹp (mobile): ẨN desktop, HIỆN mobile */
 @media (max-width: 768px) {
-    div[data-testid="stVerticalBlock"]:has(> div.desktop-only) {
-        display: none !important;
-    }
-    div[data-testid="stVerticalBlock"]:has(> div.mobile-only) {
-        display: block !important;
+    
+    /* 2. HIỆN GHI CHÚ TRƯỢT NGANG (chỉ trên mobile) */
+    .scroll-tip {
+        display: block;
+        font-size: 0.9rem;
+        color: #555;
+        margin-top: -10px; /* Kéo lên gần title */
+        margin-bottom: 15px;
     }
 
-    /* 3. Tinh chỉnh layout mobile cho đẹp (2 cột) */
-    .mobile-only-container .bmcx-emotion-circle {
+    /* 3. CSS ĐỂ TRƯỢT NGANG (st.columns) */
+    /* === SỬA LỖI DUY NHẤT Ở ĐÂY: THAY DẤU + BẰNG DẤU ~ === */
+    .scroll-tip ~ div[data-testid="stHorizontalBlock"] {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        justify-content: flex-start !important;
+        padding: 10px 0;
+    }
+    
+    /* Target vào các cột con BÊN TRONG block trượt ngang */
+    .scroll-tip ~ div[data-testid="stHorizontalBlock"] > div[data-testid="stVerticalBlock"] {
+        flex-shrink: 0 !important;
+        align-items: center; 
+        width: 140px !important; 
+    }
+
+    /* 4. Tinh chỉnh vòng tròn cho vừa */
+    /* Target vòng tròn BÊN TRONG block trượt ngang */
+    .scroll-tip ~ div[data-testid="stHorizontalBlock"] .bmcx-emotion-circle {
         width: 100px;
         height: 100px;
         font-size: 2rem;
         margin: 0 10px 1rem 10px;
     }
-    .mobile-only-container .bmcx-emotion-label {
+    /* Target nhãn BÊN TRONG block trượt ngang */
+    .scroll-tip ~ div[data-testid="stHorizontalBlock"] .bmcx-emotion-label {
         font-size: 1rem;
     }
 }
-/* --- KẾT THÚC CSS "HAI LAYOUT" --- */
-
+/* --- KẾT THÚC CSS MỚI --- */
 
 @media (max-width:900px) {
     .bmcx-assist-bigbox, .bmcx-palette-box, .bmcx-history-box, .bmcx-note-box, .bmcx-footer {max-width:96vw;}
     .bmcx-title-feature { font-size:1.3rem; }
-    /* .bmcx-emotion-circle {width:90px;height:90px;font-size:1.4rem;} */ /* (Đã comment dòng này) */
+    /* Dòng này bị xung đột với CSS trượt ngang, nên comment nó lại */
+    /* .bmcx-emotion-circle {width:90px;height:90px;font-size:1.4rem;} */
 }
 </style>
 """, unsafe_allow_html=True)
@@ -160,7 +173,7 @@ EMOTIONS = [
         "encourage": "Hãy tận dụng năng lượng tích cực để sáng tạo và vui chơi!"
     },
     {
-        "label": "Ngạc nhiên",
+        "label":D: "Ngạc nhiên",
         "emoji": "😲",
         "color": "#FFB300",
         "encourage": "Cuộc sống luôn đầy bất ngờ, hãy tận hưởng nhé!"
@@ -238,70 +251,30 @@ with col2:
     stroke_color = st.color_picker("Màu bút:", default_color)
     bg_color = st.color_picker("Màu nền:", "#FFFFFF")
 
-# --- BẮT ĐẦU PHẦN CODE PYTHON MỚI (Hai Layout) ---
-
-# Mở hộp màu
 st.markdown('<div class="bmcx-palette-box">', unsafe_allow_html=True)
 st.markdown("#### Hãy chọn cảm xúc của bạn hôm nay:")
 
-# --- 1. LAYOUT DESKTOP (7 CỘT) ---
-with st.container():
-    # Đặt "marker" cho CSS
-    st.markdown('<div class="desktop-only"></div>', unsafe_allow_html=True) 
-    
-    emotion_cols_desk = st.columns(len(EMOTIONS))
-    for idx, emo in enumerate(EMOTIONS):
-        with emotion_cols_desk[idx]:
-            selected = st.session_state.selected_emotion_idx == idx
-            if st.button(f"{emo['emoji']}", key=f"emo_desk_{idx}", help=emo["label"]):
-                st.session_state.selected_emotion_idx = idx
-                st.session_state.emotion_note = ""
-                st.rerun()
-            st.markdown(
-                f"""
-                <div class="bmcx-emotion-circle{' selected' if selected else ''}" style="background:{emo['color']};">
-                    {emo['emoji']}
-                </div>
-                <div class="bmcx-emotion-label">{emo['label']}</div>
-                """,
-                unsafe_allow_html=True
-            )
+# Ghi chú "Lướt sang" (Dòng này đã có dấu =)
+st.markdown("<div class='scroll-tip'><strong><i>(Lướt sang trái/phải để xem tất cả)</i></strong></div>", unsafe_allow_html=True)
 
-# --- 2. LAYOUT MOBILE (2 CỘT) ---
-with st.container():
-    # Đặt "marker" cho CSS
-    st.markdown('<div class="mobile-only"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="mobile-only-container">', unsafe_allow_html=True) # Thêm 1 div để style
-
-    for i in range(0, len(EMOTIONS), 2):
-        emo_pair = EMOTIONS[i : i + 2]
-        emotion_cols_mob = st.columns(2)
-        
-        for j, emo in enumerate(emo_pair):
-            with emotion_cols_mob[j]:
-                idx = i + j
-                selected = st.session_state.selected_emotion_idx == idx
-                
-                if st.button(f"{emo['emoji']}", key=f"emo_mob_{idx}", help=emo["label"]):
-                    st.session_state.selected_emotion_idx = idx
-                    st.session_state.emotion_note = ""
-                    st.rerun()
-                    
-                st.markdown(
-                    f"""
-                    <div class="bmcx-emotion-circle{' selected' if selected else ''}" style="background:{emo['color']};">
-                        {emo['emoji']}
-                    </div>
-                    <div class="bmcx-emotion-label">{emo['label']}</div>
-                    """,
-                    unsafe_allow_html=True
-                )
-    st.markdown('</div>', unsafe_allow_html=True) # Đóng .mobile-only-container
-
-# Đóng hộp màu
+emotion_cols = st.columns(len(EMOTIONS))
+for idx, emo in enumerate(EMOTIONS):
+    with emotion_cols[idx]:
+        selected = st.session_state.selected_emotion_idx == idx
+        if st.button(f"{emo['emoji']}", key=f"emo_{idx}", help=emo["label"]):
+            st.session_state.selected_emotion_idx = idx
+            st.session_state.emotion_note = ""
+            st.rerun()
+        st.markdown(
+            f"""
+            <div class="bmcx-emotion-circle{' selected' if selected else ''}" style="background:{emo['color']};">
+                {emo['emoji']}
+            </div>
+            <div class="bmcx-emotion-label">{emo['label']}</div>
+            """,
+            unsafe_allow_html=True
+        )
 st.markdown('</div>', unsafe_allow_html=True)
-# --- KẾT THÚC PHẦN CODE PYTHON MỚI ---
-
 
 canvas_result = st_canvas(
     fill_color="rgba(255, 165, 0, 0.3)",
