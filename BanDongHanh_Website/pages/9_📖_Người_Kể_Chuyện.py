@@ -36,6 +36,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- NỘI DUNG TRUYỆN (ĐÃ PHỤC HỒI ĐẦY ĐỦ) ---
+# --- NỘI DUNG TRUYỆN (ĐÃ FIX LỖI CÚ PHÁP LẦN CUỐI VÀ CẬP NHẬT TRUYỆN) ---
 @st.cache_data
 def load_stories():
     return {
@@ -61,6 +62,28 @@ def load_stories():
                 "content": "Một tấm gương bị dính đầy bụi, không thể phản chiếu rõ ràng. Nó than thở với người chủ. Người chủ bảo: 'Ngươi không cần phải làm gì cả. Chỉ cần đợi ta lau sạch bụi bặm đi thôi'. Bài học: Tâm trí của chúng ta cũng vậy. Khi chúng ta cảm thấy bối rối hay không rõ ràng, điều cần làm không phải là cố gắng tìm câu trả lời, mà là loại bỏ sự căng thẳng và lo lắng (bụi bặm) để tâm trí tự nhiên trở nên trong sáng."
             }
         ],
+        "Truyện ngụ ngôn": [
+            {
+                "title": "Ếch ngồi đáy giếng",
+                "content": "Có một con ếch sống lâu năm trong một cái giếng. Nó nhìn lên và chỉ thấy một khoảng trời bé bằng miệng giếng. Nó tự hào nghĩ rằng bầu trời chỉ to có vậy. Một ngày, trời mưa to, nước giếng dâng lên và đưa ếch ra ngoài. Lần đầu tiên, nó thấy một bầu trời rộng lớn bao la và nhận ra sự hiểu biết hạn hẹp của mình. Bài học: Môi trường sống hạn hẹp có thể che lấp tầm nhìn của chúng ta. Đừng vội cho rằng những gì mình biết là tất cả."
+            },
+            {
+                "title": "Cáo và chùm nho",
+                "content": "Một con cáo đói đi qua một vườn nho. Nó thấy một chùm nho chín mọng lủng lẳng trên giàn cao. Cáo nhảy lên nhiều lần nhưng không thể với tới. Cuối cùng, nó bỏ đi và tự nhủ: 'Nho còn xanh lắm, ăn vào chỉ chua thôi!'. Bài học: Nhiều người thường chê bai những thứ họ không thể đạt được để tự an ủi bản thân."
+            }
+        ],
+        "Truyện chữa lành": [
+            {
+                "title": "Dòng sông không vội vã",
+                "content": "Không một dòng sông nào vội vã. Nó chảy theo nhịp điệu của riêng mình, lúc êm đềm, lúc cuộn trào, nhưng luôn tiến về phía trước. Dòng sông biết rằng, rồi nó sẽ đến được biển lớn. Hãy sống như một dòng sông, chấp nhận mọi khúc quanh của cuộc đời và tin tưởng vào hành trình của chính mình. Đừng so sánh tốc độ của bạn với người khác, vì mỗi người đều có một con đường riêng."
+            },
+            {
+                "title": "Chiếc bình nứt",
+                "content": "Một người gánh nước có hai chiếc bình, một chiếc lành lặn và một chiếc bị nứt. Chiếc bình nứt luôn cảm thấy tự ti vì nó chỉ giữ được một nửa phần nước. Một ngày, nó xin lỗi người chủ. Người chủ mỉm cười và nói: 'Con có thấy những luống hoa xinh đẹp bên đường không? Đó là nhờ ta đã gieo hạt ở phía bên con. Mỗi ngày, những giọt nước từ vết nứt của con đã tưới cho chúng'. Bài học: Những khuyết điểm của bạn có thể lại là điều tạo nên vẻ đẹp và giá trị riêng biệt mà bạn không ngờ tới."
+            }
+        ]
+    }
+STORIES = load_stories()
         "Truyện ngụ ngôn": [
             {
                 "title": "Ếch ngồi đáy giếng",
