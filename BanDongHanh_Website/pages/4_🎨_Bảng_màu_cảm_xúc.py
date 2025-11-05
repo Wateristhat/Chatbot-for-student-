@@ -173,7 +173,7 @@ EMOTIONS = [
         "encourage": "Hãy tận dụng năng lượng tích cực để sáng tạo và vui chơi!"
     },
     {
-        "label":D: "Ngạc nhiên",
+        "label": "Ngạc nhiên",
         "emoji": "😲",
         "color": "#FFB300",
         "encourage": "Cuộc sống luôn đầy bất ngờ, hãy tận hưởng nhé!"
@@ -311,60 +311,4 @@ if st.session_state.selected_emotion_idx is not None:
     with col1:
         if st.button("🔊 Nghe động viên", key="tts_encourage"):
             audio_bytes = BytesIO()
-            tts = gTTS(text=emo['encourage'], lang='vi', slow=False)
-            tts.write_to_fp(audio_bytes)
-            audio_bytes.seek(0)
-            st.audio(audio_bytes.read(), format="audio/mp3")
-
-# --- Nhập ghi chú cảm xúc ---
-if st.session_state.selected_emotion_idx is not None:
-    st.markdown('<div class="bmcx-note-box">', unsafe_allow_html=True)
-    st.markdown("#### 📝 Bạn muốn chia sẻ thêm về cảm xúc của mình không?")
-    st.session_state.emotion_note = st.text_area(
-        "",
-        value=st.session_state.emotion_note,
-        height=80,
-        placeholder="Bạn có thể mô tả lý do, hoàn cảnh hoặc ai ở bên bạn lúc này..."
-    )
-    st.markdown('</div>', unsafe_allow_html=True)
-    if st.button("💾 Lưu cảm xúc hôm nay", type="primary", use_container_width=True):
-        now = datetime.now().strftime("%d/%m/%Y %H:%M")
-        st.session_state.emotion_history.append({
-            "emoji": emo["emoji"], "emotion": emo["label"], "note": st.session_state.emotion_note, "time": now
-        })
-        st.success("✅ Đã lưu cảm xúc vào lịch sử của bạn!")
-        st.balloons()
-        st.session_state.selected_emotion_idx = None
-        st.session_state.emotion_note = ""
-        st.rerun()
-
-st.write("---")
-
-# --- Lịch sử cảm xúc ---
-st.markdown("### 📖 Lịch sử cảm xúc của bạn")
-if st.button("📖 Xem lịch sử", key="show_history_btn"):
-    st.session_state.show_history = not st.session_state.show_history
-if st.session_state.show_history:
-    if st.session_state.emotion_history:
-        for item in reversed(st.session_state.emotion_history):
-            st.markdown(
-                f"""
-                <div class="bmcx-history-box">
-                    <div style='font-size:2rem;display:inline-block;'>{item['emoji']}</div>
-                    <span style='font-size:1.13rem;font-weight:700;margin-left:8px;color:#5d3fd3;'>{item['emotion']}</span>
-                    <span style='font-size:1rem;color:#888;margin-left:12px;'>{item['time']}</span>
-                    <div style='margin-top:0.6rem;'>{item['note'] if item['note'] else "<i>(Không có ghi chú)</i>"}</div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-    else:
-        st.info("Bạn chưa lưu cảm xúc nào hôm nay. Hãy chọn và lưu cảm xúc nhé!")
-
-# --- Footer ---
-st.markdown("""
-<div class="bmcx-footer">
-    <strong>💫 Lời nhắn từ Bee:</strong><br>
-    "Mỗi cảm xúc đều đáng trân trọng. Bạn hãy tự tin chia sẻ và chăm sóc cảm xúc của mình nhé! 🎨"
-</div>
-""", unsafe_allow_html=True)
+            tts = gTTS(text=emo['encourage'], lang='vi', slow=False
