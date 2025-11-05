@@ -167,14 +167,14 @@ def create_tts_button_enhanced(text, key_suffix, button_text="🔊 Đọc to"):
             audio_data, result_code = text_to_speech_enhanced(text)
             
             if audio_data and result_code.startswith("success"):
-                if "edge_tts" in result_code: st.success("🎵 Đã tạo âm thanh bằng Edge TTS")
-                else: st.success("🎵 Đã tạo âm thanh bằng Google TTS")
+                # if "edge_tts" in result_code: st.success("🎵 Đã tạo âm thanh bằng Edge TTS") # <--- ĐÃ XÓA
+                # else: st.success("🎵 Đã tạo âm thanh bằng Google TTS")                      # <--- ĐÃ XÓA
                 
-                # --- 6. SỬA LỖI ÂM THANH: XÓA AUTOPLAY=TRUE ---
-                st.audio(audio_data, format="audio/mpeg") 
+                st.audio(audio_data, format="audio/mpeg")  
             else:
                 error_msg = get_error_message(result_code)
                 if "network" in result_code.lower(): st.error(error_msg)
+                elif "none" in result_code.lower() or "too_short" in result_code.lower(): st.warning(error_msg)
                 else: st.info(error_msg)
 
 def create_tts_button(text, key_suffix, button_text="🔊 Đọc to"):
