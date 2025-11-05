@@ -44,48 +44,48 @@ def load_stories():
                 "content": "Một cô gái than phiền với cha về cuộc sống khó khăn. Ông thả ba thứ vào ba nồi nước sôi: một củ cà rốt, một quả trứng và một ít hạt cà phê. Cà rốt từ cứng trở nên mềm. Quả trứng từ lỏng trở nên cứng. Hạt cà phê thì tan ra, biến nước sôi thành một thức uống thơm lừng. Bài học: Nghịch cảnh giống như nước sôi. Bạn có thể bị nó làm cho mềm yếu (cà rốt), trở nên chai sạn (trứng), hoặc bạn có thể biến nghịch cảnh thành một điều tốt đẹp hơn (cà phê)."
             }
         ],
-        "Truyện ngụ ngôn": [
-            {
-                "title": "Ếch ngồi đáy giếng",
-                "content": "Có một con ếch sống lâu năm trong một cái giếng. Nó nhìn lên và chỉ thấy một khoảng trời bé bằng miệng giếng. Nó tự hào nghĩ rằng bầu trời chỉ to có vậy. Một ngày, trời mưa to, nước giếng dâng lên và đưa ếch ra ngoài. Lần đầu tiên, nó thấy một bầu trời rộng lớn bao la và nhận ra sự hiểu biết hạn hẹp của mình. Bài học: Môi trường sống hạn hẹp có thể che lấp tầm nhìn của chúng ta. Đừng vội cho rằng những gì mình biết là tất cả."
-            },
-            {
-                "title": "Cáo và chùm nho",
-                "content": "Một con cáo đói đi qua một vườn nho. Nó thấy một chùm nho chín mọng lủng lẳng trên giàn cao. Cáo nhảy lên nhiều lần nhưng không thể với tới. Cuối cùng, nó bỏ đi và tự nhủ: 'Nho còn xanh lắm, ăn vào chỉ chua thôi!'. Bài học: Nhiều người thường chê bai những thứ họ không thể đạt được để tự an ủi bản thân."
-            },
-            {
-                "title": "Rùa và Thỏ",
-                "content": "Thỏ chế giễu Rùa chậm chạp nên Rùa thách Thỏ thi chạy. Thỏ chạy nhanh một đoạn, rồi chủ quan, nghĩ Rùa còn lâu mới tới nên nằm ngủ gật. Rùa kiên trì, bền bỉ bò từng bước một. Khi Thỏ tỉnh dậy, Rùa đã về đích từ lâu. Bài học: Kiên trì và bền bỉ sẽ chiến thắng sự chủ quan, kiêu ngạo, dù bạn có tài năng."
-            },
-            {
-                "title": "Sư Tử và Chuột Nhắt",
-                "content": "Sư tử bắt được một con chuột nhắt. Chuột van xin tha mạng, hứa một ngày nào đó sẽ báo đáp. Sư tử cười nhạo nhưng vẫn thả nó đi. Ít lâu sau, sư tử bị mắc bẫy lưới của thợ săn. Chuột nhắt nghe thấy tiếng gầm, chạy đến và kiên nhẫn gặm đứt các sợi dây lưới, cứu sư tử. Bài học: Lòng tốt và sự tử tế không bao giờ là lãng phí, bất kể bạn nhỏ bé hay to lớn."
-            },
-            {
-                "title": "Kiến và Ve Sầu",
-                "content": "Suốt mùa hè, Kiến chăm chỉ tha mồi về tổ để dự trữ cho mùa đông. Ve Sầu thì không làm gì, chỉ rong chơi ca hát. Khi mùa đông lạnh giá đến, Ve Sầu đói lả, không có gì ăn, bèn tìm đến xin Kiến. Kiến hỏi: 'Thế mùa hè anh đã làm gì?'. Ve Sầu đáp: 'Tôi ca hát'. Kiến nói: 'Vậy mùa đông anh hãy nhảy múa đi!'. Bài học: Phải làm việc chăm chỉ và biết lo xa, chuẩn bị cho tương lai, thay vì chỉ hưởng thụ ở hiện tại."
-            },
-            {
-                "title": "Cậu Bé Chăn Cừu và Chó Sói",
-                "content": "Một cậu bé chăn cừu buồn chán nên la to 'Sói! Sói! Cứu tôi với!'. Dân làng chạy đến giúp nhưng không thấy sói đâu. Cậu bé thích thú lừa họ vài lần như vậy. Một hôm, sói đến thật. Cậu bé gào khóc kêu cứu nhưng không một ai trong làng tin và chạy đến giúp nữa. Sói đã ăn thịt hết đàn cừu. Bài học: Người hay nói dối sẽ không bao giờ được tin tưởng, ngay cả khi họ nói thật."
-            },
-            {
-                "title": "Cáo và Quạ",
-                "content": "Một con Quạ tha được miếng phô mai và đậu trên cành cây. Cáo ở dưới nhìn thấy, thèm lắm. Cáo liền tâng bốc: 'Ôi chị Quạ, bộ lông chị mới đẹp làm sao! Giọng hát của chị chắc còn hay hơn nữa, chị hát tôi nghe một bài đi'. Quạ nghe nịnh hót, hãnh diện lắm, liền mở miệng hát 'Quạ! Quạ!'. Miếng phô mai rơi xuống. Cáo chộp lấy và chạy mất. Bài học: Đừng bao giờ tin vào những lời nịnh hót, tâng bốc."
-            },
-            {
-                "title": "Câu chuyện bó đũa",
-                "content": "Người cha có mấy người con trai luôn cãi vã, bất hòa. Ông gọi họ lại, đưa cho mỗi người một bó đũa và bảo bẻ gãy. Không ai bẻ gãy được cả bó. Sau đó, người cha cởi bó đũa ra, đưa cho mỗi người một chiếc. Họ bẻ gãy chúng một cách dễ dàng. Bài học: Đoàn kết tạo nên sức mạnh. Anh em chia rẽ sẽ yếu ớt và dễ dàng bị đánh bại."
-            },
-            {
-                "title": "Con Chó và Cái Bóng",
-                "content": "Một con chó ngậm một cục xương đi qua cây cầu bắc qua sông. Nó nhìn xuống dòng nước và thấy cái bóng của mình. Nó tưởng đó là một con chó khác đang ngậm cục xương to hơn. Vì tham lam muốn cướp cục xương kia, nó liền sủa 'gâu gâu'. Ngay lập tức, cục xương nó đang ngậm liền rơi xuống sông và bị cuốn đi mất. Bài học: Lòng tham lam có thể khiến bạn mất cả những gì mình đang có."
-            },
-            {
-                "title": "Gió và Mặt Trời",
-                "content": "Gió và Mặt Trời tranh cãi xem ai mạnh hơn. Họ thấy một người đi đường mặc áo choàng và cá cược ai làm người đó cởi áo ra trước. Gió bắt đầu thổi, càng thổi mạnh, người đi đường càng giữ chặt áo. Đến lượt Mặt Trời, Mặt Trời chỉ mỉm cười và tỏa nắng ấm áp. Người đi đường thấy nóng nực, liền tự cởi áo choàng ra. Bài học: Sự thuyết phục, nhẹ nhàng và tử tế thường có sức mạnh lớn hơn là vũ lực và sự ép buộc."
-            }
-        ],
+       "Truyện ngụ ngôn": [
+            {
+                "title": "Ếch ngồi đáy giếng",
+                "content": "Có một con ếch sống lâu năm trong một cái giếng. Nó nhìn lên và chỉ thấy một khoảng trời bé bằng miệng giếng. Nó tự hào nghĩ rằng bầu trời chỉ to có vậy. Một ngày, trời mưa to, nước giếng dâng lên và đưa ếch ra ngoài. Lần đầu tiên, nó thấy một bầu trời rộng lớn bao la và nhận ra sự hiểu biết hạn hẹp của mình. Bài học: Môi trường sống hạn hẹp có thể che lấp tầm nhìn của chúng ta. Đừng vội cho rằng những gì mình biết là tất cả."
+            },
+            {
+                "title": "Cáo và chùm nho",
+                "content": "Một con cáo đói đi qua một vườn nho. Nó thấy một chùm nho chín mọng lủng lẳng trên giàn cao. Cáo nhảy lên nhiều lần nhưng không thể với tới. Cuối cùng, nó bỏ đi và tự nhủ: 'Nho còn xanh lắm, ăn vào chỉ chua thôi!'. Bài học: Nhiều người thường chê bai những thứ họ không thể đạt được để tự an ủi bản thân."
+            },
+            {
+                "title": "Rùa và Thỏ",
+                "content": "Thỏ chế giễu Rùa chậm chạp nên Rùa thách Thỏ thi chạy. Thỏ chạy nhanh một đoạn, rồi chủ quan, nghĩ Rùa còn lâu mới tới nên nằm ngủ gật. Rùa kiên trì, bền bỉ bò từng bước một. Khi Thỏ tỉnh dậy, Rùa đã về đích từ lâu. Bài học: Kiên trì và bền bỉ sẽ chiến thắng sự chủ quan, kiêu ngạo, dù bạn có tài năng."
+            },
+            {
+                "title": "Sư Tử và Chuột Nhắt",
+                "content": "Sư tử bắt được một con chuột nhắt. Chuột van xin tha mạng, hứa một ngày nào đó sẽ báo đáp. Sư tử cười nhạo nhưng vẫn thả nó đi. Ít lâu sau, sư tử bị mắc bẫy lưới của thợ săn. Chuột nhắt nghe thấy tiếng gầm, chạy đến và kiên nhẫn gặm đứt các sợi dây lưới, cứu sư tử. Bài học: Lòng tốt và sự tử tế không bao giờ là lãng phí, bất kể bạn nhỏ bé hay to lớn."
+            },
+            {
+                "title": "Kiến và Ve Sầu",
+                "content": "Suốt mùa hè, Kiến chăm chỉ tha mồi về tổ để dự trữ cho mùa đông. Ve Sầu thì không làm gì, chỉ rong chơi ca hát. Khi mùa đông lạnh giá đến, Ve Sầu đói lả, không có gì ăn, bèn tìm đến xin Kiến. Kiến hỏi: 'Thế mùa hè anh đã làm gì?'. Ve Sầu đáp: 'Tôi ca hát'. Kiến nói: 'Vậy mùa đông anh hãy nhảy múa đi!'. Bài học: Phải làm việc chăm chỉ và biết lo xa, chuẩn bị cho tương lai, thay vì chỉ hưởng thụ ở hiện tại."
+            },
+            {
+                "title": "Cậu Bé Chăn Cừu và Chó Sói",
+                "content": "Một cậu bé chăn cừu buồn chán nên la to 'Sói! Sói! Cứu tôi với!'. Dân làng chạy đến giúp nhưng không thấy sói đâu. Cậu bé thích thú lừa họ vài lần như vậy. Một hôm, sói đến thật. Cậu bé gào khóc kêu cứu nhưng không một ai trong làng tin và chạy đến giúp nữa. Sói đã ăn thịt hết đàn cừu. Bài học: Người hay nói dối sẽ không bao giờ được tin tưởng, ngay cả khi họ nói thật."
+            },
+            {
+                "title": "Cáo và Quạ",
+                "content": "Một con Quạ tha được miếng phô mai và đậu trên cành cây. Cáo ở dưới nhìn thấy, thèm lắm. Cáo liền tâng bốc: 'Ôi chị Quạ, bộ lông chị mới đẹp làm sao! Giọng hát của chị chắc còn hay hơn nữa, chị hát tôi nghe một bài đi'. Quạ nghe nịnh hót, hãnh diện lắm, liền mở miệng hát 'Quạ! Quạ!'. Miếng phô mai rơi xuống. Cáo chộp lấy và chạy mất. Bài học: Đừng bao giờ tin vào những lời nịnh hót, tâng bốc."
+            },
+            {
+                "title": "Câu chuyện bó đũa",
+                "content": "Người cha có mấy người con trai luôn cãi vã, bất hòa. Ông gọi họ lại, đưa cho mỗi người một bó đũa và bảo bẻ gãy. Không ai bẻ gãy được cả bó. Sau đó, người cha cởi bó đũa ra, đưa cho mỗi người một chiếc. Họ bẻ gãy chúng một cách dễ dàng. Bài học: Đoàn kết tạo nên sức mạnh. Anh em chia rẽ sẽ yếu ớt và dễ dàng bị đánh bại."
+            },
+            {
+                "title": "Con Chó và Cái Bóng",
+                "content": "Một con chó ngậm một cục xương đi qua cây cầu bắc qua sông. Nó nhìn xuống dòng nước và thấy cái bóng của mình. Nó tưởng đó là một con chó khác đang ngậm cục xương to hơn. Vì tham lam muốn cướp cục xương kia, nó liền sủa 'gâu gâu'. Ngay lập tức, cục xương nó đang ngậm liền rơi xuống sông và bị cuốn đi mất. Bài học: Lòng tham lam có thể khiến bạn mất cả những gì mình đang có."
+            },
+            {
+                "title": "Gió và Mặt Trời",
+                "content": "Gió và Mặt Trời tranh cãi xem ai mạnh hơn. Họ thấy một người đi đường mặc áo choàng và cá cược ai làm người đó cởi áo ra trước. Gió bắt đầu thổi, càng thổi mạnh, người đi đường càng giữ chặt áo. Đến lượt Mặt Trời, Mặt Trời chỉ mỉm cười và tỏa nắng ấm áp. Người đi đường thấy nóng nực, liền tự cởi áo choàng ra. Bài học: Sự thuyết phục, nhẹ nhàng và tử tế thường có sức mạnh lớn hơn là vũ lực và sự ép buộc."
+            }
+        ],
         "Truyện chữa lành": [
             {
                 "title": "Dòng sông không vội vã",
