@@ -57,42 +57,6 @@ st.markdown("""
     background:#f3e5f5; border-left:5px solid #ba68c8; border-radius:15px; padding:1rem 1.3rem;
     text-align:center; font-size:1.13rem; margin:0.7rem 0 1rem 0; color:#333; max-width:1200px; margin-left:auto; margin-right:auto;
 }
-
-/* --- BẮT ĐẦU PHẦN CHỈNH SỬA (1. CSS) --- */
-/* (Xóa bỏ .emotion-grid-container và .emotion-grid-item bị lỗi) */
-
-/* CSS "Công tắc" mới để ẩn/hiện layout */
-/* Mặc định (desktop): hiện layout desktop, ẩn layout mobile */
-.desktop-view {
-    display: block;
-}
-.mobile-view {
-    display: none;
-}
-
-/* Khi màn hình <= 768px (mobile): ẩn layout desktop, hiện layout mobile */
-@media (max-width: 768px) {
-    .desktop-view {
-        display: none;
-    }
-    .mobile-view {
-        display: block;
-    }
-    
-    /* Tinh chỉnh lại vòng tròn và chữ cho đẹp trên mobile */
-    .mobile-view .bmcx-emotion-circle {
-        width: 100px;
-        height: 100px;
-        font-size: 2rem;
-        margin-bottom: 1rem;
-    }
-    .mobile-view .bmcx-emotion-label {
-        font-size: 1rem;
-    }
-}
-/* --- KẾT THÚC PHẦN CHỈNH SỬA (1. CSS) --- */
-
-
 /* --- CSS ĐỂ LÀM CÁC NÚT BẤM TO HƠN --- */
 .stButton > button {
     padding: 0.8rem 1.2rem;
@@ -110,10 +74,46 @@ st.markdown("""
     border-color: #5d3fd3;
     color: #5d3fd3;
 }
+
+/* --- BẮT ĐẦU CSS FINAL (FIX GIAO DIỆN) --- */
+/* (Đây là thay đổi duy nhất) */
+@media (max-width: 768px) {
+    
+    /* Target vào container st.columns (stHorizontalBlock) NẰM BÊN TRONG .bmcx-palette-box của bạn */
+    .bmcx-palette-box div[data-testid="stHorizontalBlock"] {
+        /* Ép nó thành 1 lưới (grid) 2 cột */
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important; /* 2 cột bằng nhau */
+        gap: 20px !important; 
+        flex-direction: row !important; 
+        flex-wrap: wrap !important;
+    }
+    
+    /* Target vào từng cột con (stVerticalBlock) */
+    .bmcx-palette-box div[data-testid="stVerticalBlock"] {
+        width: auto !important; /* Để cho lưới kiểm soát kích thước */
+        align-items: center; /* Căn giữa nội dung (nút + vòng tròn) */
+    }
+
+    /* Tinh chỉnh lại vòng tròn và chữ cho đẹp trên mobile */
+    .bmcx-palette-box .bmcx-emotion-circle {
+        width: 100px;
+        height: 100px;
+        font-size: 2rem;
+        margin: 0 18px 1rem 18px; /* Giảm khoảng cách dưới */
+    }
+    .bmcx-palette-box .bmcx-emotion-label {
+        font-size: 1rem;
+    }
+}
+/* --- KẾT THÚC CSS FINAL --- */
+
+
 @media (max-width:900px) {
     .bmcx-assist-bigbox, .bmcx-palette-box, .bmcx-history-box, .bmcx-note-box, .bmcx-footer {max-width:96vw;}
     .bmcx-title-feature { font-size:1.3rem; }
-    /* (Đã xóa dòng .bmcx-emotion-circle bị xung đột ở đây) */
+    /* --- XÓA DÒNG NÀY --- (vì nó xung đột với CSS ở trên) */
+    /* .bmcx-emotion-circle {width:90px;height:90px;font-size:1.4rem;} */
 }
 </style>
 """, unsafe_allow_html=True)
@@ -235,27 +235,16 @@ with col2:
     stroke_color = st.color_picker("Màu bút:", default_color)
     bg_color = st.color_picker("Màu nền:", "#FFFFFF")
 
-# --- BẮT ĐẦU PHẦN CHỈNH SỬA (2. PYTHON) ---
-# (Xóa bỏ toàn bộ code query_params và <a href> bị lỗi)
-
-# Bắt đầu HỘP BẢNG MÀU (Giữ nguyên class của bạn)
 st.markdown('<div class="bmcx-palette-box">', unsafe_allow_html=True)
 st.markdown("#### Hãy chọn cảm xúc của bạn hôm nay:")
-
-# --- 1. LAYOUT CHO DESKTOP (7 CỘT) ---
-# Layout này sẽ được bọc trong class "desktop-view"
-st.markdown('<div class="desktop-view">', unsafe_allow_html=True)
-emotion_cols_desk = st.columns(len(EMOTIONS))
+emotion_cols = st.columns(len(EMOTIONS))
 for idx, emo in enumerate(EMOTIONS):
-    with emotion_cols_desk[idx]:
+    with emotion_cols[idx]:
         selected = st.session_state.selected_emotion_idx == idx
-        # Dùng st.button gốc, đảm bảo 100% chạy đúng
-        if st.button(f"{emo['emoji']}", key=f"emo_desk_{idx}", help=emo["label"]):
+        if st.button(f"{emo['emoji']}", key=f"emo_{idx}", help=emo["label"]):
             st.session_state.selected_emotion_idx = idx
             st.session_state.emotion_note = ""
             st.rerun()
-        
-        # Dùng lại CSS vòng tròn đẹp của bạn
         st.markdown(
             f"""
             <div class="bmcx-emotion-circle{' selected' if selected else ''}" style="background:{emo['color']};">
@@ -266,48 +255,6 @@ for idx, emo in enumerate(EMOTIONS):
             unsafe_allow_html=True
         )
 st.markdown('</div>', unsafe_allow_html=True)
-
-
-# --- 2. LAYOUT CHO MOBILE (2 CỘT) ---
-# Layout này sẽ được bọc trong class "mobile-view"
-st.markdown('<div class="mobile-view">', unsafe_allow_html=True)
-
-# Lặp để tạo các hàng, mỗi hàng 2 cột
-for i in range(0, len(EMOTIONS), 2):
-    # Lấy 2 cảm xúc (hoặc 1 nếu là hàng cuối cùng)
-    emo_pair = EMOTIONS[i : i + 2]
-    emotion_cols_mob = st.columns(2)
-    
-    for j, emo in enumerate(emo_pair):
-        with emotion_cols_mob[j]:
-            # Tính lại index gốc
-            idx = i + j
-            selected = st.session_state.selected_emotion_idx == idx
-            
-            # Dùng st.button gốc với key khác
-            if st.button(f"{emo['emoji']}", key=f"emo_mob_{idx}", help=emo["label"]):
-                st.session_state.selected_emotion_idx = idx
-                st.session_state.emotion_note = ""
-                st.rerun()
-                
-            # Dùng lại CSS vòng tròn đẹp của bạn
-            st.markdown(
-                f"""
-                <div class="bmcx-emotion-circle{' selected' if selected else ''}" style="background:{emo['color']};">
-                    {emo['emoji']}
-                </div>
-                <div class="bmcx-emotion-label">{emo['label']}</div>
-                """,
-                unsafe_allow_html=True
-            )
-            
-st.markdown('</div>', unsafe_allow_html=True)
-
-
-# Đóng HỘP BẢNG MÀU
-st.markdown('</div>', unsafe_allow_html=True)
-# --- KẾT THÚC PHẦN CHỈNH SỬA (2. PYTHON) ---
-
 
 canvas_result = st_canvas(
     fill_color="rgba(255, 165, 0, 0.3)",
