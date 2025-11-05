@@ -159,7 +159,6 @@ st.markdown("""
 .timeline-content {font-size:1.17rem;color:#8B4513;margin-bottom:0.5rem;line-height:1.4;}
 .timeline-date {font-size:0.99rem;color:#CD853F;font-weight:700;}
 .lo-footer {background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:10px;padding:0.9rem 1.2rem;text-align:center;font-size:1.09rem;margin:0.7rem 0 1.2rem 0;color:#333;}
-@media (max-width: 1100px) {.lo-assist-bigbox{padding:2rem 1rem 1rem 1rem; max-width:100vw;}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -362,6 +361,7 @@ st.markdown("""
     Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
