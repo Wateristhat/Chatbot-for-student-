@@ -209,27 +209,6 @@ st.markdown("""
         font-size: 1.1rem; line-height: 1.8;
     }
     
-    /* --- 7. THÊM CSS TƯƠNG THÍCH ĐIỆN THOẠI --- */
-    @media (max-width: 900px) {
-        .assistant-card {
-            padding: 1.5rem 1rem;
-            max-width: 96vw;
-        }
-        .assistant-avatar {
-            font-size: 3rem;
-        }
-        .assistant-message {
-            font-size: 1.1rem;
-        }
-        .exercise-card, .inclusive-instruction, .progress-container, .assistant-card {
-            padding: 1rem 0.8rem;
-            font-size: 1rem;
-            max-width: 96vw;
-        }
-        .inclusive-instruction h4 {
-            font-size: 1.1rem;
-        }
-    }
 </style>
 """, unsafe_allow_html=True)
 
