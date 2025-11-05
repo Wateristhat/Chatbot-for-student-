@@ -75,34 +75,45 @@ st.markdown("""
     color: #5d3fd3;
 }
 
-/* --- BẮT ĐẦU CSS MỚI (Flexbox Override) --- */
-/* (Đã xóa khối CSS display:grid bị lỗi) */
+/* --- BẮT ĐẦU CSS MỚI (Trượt ngang + Ghi chú) --- */
+
+/* 1. Ẩn ghi chú trượt trên desktop */
+.scroll-tip {
+    display: none;
+}
+
 @media (max-width: 768px) {
     
-    /* Target vào container st.columns (stHorizontalBlock)
-       NẰM BÊN TRONG .bmcx-palette-box của bạn
-    */
-    .bmcx-palette-box div[data-testid="stHorizontalBlock"] {
-        /* Ghi đè flex-direction: column của Streamlit */
-        flex-direction: row !important;  /* 1. Ép lại thành HÀNG NGANG */
-        flex-wrap: wrap !important;       /* 2. Cho phép CÁC HÀNG xuống dòng */
-        justify-content: center !important; /* 3. Căn giữa các cột */
-    }
-    
-    /* Target vào từng cột con (stVerticalBlock) */
-    .bmcx-palette-box div[data-testid="stVerticalBlock"] {
-        /* Ép mỗi cột con chiếm 45% chiều rộng -> tạo thành 2 cột */
-        flex-basis: 45% !important; 
-        flex-grow: 0 !important;
-        align-items: center; /* Căn giữa nút và vòng tròn */
+    /* 2. HIỆN GHI CHÚ TRƯỢT NGANG (chỉ trên mobile) */
+    .scroll-tip {
+        display: block;
+        font-size: 0.9rem;
+        color: #555;
+        margin-top: -10px; /* Kéo lên gần title */
+        margin-bottom: 15px;
     }
 
-    /* Tinh chỉnh lại vòng tròn và chữ cho đẹp trên mobile */
+    /* 3. CSS ĐỂ TRƯỢT NGANG (st.columns) */
+    .bmcx-palette-box div[data-testid="stHorizontalBlock"] {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        justify-content: flex-start !important;
+        padding: 10px 0;
+    }
+    
+    .bmcx-palette-box div[data-testid="stVerticalBlock"] {
+        flex-shrink: 0 !important;
+        align-items: center; 
+        width: 140px !important; 
+    }
+
+    /* 4. Tinh chỉnh vòng tròn cho vừa */
     .bmcx-palette-box .bmcx-emotion-circle {
         width: 100px;
         height: 100px;
         font-size: 2rem;
-        margin: 0 10px 1rem 10px; /* Giảm margin ngang */
+        margin: 0 10px 1rem 10px;
     }
     .bmcx-palette-box .bmcx-emotion-label {
         font-size: 1rem;
@@ -110,11 +121,10 @@ st.markdown("""
 }
 /* --- KẾT THÚC CSS MỚI --- */
 
-
 @media (max-width:900px) {
     .bmcx-assist-bigbox, .bmcx-palette-box, .bmcx-history-box, .bmcx-note-box, .bmcx-footer {max-width:96vw;}
     .bmcx-title-feature { font-size:1.3rem; }
-    /* --- XÓA DÒNG NÀY --- (vì nó xung đột với CSS ở trên) */
+    /* Dòng này bị xung đột với CSS trượt ngang, nên comment nó lại */
     /* .bmcx-emotion-circle {width:90px;height:90px;font-size:1.4rem;} */
 }
 </style>
@@ -239,6 +249,11 @@ with col2:
 
 st.markdown('<div class="bmcx-palette-box">', unsafe_allow_html=True)
 st.markdown("#### Hãy chọn cảm xúc của bạn hôm nay:")
+
+# --- THAY ĐỔI 2: THÊM GHI CHÚ (THEO Ý BẠN) ---
+st.markdown("<div class='scroll-tip'><strong><i>(Lướt sang trái/phải để xem tất cả)</i></strong></div>", unsafe_allow_html=True)
+# --- KẾT THÚC THAY ĐỔI 2 ---
+
 emotion_cols = st.columns(len(EMOTIONS))
 for idx, emo in enumerate(EMOTIONS):
     with emotion_cols[idx]:
