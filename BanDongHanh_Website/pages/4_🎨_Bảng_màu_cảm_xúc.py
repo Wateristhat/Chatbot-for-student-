@@ -224,6 +224,7 @@ with col1:
     )
 
 # --- (*** CHỖ SỬA 2: Sửa st.color_picker ***) ---
+# Xóa khối `if...else` cũ và thay bằng code này
 with col2:
     # Dùng session_state để điều khiển màu
     stroke_color = st.color_picker(
