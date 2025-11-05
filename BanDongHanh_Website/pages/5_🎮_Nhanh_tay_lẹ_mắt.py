@@ -77,7 +77,7 @@ try:
 
     # --- 2. SỬA LỖI CHIỀU CAO GAME ---
     # Giảm chiều cao (height) từ 1200 xuống 600 để vừa màn hình điện thoại
-    st.components.v1.html(game_html_content_fixed, height=600, scrolling=False) 
+    st.components.v1.html(game_html_content_fixed, height=1200, scrolling=False) 
     st.info("👉 Nhấn phím SPACE (máy tính) hoặc chạm vào màn hình (điện thoại) để chơi game!")
 except Exception as e:
     st.error(f"Không thể tải game. Kiểm tra file game.html. Chi tiết lỗi: {e}")
