@@ -57,6 +57,51 @@ st.markdown("""
     background:#f3e5f5; border-left:5px solid #ba68c8; border-radius:15px; padding:1rem 1.3rem;
     text-align:center; font-size:1.13rem; margin:0.7rem 0 1rem 0; color:#333; max-width:1200px; margin-left:auto; margin-right:auto;
 }
+/* --- BẮT ĐẦU CODE FIX RESPONSIVE (Dán vào đây) --- */
+
+/* Bọc ngoài 7 mục, dùng flexbox cho desktop */
+.emotion-grid-container {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-around;
+    padding: 1.5rem 0.5rem;
+}
+
+/* Từng mục cảm xúc (gồm vòng tròn + chữ) */
+.emotion-grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none; /* Bỏ gạch chân của link */
+    color: #222;
+}
+
+/* Đoạn media query này chính là yêu cầu của bạn.
+   Khi màn hình <= 768px (điện thoại), nó sẽ được áp dụng.
+*/
+@media (max-width: 768px) {
+    .emotion-grid-container {
+        /* Chuyển sang CSS Grid */
+        display: grid;
+        
+        /* Yêu cầu 2 cột */
+        grid-template-columns: 1fr 1fr;
+        
+        /* Khoảng cách giữa các ô */
+        gap: 24px;
+        padding: 1rem;
+    }
+    
+    .bmcx-emotion-circle {
+        /* Cho vòng tròn nhỏ lại một chút trên di động */
+        width: 100px;
+        height: 100px;
+        font-size: 2rem;
+    }
+}
+/* --- KẾT THÚC CODE FIX RESPONSIVE --- */
+
+/* Dòng @media (max-width:900px) { ... } có sẵn của bạn nằm ở đây */
 /* --- CSS ĐỂ LÀM CÁC NÚT BẤM TO HƠN --- */
 .stButton > button {
     padding: 0.8rem 1.2rem;
@@ -77,7 +122,6 @@ st.markdown("""
 @media (max-width:900px) {
     .bmcx-assist-bigbox, .bmcx-palette-box, .bmcx-history-box, .bmcx-note-box, .bmcx-footer {max-width:96vw;}
     .bmcx-title-feature { font-size:1.3rem; }
-    .bmcx-emotion-circle {width:90px;height:90px;font-size:1.4rem;}
 }
 </style>
 """, unsafe_allow_html=True)
@@ -198,27 +242,59 @@ with col2:
         default_color = "#FF5733"
     stroke_color = st.color_picker("Màu bút:", default_color)
     bg_color = st.color_picker("Màu nền:", "#FFFFFF")
+# --- BẮT ĐẦU CODE THAY THẾ (Dán vào đây) ---
 
+# Đọc query param để xử lý click
+query_params = st.query_params
+if "select_emotion" in query_params:
+    try:
+        selected_idx = int(query_params["select_emotion"])
+        if 0 <= selected_idx < len(EMOTIONS):
+            st.session_state.selected_emotion_idx = selected_idx
+            st.session_state.emotion_note = ""
+        # Xóa query param sau khi xử lý
+        st.query_params.clear()
+        st.rerun()
+    except (ValueError, TypeError):
+        st.query_params.clear()
+
+# Bắt đầu HỘP BẢNG MÀU (Giữ nguyên class của bạn)
 st.markdown('<div class="bmcx-palette-box">', unsafe_allow_html=True)
 st.markdown("#### Hãy chọn cảm xúc của bạn hôm nay:")
-emotion_cols = st.columns(len(EMOTIONS))
+
+# Tạo chuỗi HTML cho lưới cảm xúc
+html_items = []
 for idx, emo in enumerate(EMOTIONS):
-    with emotion_cols[idx]:
-        selected = st.session_state.selected_emotion_idx == idx
-        if st.button(f"{emo['emoji']}", key=f"emo_{idx}", help=emo["label"]):
-            st.session_state.selected_emotion_idx = idx
-            st.session_state.emotion_note = ""
-            st.rerun()
-        st.markdown(
-            f"""
-            <div class="bmcx-emotion-circle{' selected' if selected else ''}" style="background:{emo['color']};">
-                {emo['emoji']}
-            </div>
-            <div class="bmcx-emotion-label">{emo['label']}</div>
-            """,
-            unsafe_allow_html=True
-        )
+    selected = st.session_state.selected_emotion_idx == idx
+    
+    # Dùng class 'selected' của bạn để highlight
+    selected_class = ' selected' if selected else ''
+    
+    # Tạo từng mục HTML.
+    # Quan trọng: Dùng thẻ <a> (link) với query param "?select_emotion={idx}"
+    # để Streamlit biết bạn đã click vào đâu.
+    html_items.append(f"""
+    <a href="?select_emotion={idx}" class="emotion-grid-item">
+        <div class="bmcx-emotion-circle{selected_class}" style="background:{emo['color']};">
+            {emo['emoji']}
+        </div>
+        <div class="bmcx-emotion-label">{emo['label']}</div>
+    </a>
+    """)
+
+# Hiển thị toàn bộ lưới cảm xúc
+st.markdown(
+    f"""
+    <div class="emotion-grid-container">
+        {''.join(html_items)}
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# Đóng HỘP BẢNG MÀU
 st.markdown('</div>', unsafe_allow_html=True)
+# --- KẾT THÚC CODE THAY THẾ ---
 
 canvas_result = st_canvas(
     fill_color="rgba(255, 165, 0, 0.3)",
