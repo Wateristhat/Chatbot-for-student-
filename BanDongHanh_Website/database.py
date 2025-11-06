@@ -353,3 +353,83 @@ def delete_activity(user_id, activity_id):
 create_activity_tables()
 print("Đã khởi tạo bảng activities (Góc Nhỏ).")
 # --- KẾT THÚC PHẦN DÁN THÊM ---
+# --- DÁN VÀO CUỐI FILE database.py ---
+
+def create_chat_history_table():
+    """Tạo bảng chat_history (nếu bạn chưa có từ code cũ)"""
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    # Bảng này đã có trong code của bạn, nhưng chúng ta đảm bảo nó có user_id
+    try:
+        cursor.execute("ALTER TABLE chat_history ADD COLUMN user_id TEXT NOT NULL DEFAULT 'global'")
+        print("Đã thêm cột user_id vào chat_history.")
+    except sqlite3.OperationalError:
+        pass # Bỏ qua nếu cột đã tồn tại
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS chat_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL, 
+        sender TEXT NOT NULL, -- 'user' hoặc 'assistant'
+        text TEXT NOT NULL,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    conn.commit()
+    conn.close()
+
+def add_chat_message(user_id, sender, text):
+    """Thêm tin nhắn mới vào CSDL cho user_id cụ thể."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO chat_history (user_id, sender, text) VALUES (?, ?, ?)",
+            (user_id, sender, text)
+        )
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Lỗi khi thêm chat message: {e}")
+    finally:
+        conn.close()
+
+def get_chat_history(user_id):
+    """Lấy lịch sử chat của CHỈ user_id này."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "SELECT sender, text FROM chat_history WHERE user_id = ? ORDER BY timestamp ASC",
+            (user_id,)
+        )
+        # Chuyển đổi sang format mà Gemini yêu cầu
+        history = []
+        for row in cursor.fetchall():
+            history.append({
+                "role": "model" if row["sender"] == "assistant" else "user",
+                "parts": [row["text"]]
+            })
+        return history
+    except sqlite3.Error as e:
+        print(f"Lỗi khi lấy chat history: {e}")
+        return []
+    finally:
+        conn.close()
+
+def clear_chat_history(user_id):
+    """Xóa lịch sử chat của CHỈ user_id này."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM chat_history WHERE user_id = ?", (user_id,))
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Lỗi khi xóa chat history: {e}")
+    finally:
+        conn.close()
+
+# --- Thêm vào phần KHỞI TẠO BAN ĐẦU ---
+create_chat_history_table()
+print("Đã khởi tạo bảng chat_history.")
+# --- KẾT THÚC PHẦN DÁN THÊM ---
