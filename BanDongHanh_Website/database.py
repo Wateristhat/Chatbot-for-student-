@@ -259,3 +259,97 @@ def get_mood_entries(user_id, exercise_filter=None):
 # (Chạy 1 lần khi ứng dụng khởi động)
 create_tables()
 print("Đã khởi tạo CSDL và kiểm tra các bảng.")
+# --- DÁN VÀO CUỐI FILE database.py ---
+
+def create_activity_tables():
+    """Tạo bảng cho Góc Nhỏ (activities)"""
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    # Bảng lưu các hoạt động tự chăm sóc của người dùng
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS activities (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL,
+        content TEXT NOT NULL,
+        is_done BOOLEAN DEFAULT 0,
+        added_date DATE DEFAULT (DATE('now'))
+    )
+    """)
+    # Tạo index để truy vấn nhanh hơn
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_activity_user_date ON activities (user_id, added_date)")
+    
+    conn.commit()
+    conn.close()
+
+def add_activity(user_id, content, added_date):
+    """Thêm một hoạt động mới cho user_id vào ngày cụ thể."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        # Kiểm tra xem hoạt động này đã tồn tại cho user vào ngày này chưa
+        cursor.execute(
+            "SELECT 1 FROM activities WHERE user_id = ? AND content = ? AND added_date = ?",
+            (user_id, content, added_date)
+        )
+        if cursor.fetchone() is None:
+            cursor.execute(
+                "INSERT INTO activities (user_id, content, added_date, is_done) VALUES (?, ?, ?, 0)",
+                (user_id, content, added_date)
+            )
+            conn.commit()
+    except sqlite3.Error as e:
+        print(f"Lỗi khi thêm activity: {e}")
+    finally:
+        conn.close()
+
+def get_activities_by_date(user_id, added_date):
+    """Lấy tất cả hoạt động của user_id trong ngày."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "SELECT id, content, is_done FROM activities WHERE user_id = ? AND added_date = ? ORDER BY id ASC",
+            (user_id, added_date)
+        )
+        return cursor.fetchall() # Trả về list các Row (giống dict)
+    except sqlite3.Error as e:
+        print(f"Lỗi khi lấy activities: {e}")
+        return []
+    finally:
+        conn.close()
+
+def update_activity_status(user_id, activity_id, is_done):
+    """Cập nhật trạng thái (đã xong/chưa xong) của một hoạt động."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "UPDATE activities SET is_done = ? WHERE id = ? AND user_id = ?",
+            (is_done, activity_id, user_id)
+        )
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Lỗi khi cập nhật activity: {e}")
+    finally:
+        conn.close()
+
+def delete_activity(user_id, activity_id):
+    """Xóa một hoạt động (nếu người dùng muốn xóa)."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "DELETE FROM activities WHERE id = ? AND user_id = ?",
+            (activity_id, user_id)
+        )
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Lỗi khi xóa activity: {e}")
+    finally:
+        conn.close()
+
+# --- KHỞI TẠO BẢNG MỚI NÀY ---
+create_activity_tables()
+print("Đã khởi tạo bảng activities (Góc Nhỏ).")
+# --- KẾT THÚC PHẦN DÁN THÊM ---
