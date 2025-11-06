@@ -1,4 +1,4 @@
-# File: 0_💖_Trang_chủ.py (Đã loại bỏ nút Đăng xuất HTML/CSS gây lỗi)
+# File: 0_💖_Trang_chủ.py (FIX CUỐI CÙNG: Chuyển Menu thành Mô tả Tĩnh và Thêm Đăng Xuất)
 import streamlit as st
 from datetime import datetime
 
@@ -10,23 +10,12 @@ st.set_page_config(
 )
 
 
-# --- CSS (Giữ nguyên) ---
+# --- CSS (Bổ sung class feature-card mới) ---
 st.markdown("""
 <link href="https://fonts.googleapis.com/css?family=Quicksand:700,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
     html, body, [class*="css"] { font-family: 'Quicksand', Arial, sans-serif; }
-    
-    /* FIX: Tăng kích thước và độ nổi bật cho khung thông báo st.info */
-    div[data-testid="stAlert"] {
-        padding: 1.5rem 1.8rem !important; /* Tăng khoảng đệm bên trong */
-        margin: 2.5rem 0 !important;      /* Tăng khoảng cách so với các khối khác */
-        font-size: 1.25rem !important;    /* Tăng cỡ chữ */
-        font-weight: 600 !important;
-        border-radius: 15px !important;
-        line-height: 1.6;
-    }
-    
     .brand-minimal-box {
         background: linear-gradient(110deg, #ff82ac 3%, #fd5e7c 97%);
         border-radius: 38px;
@@ -37,7 +26,6 @@ st.markdown("""
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        position: relative; 
     }
     .brand-minimal-header {
         font-family: 'Quicksand', Arial, sans-serif;
@@ -82,7 +70,7 @@ st.markdown("""
         border: 2.2px solid transparent;
         padding: 1.20rem 1.2rem 1.1rem 1.2rem;
         margin-bottom: 1.25rem;
-        pointer-events: none; /* Loại bỏ khả năng nhấp */
+        pointer-events: none; /* QUAN TRỌNG: Loại bỏ khả năng nhấp */
     }
     .feature-icon { font-size: 2.3rem; flex-shrink: 0; margin-right: 0.1rem; }
     .feature-title { font-weight:700; font-size:1.18rem; margin-bottom:0.13rem; color: #222; }
@@ -131,22 +119,20 @@ if not st.session_state.user_name:
                 st.success("✅ Lưu thông tin thành công! Chào mừng bạn đến với Bạn Đồng Hành!")
                 st.rerun()
 else:
-    # --- Giao diện đã đăng nhập (KHỐI ĐÃ SỬA) ---
+    # --- Giao diện đã đăng nhập ---
     st.markdown(f"""
     <div class="brand-minimal-box">
         <div class="brand-minimal-header">
             <span class="brand-minimal-icon"><i class="fa-solid fa-heart"></i></span>
             <span class="text-main">Chào mừng {st.session_state.user_name} đến với</span> <span class="text-brand">Bạn Đồng Hành!</span>
         </div>
-        
-        <div style="position: absolute; bottom: 0.8rem; right: 1.5rem;"> 
+        <div style="text-align: right; margin-top: -1.5rem; margin-right: 1.5rem;">
             <form action="." method="get" target="_self">
                 <input type="hidden" name="logout" value="true">
                 <button type="submit" style="
                     background: none; border: none; color: #ffb2be; 
                     font-size: 1rem; font-weight: 600; cursor: pointer;
                     text-decoration: underline; padding: 0;
-                    display: flex; align-items: center; gap: 5px;
                 ">❌ Đăng xuất</button>
             </form>
         </div>
@@ -162,7 +148,6 @@ else:
 
     st.markdown("---")
     st.markdown("## ✨ Khám phá các tính năng")
-    
     st.info("Vui lòng sử dụng **Menu ở thanh bên trái** để truy cập các tính năng.")
     
     # --- DỮ LIỆU CÁC TÍNH NĂNG (FEATURE LIST) ---
