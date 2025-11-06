@@ -1,3 +1,4 @@
+# Sửa file: pages/Lọ_biết_ơn.py
 import streamlit as st
 import sys
 import os
@@ -8,18 +9,75 @@ from datetime import datetime
 import tempfile
 from gtts import gTTS
 from io import BytesIO
+
+# Import database đã sửa
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import database as db
+import database as db 
+
+# --- BẢO VỆ TRANG ---
+### <<< SỬA ĐỔI: Thêm bảo vệ trang ở đầu file >>>
+# Kiểm tra xem người dùng đã đăng nhập chưa (ở Trang chủ)
+if 'user_id' not in st.session_state or st.session_state.user_id is None:
+    st.error("Bạn chưa đăng nhập! Vui lòng quay về Trang chủ.")
+    # Sửa link quay về Trang chủ cho đúng
+    st.page_link("0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+    st.stop() # Dừng chạy code của trang này
+
+# --- LẤY ID NGƯỜI DÙNG HIỆN TẠI ---
+### <<< SỬA ĐỔI: Lấy user_id từ session_state >>>
+current_user_id = st.session_state.user_id
 
 st.markdown("""
 <style>
+/* (Giữ nguyên toàn bộ CSS của bạn) */
 .stButton > button {
-    font-size: 1.45rem !important;       /* Tăng cỡ chữ hơn nữa */
-    padding: 1.7rem 3.3rem !important;   /* Tăng chiều cao & chiều ngang nhiều hơn */
+    font-size: 1.45rem !important;
+    padding: 1.7rem 3.3rem !important;
     border-radius: 18px !important;
     min-width: 210px;
     min-height: 66px;
 }
+.lo-title-feature {
+    font-size:2.3rem; font-weight:700; color:#d81b60; text-align:center; margin-bottom:1.5rem; margin-top:0.7rem;
+    letter-spacing:0.2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+.lo-assist-bigbox {
+    background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
+    border-radius: 38px; box-shadow: 0 8px 36px rgba(124,77,255,.13);
+    padding: 3.2rem 2.8rem 2.1rem 2.8rem; margin-bottom:2.3rem; margin-top:0.2rem;
+    text-align: center; border: 3.5px solid #e1bee7; max-width:1400px; margin-left:auto; margin-right:auto;
+}
+.lo-assist-icon {font-size:3.1rem; margin-bottom:0.7rem;}
+.lo-assist-text {font-size:1.45rem; font-weight:700; color:#6d28d9; margin-bottom:1.2rem;}
+.lo-assist-btn-row {display:flex; justify-content: center; gap: 55px; margin-top:1.25rem;}
+.lo-assist-action-btn {
+    background: #fff; border: 2.5px solid #e1bee7; border-radius: 18px;
+    font-size:1.19rem; font-weight:600; color:#6d28d9;
+    padding: 1rem 2.1rem; cursor:pointer; box-shadow:0 2px 8px rgba(124,77,255,.14); transition:all 0.17s;
+}
+.lo-assist-action-btn:hover {background:#f3e8ff;}
+.lo-box, .timeline-item, .lo-footer {
+    background: #fffbe7;
+    border-radius: 13px;
+    padding: 1rem 1.2rem;
+    font-size: 1.07rem;
+    color: #333;
+    border-left: 5px solid #ffd54f;
+    text-align:center;
+    max-width:1200px;
+    margin-left:auto; margin-right:auto; margin-bottom:1.2rem;
+    box-shadow:0 2px 10px rgba(255, 223, 186, 0.09);
+}
+.timeline-item {
+    background:linear-gradient(135deg,#FFF8DC,#FFFACD);border-radius:15px;padding:1.3rem;max-width:1200px;margin:auto;margin-bottom:1.2rem;box-shadow:0 4px 12px rgba(255,215,0,0.2);border-left:6px solid #FFD700;
+}
+.timeline-content {font-size:1.17rem;color:#8B4513;margin-bottom:0.5rem;line-height:1.4;}
+.timeline-date {font-size:0.99rem;color:#CD853F;font-weight:700;}
+.lo-footer {background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:10px;padding:0.9rem 1.2rem;text-align:center;font-size:1.09rem;margin:0.7rem 0 1.2rem 0;color:#333;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -115,57 +173,10 @@ if 'current_assistant_message' not in st.session_state or not isinstance(st.sess
 if 'show_gratitude_response' not in st.session_state:
     st.session_state.show_gratitude_response = False
 
-# --- CSS GIAO DIỆN ĐỒNG BỘ GÓC AN YÊN ---
-st.markdown("""
-<style>
-.lo-title-feature {
-    font-size:2.3rem; font-weight:700; color:#d81b60; text-align:center; margin-bottom:1.5rem; margin-top:0.7rem;
-    letter-spacing:0.2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-}
-.lo-assist-bigbox {
-    background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
-    border-radius: 38px; box-shadow: 0 8px 36px rgba(124,77,255,.13);
-    padding: 3.2rem 2.8rem 2.1rem 2.8rem; margin-bottom:2.3rem; margin-top:0.2rem;
-    text-align: center; border: 3.5px solid #e1bee7; max-width:1400px; margin-left:auto; margin-right:auto;
-}
-.lo-assist-icon {font-size:3.1rem; margin-bottom:0.7rem;}
-.lo-assist-text {font-size:1.45rem; font-weight:700; color:#6d28d9; margin-bottom:1.2rem;}
-.lo-assist-btn-row {display:flex; justify-content: center; gap: 55px; margin-top:1.25rem;}
-.lo-assist-action-btn {
-    background: #fff; border: 2.5px solid #e1bee7; border-radius: 18px;
-    font-size:1.19rem; font-weight:600; color:#6d28d9;
-    padding: 1rem 2.1rem; cursor:pointer; box-shadow:0 2px 8px rgba(124,77,255,.14); transition:all 0.17s;
-}
-.lo-assist-action-btn:hover {background:#f3e8ff;}
-.lo-box, .timeline-item, .lo-footer {
-    background: #fffbe7;
-    border-radius: 13px;
-    padding: 1rem 1.2rem;
-    font-size: 1.07rem;
-    color: #333;
-    border-left: 5px solid #ffd54f;
-    text-align:center;
-    max-width:1200px;
-    margin-left:auto; margin-right:auto; margin-bottom:1.2rem;
-    box-shadow:0 2px 10px rgba(255, 223, 186, 0.09);
-}
-.timeline-item {
-    background:linear-gradient(135deg,#FFF8DC,#FFFACD);border-radius:15px;padding:1.3rem;max-width:1200px;margin:auto;margin-bottom:1.2rem;box-shadow:0 4px 12px rgba(255,215,0,0.2);border-left:6px solid #FFD700;
-}
-.timeline-content {font-size:1.17rem;color:#8B4513;margin-bottom:0.5rem;line-height:1.4;}
-.timeline-date {font-size:0.99rem;color:#CD853F;font-weight:700;}
-.lo-footer {background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:10px;padding:0.9rem 1.2rem;text-align:center;font-size:1.09rem;margin:0.7rem 0 1.2rem 0;color:#333;}
-</style>
-""", unsafe_allow_html=True)
-
 # --- TIÊU ĐỀ + TRỢ LÝ ẢO ĐẦU TRANG ---
 st.markdown(
     '<div class="lo-title-feature">'
-    ' <span style="font-size:2.5rem;">🍯</span> Lọ Biết Ơn'
+    ' <span style="font-size:2.5rem;">🍯</span> Lọ Biết ƠN'
     '</div>',
     unsafe_allow_html=True
 )
@@ -191,7 +202,8 @@ with col2:
         st.audio(audio_bytes.read(), format="audio/mpeg")
 
 # --- NAVIGATION LINK ---
-st.markdown("⬅️ [Quay về Trang chủ](../0_💖_Trang_chủ.py)")
+### <<< SỬA ĐỔI: Sửa link quay về Trang chủ >>>
+st.page_link("0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
 
 # --- Hiển thị avatar trợ lý ảo khi gửi biết ơn ---
 if st.session_state.show_gratitude_response:
@@ -265,7 +277,7 @@ with col1:
                     with open(audio_file, 'rb') as f:
                         audio_bytes = f.read()
                     st.audio(audio_bytes, format='audio/mpeg', autoplay=True)
-                    os.unlink(audio_file)  # Xóa file tạm
+                    os.unlink(audio_file) # Xóa file tạm
                 except Exception as e:
                     st.error(f"Không thể phát âm thanh: {e}")
 with col2:
@@ -284,7 +296,9 @@ note_text = st.text_area(
 )
 if st.button("🌟 Thêm vào lọ biết ơn", type="primary", use_container_width=True):
     if note_text:
-        db.add_gratitude_note(note_text)
+        ### <<< SỬA ĐỔI: Truyền `current_user_id` vào hàm add >>>
+        db.add_gratitude_note(current_user_id, note_text) 
+        
         st.session_state.show_gratitude_response = True
         success_stickers = ["🎉", "⭐", "🌟", "✨", "💫", "🎊", "🦋", "🌈", "🎁", "💝"]
         selected_stickers = random.sample(success_stickers, 3)
@@ -304,17 +318,35 @@ st.write("---")
 
 # --- TIMELINE HIỂN THỊ GHI CHÚ ---
 st.markdown("### 📖 Timeline - Những Kỷ Niệm Biết Ơn")
-gratitude_notes = db.get_gratitude_notes()
+
+### <<< SỬA ĐỔI: Truyền `current_user_id` vào hàm get >>>
+gratitude_notes = db.get_gratitude_notes(current_user_id) 
+
 if gratitude_notes:
     st.markdown(f"<div style='text-align: center; font-size: 1.1rem; color: #8B4513; margin-bottom: 1.5rem;'>Bạn đã có <strong>{len(gratitude_notes)}</strong> kỷ niệm đẹp! 💎</div>", unsafe_allow_html=True)
-    for note_id, note_content, timestamp in gratitude_notes:
+    
+    # Sửa vòng lặp để đọc dữ liệu từ db.Row
+    for note in gratitude_notes:
+        note_id = note["id"]
+        note_content = note["content"]
+        timestamp = note["timestamp"]
+        
         try:
-            dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
-            formatted_date = dt.strftime("%d/%m/%Y lúc %H:%M")
-            day_name = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"][dt.weekday()]
+            # Chuyển đổi timestamp (nếu cần, có thể nó đã là datetime)
+            if isinstance(timestamp, str):
+                dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f") # Hoặc format trong CSDL của bạn
+            else:
+                dt = timestamp # Giả sử nó là đối tượng datetime
+            
+            # Cập nhật format thời gian cho chính xác
+            dt_with_timezone = dt.replace(tzinfo=datetime.now().astimezone().tzinfo) # Giả sử giờ CSDL là UTC
+            formatted_date = dt_with_timezone.strftime("%d/%m/%Y lúc %H:%M")
+            day_name = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"][dt_with_timezone.weekday()]
             full_date = f"{day_name}, {formatted_date}"
-        except:
-            full_date = timestamp
+        except Exception as e:
+            # Fallback nếu format thời gian sai
+            full_date = str(timestamp)
+
         with st.container():
             st.markdown(f"""
             <div class="timeline-item">
@@ -322,6 +354,7 @@ if gratitude_notes:
                 <div class="timeline-date">📅 {full_date}</div>
             </div>
             """, unsafe_allow_html=True)
+            
             col1, col2, col3 = st.columns([2, 2, 1])
             with col1:
                 if st.button("🔊 Đọc to", key=f"tts_{note_id}", help="Nghe ghi chú này"):
@@ -339,7 +372,8 @@ if gratitude_notes:
                     st.markdown("💕 Cảm ơn bạn đã thích kỷ niệm này!")
             with col3:
                 if st.button("🗑️", key=f"delete_{note_id}", help="Xóa ghi chú này"):
-                    db.delete_gratitude_note(note_id)
+                    ### <<< SỬA ĐỔI: Truyền `current_user_id` vào hàm delete >>>
+                    db.delete_gratitude_note(current_user_id, note_id)
                     st.success("🌸 Đã xóa ghi chú!")
                     time.sleep(1)
                     st.rerun()
