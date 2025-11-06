@@ -1,4 +1,4 @@
-# File: pages/9_📖_Người_Kể_Chuyện.py (Sửa lỗi bảo vệ trang và điều hướng)
+# File: pages/9_📖_Người_Kể_Chuyện.py (Thêm 5 truyện chữa lành mới)
 import streamlit as st
 import random
 from gtts import gTTS
@@ -140,6 +140,26 @@ def load_stories():
             {
                 "title": "Chiếc bình nứt",
                 "content": "Một người gánh nước có hai chiếc bình, một chiếc lành lặn và một chiếc bị nứt. Chiếc bình nứt luôn cảm thấy tự ti vì nó chỉ giữ được một nửa phần nước. Một ngày, nó xin lỗi người chủ. Người chủ mỉm cười và nói: 'Con có thấy những luống hoa xinh đẹp bên đường không? Đó là nhờ ta đã gieo hạt ở phía bên con. Mỗi ngày, những giọt nước từ vết nứt của con đã tưới cho chúng'. Bài học: Những khuyết điểm của bạn có thể lại là điều tạo nên vẻ đẹp và giá trị riêng biệt mà bạn không ngờ tới."
+            },
+            {
+                "title": "Con sâu bướm và sự thay đổi",
+                "content": "Một con sâu bướm dành cả cuộc đời bò trên mặt đất, luôn ước ao được bay như những loài chim. Nó sợ hãi khi phải cuộn mình trong cái kén tối tăm. Nhưng sau một thời gian kiên nhẫn và chịu đựng, nó phá kén chui ra, hóa thành một con bướm xinh đẹp. Bài học: Đôi khi, những giai đoạn khó khăn và cô đơn nhất trong đời lại là quá trình 'hóa kén' để bạn trở thành phiên bản tốt hơn và rực rỡ hơn của chính mình."
+            },
+            {
+                "title": "Tiếng chuông lặng im",
+                "content": "Trong một ngôi đền cổ, có một chiếc chuông lớn đã bị nứt. Mỗi khi có lễ hội, các nhà sư đều dùng chuông lành lặn để đánh. Một du khách hỏi tại sao không sửa chiếc chuông nứt. Một nhà sư trả lời: 'Nó đã được hàn lại nhiều lần nhưng tiếng kêu không còn ngân vang như trước. Chúng tôi giữ nó ở đây để nhắc nhở rằng, có những nỗi đau hay tổn thương không thể xóa bỏ hoàn toàn, nhưng chúng ta vẫn có thể tìm thấy sự bình yên trong sự chấp nhận lặng im của nó'. Bài học: Chấp nhận những 'vết nứt' trong tâm hồn là bước đầu tiên để tìm lại sự bình yên."
+            },
+            {
+                "title": "Đóa hoa sen trong bùn",
+                "content": "Hoa sen luôn được ngưỡng mộ vì vẻ đẹp thanh cao. Nhưng để nở rộ, nó phải lớn lên từ lớp bùn lầy dơ bẩn. Bùn chính là nguồn dinh dưỡng duy nhất để nó vươn lên và tỏa sáng trên mặt nước. Bài học: Những khó khăn, những 'vũng bùn' trong quá khứ hay hiện tại không định nghĩa bạn. Chúng chính là chất dinh dưỡng giúp bạn mạnh mẽ hơn, trưởng thành hơn và cuối cùng là nở rộ với vẻ đẹp riêng biệt của mình."
+            },
+            {
+                "title": "Chiếc áo choàng của thời gian",
+                "content": "Một người luôn buồn bã vì những lỗi lầm trong quá khứ, không thể tha thứ cho chính mình. Một nhà hiền triết đưa cho anh ta một chiếc áo choàng nặng nề và bảo anh ta mặc. Sau đó, nhà hiền triết nói: 'Chiếc áo này là quá khứ của cậu. Nó quá nặng và cản bước cậu đi. Thời gian sẽ dần cởi bỏ nó, nhưng cậu phải tự quyết định có để nó giữ chân mình mãi mãi hay không.' Bài học: Thời gian là liều thuốc chữa lành tốt nhất, nhưng chúng ta phải chủ động buông bỏ gánh nặng của quá khứ để cho phép quá trình chữa lành diễn ra."
+            },
+            {
+                "title": "Bữa tiệc của ánh sáng và bóng tối",
+                "content": "Trong một căn phòng, ánh sáng và bóng tối sống chung. Ánh sáng luôn cố gắng xua đuổi bóng tối, và bóng tối luôn tìm cách che giấu ánh sáng. Cuối cùng, một vị khách bước vào và nói: 'Hai bạn thật ngốc nghếch. Ánh sáng và bóng tối không phải kẻ thù. Nếu không có bóng tối, chúng ta sẽ không bao giờ biết được ánh sáng rực rỡ đến mức nào. Hãy tổ chức một bữa tiệc.' Bài học: Cuộc sống không thể chỉ có niềm vui (ánh sáng). Hãy học cách chấp nhận và biết ơn cả những ngày buồn bã (bóng tối), vì chúng giúp chúng ta trân trọng những khoảnh khắc hạnh phúc."
             }
         ]
     }
