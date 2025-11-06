@@ -166,17 +166,17 @@ else:
     
     # ----------- MENU MỚI SỬ DỤNG st.page_link ẨN (FIX LỖI MẤT ĐĂNG NHẬP) -----------
     
-    MENU_ITEMS = [
-        {"icon": "fa-solid fa-sun", "color": "#FFB300", "title": "Liều Thuốc Tinh Thần", "desc": "Nhận những thông điệp tích cực mỗi ngày.", "file": "1_✨_Liều_thuốc_tinh_thần.py"},
-        {"icon": "fa-solid fa-spa", "color": "#4CAF50", "title": "Góc An Yên", "desc": "Thực hành các bài tập hít thở để giảm căng thẳng.", "file": "2_🫧_Góc_An_Yên.py"},
-        {"icon": "fa-solid fa-jar", "color": "#F48FB1", "title": "Lọ Biết Ơn", "desc": "Ghi lại những điều nhỏ bé khiến bạn mỉm cười.", "file": "3_🍯_Lọ_biết_ơn.py"},
-        {"icon": "fa-solid fa-paintbrush", "color": "#2196F3", "title": "Bảng Màu Cảm Xúc", "desc": "Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc.", "file": "4_🎨_Bảng_màu_cảm_xúc.py"},
-        {"icon": "fa-solid fa-dice", "color": "#AB47BC", "title": "Nhanh Tay Lẹ Mắt", "desc": "Thử thách bản thân với các trò chơi nhẹ nhàng.", "file": "5_🎮_Nhanh_tay_lẹ_mắt.py"},
-        {"icon": "fa-solid fa-heart", "color": "#D50000", "title": "Góc Nhỏ", "desc": "Xây dựng kế hoạch chăm sóc bản thân mỗi ngày.", "file": "6_💖_Góc_nhỏ.py"},
-        {"icon": "fa-solid fa-phone", "color": "#0288D1", "title": "Hỗ Trợ Khẩn Cấp", "desc": "Danh sách các nguồn lực và đường dây nóng đáng tin cậy.", "file": "7_🆘_Hỗ_Trợ_Khẩn_Cấp.py"},
-        {"icon": "fa-solid fa-robot", "color": "#757575", "title": "Trò Chuyện", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn.", "file": "8_💬_Trò_chuyện.py"},
-        {"icon": "fa-solid fa-book", "color": "#F57C00", "title": "Người Kể Chuyện", "desc": "Lắng nghe những câu chuyện chữa lành tâm hồn.", "file": "9_📖_Người_Kể_Chuyện.py"}
-    ]
+   MENU_ITEMS = [
+    {"icon": "fa-solid fa-sun", "color": "#FFB300", "title": "Liều Thuốc Tinh Thần", "desc": "Nhận những thông điệp tích cực mỗi ngày.", "file": "1_✨_Liều_thuốc_tinh_thần.py", "page": "Liều_thuốc_tinh_thần"},
+    {"icon": "fa-solid fa-spa", "color": "#4CAF50", "title": "Góc An Yên", "desc": "Thực hành các bài tập hít thở để giảm căng thẳng.", "file": "2_🫧_Góc_An_Yên.py", "page": "Góc_An_Yên"},
+    {"icon": "fa-solid fa-jar", "color": "#F48FB1", "title": "Lọ Biết Ơn", "desc": "Ghi lại những điều nhỏ bé khiến bạn mỉm cười.", "file": "3_🍯_Lọ_biết_ơn.py", "page": "Lọ_biết_ơn"},
+    {"icon": "fa-solid fa-paintbrush", "color": "#2196F3", "title": "Bảng Màu Cảm Xúc", "desc": "Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc.", "file": "4_🎨_Bảng_màu_cảm_xúc.py", "page": "Bảng_màu_cảm_xúc"},
+    {"icon": "fa-solid fa-dice", "color": "#AB47BC", "title": "Nhanh Tay Lẹ Mắt", "desc": "Thử thách bản thân với các trò chơi nhẹ nhàng.", "file": "5_🎮_Nhanh_tay_lẹ_mắt.py", "page": "Nhanh_tay_lẹ_mắt"},
+    {"icon": "fa-solid fa-heart", "color": "#D50000", "title": "Góc Nhỏ", "desc": "Xây dựng kế hoạch chăm sóc bản thân mỗi ngày.", "file": "6_💖_Góc_nhỏ.py", "page": "Góc_nhỏ"},
+    {"icon": "fa-solid fa-phone", "color": "#0288D1", "title": "Hỗ Trợ Khẩn Cấp", "desc": "Danh sách các nguồn lực và đường dây nóng đáng tin cậy.", "file": "7_🆘_Hỗ_Trợ_Khẩn_Cấp.py", "page": "Hỗ_Trợ_Khẩn_Cấp"},
+    {"icon": "fa-solid fa-robot", "color": "#757575", "title": "Trò Chuyện", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn.", "file": "8_💬_Trò_chuyện.py", "page": "Trò_chuyện"},
+    {"icon": "fa-solid fa-book", "color": "#F57C00", "title": "Người Kể Chuyện", "desc": "Lắng nghe những câu chuyện chữa lành tâm hồn.", "file": "9_📖_Người_Kể_Chuyện.py", "page": "Người_Kể_Chuyện"}
+]
     
     st.markdown('<div class="menu-list">', unsafe_allow_html=True)
 
@@ -260,3 +260,4 @@ st.markdown("""
 
 </style>
 """, unsafe_allow_html=True)
+
