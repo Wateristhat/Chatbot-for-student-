@@ -11,7 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 # ⚠️ BỔ SUNG 2: Gọi hàm để chèn nút loa và nhạc nền (Đặt sau set_page_config)
-hu.inject_global_components()
+hu.inject_global_components(__file__)
 
 # --- CSS (Giữ nguyên, không thay đổi) ---
 st.markdown("""
@@ -184,5 +184,6 @@ else:
         )
     st.markdown('</div>', unsafe_allow_html=True)
     # ----------- KẾT THÚC MENU ĐÃ SỬA LỖI -----------
+
 
 
