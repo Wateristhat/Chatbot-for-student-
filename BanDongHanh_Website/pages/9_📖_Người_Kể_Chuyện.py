@@ -81,26 +81,6 @@ def load_stories():
                 "title": "Hố sâu và chiếc thang",
                 "content": "Một người đang đi trên đường thì bị rơi xuống một cái hố sâu. Anh ta cố gắng kêu cứu nhưng không ai nghe thấy. Anh tuyệt vọng. Một lúc sau, một người đi qua, thấy anh ta và quăng xuống một sợi dây thừng. Anh ta leo lên được. Sau này, anh ta thấy một người khác cũng bị rơi xuống hố đó. Thay vì quăng dây thừng, anh ta nhảy xuống hố. Người bị nạn hoảng hốt: 'Anh làm gì vậy?' Anh ta mỉm cười và nói: 'Tôi hiểu cảm giác của anh. Tôi đã từng ở đây. Tôi biết đường ra.' Bài học: Sự đồng cảm và kinh nghiệm vượt qua khó khăn là món quà lớn nhất mà chúng ta có thể chia sẻ với người khác."
             },
-            {
-                "title": "Người thợ gốm và chiếc bình hỏng",
-                "content": "Một người thợ gốm luôn giữ lại những chiếc bình bị nứt hoặc méo mó, dù chúng không bán được. Khi người học việc hỏi tại sao, ông nói: 'Bình lành lặn dùng để đựng nước, nhưng những chiếc bình hỏng này lại tạo ra âm thanh độc đáo khi gió thổi qua. Chúng dùng để tạo ra âm nhạc.' Bài học: Những khiếm khuyết hay sai lầm của bạn không phải là vô dụng. Chúng có thể tạo ra những giá trị và ý nghĩa khác biệt mà bạn không ngờ tới."
-            },
-            {
-                "title": "Nghệ sĩ vĩ cầm trên phố",
-                "content": "Một nghệ sĩ vĩ cầm nổi tiếng thế giới, đã bán hết vé cho các buổi hòa nhạc lớn, quyết định xuống ga tàu điện ngầm để chơi nhạc trong giờ cao điểm. Anh chơi những bản nhạc kinh điển bằng cây đàn trị giá hàng triệu đô la. Hầu hết mọi người đi ngang qua đều vội vã, chỉ có vài người dừng lại nghe trong chốc lát và bỏ một ít tiền lẻ. Bài học: Giá trị và tài năng thực sự không được định đoạt bởi bối cảnh. Đừng bao giờ chờ đợi sự công nhận của đám đông. Điều quan trọng là bạn có dám theo đuổi đam mê của mình, dù ở nơi nào hay không."
-            },
-            {
-                "title": "Chiếc thuyền buồm ngược gió",
-                "content": "Hai chiếc thuyền buồm cùng căng buồm ra khơi. Một chiếc than phiền: 'Gió ngược quá, tôi không thể đi được.' Chiếc kia, bằng cách điều chỉnh góc cánh buồm, lại dùng chính sức gió ngược đó để đẩy mình tiến lên. Bài học: Cuộc sống không phải là việc chờ đợi những cơn gió thuận lợi, mà là học cách điều chỉnh cánh buồm để đi đến đích bằng mọi loại gió. Khó khăn có thể là lực đẩy nếu chúng ta biết cách xoay chuyển tình thế."
-            },
-            {
-                "title": "Sự kiên nhẫn của chiếc đồng hồ cát",
-                "content": "Một chiếc đồng hồ cát không bao giờ cố gắng đẩy cát nhanh hơn. Nó chỉ lật lại và để cho cát chảy theo đúng nhịp điệu tự nhiên của nó. Nếu cố gắng ép buộc tốc độ, nó sẽ bị tắc nghẽn và ngừng hoạt động. Bài học: Mọi thứ trong cuộc sống đều có thời điểm của nó. Thay vì cố gắng vội vã, hãy kiên nhẫn và tin tưởng vào quá trình. Hãy để mọi thứ diễn ra một cách tự nhiên."
-            },
-            {
-                "title": "Phép màu của sự bắt đầu",
-                "content": "Nhà văn người Brazil Paulo Coelho từng nói: 'Khi bạn thực sự muốn điều gì đó, cả vũ trụ sẽ hợp lực giúp bạn đạt được điều đó.' Nhiều người trì hoãn ước mơ vì sợ thất bại. Nhưng câu chuyện này dạy rằng, bước đi đầu tiên, dù nhỏ bé đến đâu, là điều kiện tiên quyết để tạo ra 'phép màu' của sự hỗ trợ từ bên ngoài. Bài học: Hãy bắt đầu. Chỉ khi bạn bắt đầu hành động, những cơ hội, sự giúp đỡ và nguồn lực cần thiết mới xuất hiện để hỗ trợ bạn trên hành trình của mình."
-            }
         ],
         "Truyện ngụ ngôn": [
             {
