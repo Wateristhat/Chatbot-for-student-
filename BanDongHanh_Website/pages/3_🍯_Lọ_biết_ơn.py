@@ -1,5 +1,3 @@
-# Tên file: pages/3_🏺_Lọ_biết_ơn.py
-# (PHIÊN BẢN ĐÃ SỬA LỖI CÁ NHÂN HÓA)
 import streamlit as st
 import sys
 import os
@@ -10,37 +8,14 @@ from datetime import datetime
 import tempfile
 from gtts import gTTS
 from io import BytesIO
-
-# --- FIX 1: THÊM ĐƯỜNG DẪN ĐỂ IMPORT DATABASE.PY ---
-# (Phần này bạn đã làm đúng, giữ nguyên)
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import database as db
-
-# ===================================================================
-# --- FIX 2: "KHÓA CỬA" 🔑 (BẮT BUỘC ĐĂNG NHẬP) ---
-# Đoạn code này kiểm tra xem user đã có "chìa khóa" (user_id) chưa
-# ===================================================================
-if 'user_id' not in st.session_state:
-    st.error("⛔ Bạn phải đăng nhập để sử dụng tính năng này.")
-    st.write("Vui lòng quay lại Trang chủ để đăng nhập.")
-    if st.button("Về Trang chủ/Đăng nhập"):
-        st.switch_page("app.py") # Quay về file app.py chính
-    st.stop() # Dừng chạy code của trang này nếu chưa đăng nhập
-
-# --- Nếu đã đăng nhập, code sẽ chạy tiếp xuống đây ---
-
-# Lấy "chìa khóa" ra để dùng
-user_id = st.session_state.user_id
-
-# ===================================================================
-# (Toàn bộ code CSS và HÀM của bạn giữ nguyên)
-# ===================================================================
 
 st.markdown("""
 <style>
 .stButton > button {
-    font-size: 1.45rem !important;      /* Tăng cỡ chữ hơn nữa */
-    padding: 1.7rem 3.3rem !important;    /* Tăng chiều cao & chiều ngang nhiều hơn */
+    font-size: 1.45rem !important;       /* Tăng cỡ chữ hơn nữa */
+    padding: 1.7rem 3.3rem !important;   /* Tăng chiều cao & chiều ngang nhiều hơn */
     border-radius: 18px !important;
     min-width: 210px;
     min-height: 66px;
@@ -71,7 +46,7 @@ ASSISTANT_MESSAGES = [
 ]
 GRATITUDE_RESPONSES = [
     "Thật tuyệt vời! Lời biết ơn của bạn đã được thêm vào lọ! 🌟",
-    "Cảm ơn bạn đã chia sẻ! Điều này sẽ làm sáng cả ngày của bạn! ✨",
+    "Cảm ơn bạn đã chia sẻ! Điều này sẽ làm sáng cả ngày của bạn! ✨", 
     "Tuyệt quá! Bạn vừa tạo ra một kỷ niệm đẹp! 💝",
     "Mình cảm thấy ấm lòng khi đọc lời biết ơn của bạn! 🤗",
     "Bạn đã làm cho thế giới này tích cực hơn một chút! 🦋"
@@ -86,7 +61,7 @@ ENCOURAGING_MESSAGES = [
         "message": "Thật tuyệt vời khi bạn dành thời gian để cảm ơn! Mỗi lời biết ơn là một hạt giống hạnh phúc được gieo vào trái tim bạn."
     },
     {
-        "avatar": "🌟",
+        "avatar": "🌟", 
         "message": "Hãy nhớ rằng, những điều nhỏ bé nhất cũng có thể mang lại niềm vui lớn. Bạn đã làm rất tốt rồi!"
     },
     {
@@ -216,8 +191,7 @@ with col2:
         st.audio(audio_bytes.read(), format="audio/mpeg")
 
 # --- NAVIGATION LINK ---
-# (Phần này không cần thiết vì Streamlit tự tạo sidebar)
-# st.markdown("⬅️ [Quay về Trang chủ](../0_💖_Trang_chủ.py)")
+st.markdown("⬅️ [Quay về Trang chủ](../0_💖_Trang_chủ.py)")
 
 # --- Hiển thị avatar trợ lý ảo khi gửi biết ơn ---
 if st.session_state.show_gratitude_response:
@@ -310,11 +284,7 @@ note_text = st.text_area(
 )
 if st.button("🌟 Thêm vào lọ biết ơn", type="primary", use_container_width=True):
     if note_text:
-        # ===================================================================
-        # --- FIX 3A: SỬA HÀM THÊM (TRUYỀN "CHÌA KHÓA" user_id VÀO) ---
-        # ===================================================================
-        db.add_gratitude_note(user_id, note_text) # <-- ĐÃ THÊM user_id
-
+        db.add_gratitude_note(note_text)
         st.session_state.show_gratitude_response = True
         success_stickers = ["🎉", "⭐", "🌟", "✨", "💫", "🎊", "🦋", "🌈", "🎁", "💝"]
         selected_stickers = random.sample(success_stickers, 3)
@@ -334,21 +304,10 @@ st.write("---")
 
 # --- TIMELINE HIỂN THỊ GHI CHÚ ---
 st.markdown("### 📖 Timeline - Những Kỷ Niệm Biết Ơn")
-
-# ===================================================================
-# --- FIX 3B: SỬA HÀM LẤY (TRUYỀN "CHÌA KHÓA" user_id VÀO) ---
-# ===================================================================
-gratitude_notes = db.get_gratitude_notes(user_id) # <-- ĐÃ THÊM user_id
-
+gratitude_notes = db.get_gratitude_notes()
 if gratitude_notes:
     st.markdown(f"<div style='text-align: center; font-size: 1.1rem; color: #8B4513; margin-bottom: 1.5rem;'>Bạn đã có <strong>{len(gratitude_notes)}</strong> kỷ niệm đẹp! 💎</div>", unsafe_allow_html=True)
-    
-    # gratitude_notes giờ là một list các dictionary
-    for note in gratitude_notes:
-        note_id = note["entry_id"]
-        note_content = note["content"]
-        timestamp = note["timestamp"]
-        
+    for note_id, note_content, timestamp in gratitude_notes:
         try:
             dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
             formatted_date = dt.strftime("%d/%m/%Y lúc %H:%M")
@@ -380,11 +339,7 @@ if gratitude_notes:
                     st.markdown("💕 Cảm ơn bạn đã thích kỷ niệm này!")
             with col3:
                 if st.button("🗑️", key=f"delete_{note_id}", help="Xóa ghi chú này"):
-                    # ===========================================================
-                    # --- FIX 3C: SỬA HÀM XÓA (TRUYỀN "CHÌA KHÓA" user_id VÀO) ---
-                    # ===========================================================
-                    db.delete_gratitude_note(note_id, user_id) # <-- ĐÃ THÊM user_id
-                    
+                    db.delete_gratitude_note(note_id)
                     st.success("🌸 Đã xóa ghi chú!")
                     time.sleep(1)
                     st.rerun()
