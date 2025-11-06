@@ -287,8 +287,27 @@ def show_virtual_assistant():
     col1, col2 = st.columns(2)
     with col1:
         if st.button("🔄 Thông điệp mới", help="Nhận thông điệp động viên mới"):
-            st.session_state.current_avatar = random.choice(ASSISTANT_AVATARS)
-            st.session_state.current_message = random.choice(ENCOURAGEMENT_MESSAGES)
+            
+            # --- Logic chọn AVATAR mới (đảm bảo khác avatar cũ) ---
+            current_avatar = st.session_state.current_avatar
+            new_avatar = random.choice(ASSISTANT_AVATARS)
+            
+            # Thêm safeguard: Chỉ lặp nếu danh sách có nhiều hơn 1 avatar
+            if len(ASSISTANT_AVATARS) > 1:
+                while new_avatar == current_avatar:
+                    new_avatar = random.choice(ASSISTANT_AVATARS)
+            st.session_state.current_avatar = new_avatar
+
+            # --- Logic chọn THÔNG ĐIỆP mới (đảm bảo khác thông điệp cũ) ---
+            current_message = st.session_state.current_message
+            new_message = random.choice(ENCOURAGEMENT_MESSAGES)
+
+            # Thêm safeguard: Chỉ lặp nếu danh sách có nhiều hơn 1 thông điệp
+            if len(ENCOURAGEMENT_MESSAGES) > 1:
+                while new_message == current_message:
+                    new_message = random.choice(ENCOURAGEMENT_MESSAGES)
+            st.session_state.current_message = new_message
+            
             st.rerun()
     with col2:
         create_tts_button(st.session_state.current_message, "assistant_msg", "🔊 Nghe động viên")
