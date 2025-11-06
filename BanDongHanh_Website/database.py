@@ -1,39 +1,59 @@
+# Sửa file: database.py
 import sqlite3
+import csv
+import os
+from datetime import datetime
 
 DATABASE_NAME = "app_data.db"
 
 def connect_db():
-    conn = sqlite3.connect(DATABASE_NAME)
+    """Kết nối CSDL, bật chế độ check_same_thread=False cho Streamlit."""
+    conn = sqlite3.connect(DATABASE_NAME, check_same_thread=False)
+    conn.row_factory = sqlite3.Row # Giúp trả về kết quả dạng dictionary
     return conn
 
 def create_tables():
-    """Tạo bảng chat_history và gratitude_notes nếu chưa tồn tại."""
+    """Tạo bảng và THÊM CỘT user_id nếu chưa tồn tại."""
     conn = connect_db()
     cursor = conn.cursor()
     
-    # Bảng lịch sử trò chuyện
+    # *** SỬA ĐỔI: Thêm cột user_id vào các bảng hiện có ***
+    # Dùng try...except để lệnh này chỉ chạy 1 lần mà không báo lỗi
+    try:
+        cursor.execute("ALTER TABLE chat_history ADD COLUMN user_id TEXT NOT NULL DEFAULT 'global'")
+        cursor.execute("ALTER TABLE gratitude_notes ADD COLUMN user_id TEXT NOT NULL DEFAULT 'global'")
+        cursor.execute("ALTER TABLE emotion_artworks ADD COLUMN user_id TEXT NOT NULL DEFAULT 'global'")
+        print("Đã thêm cột user_id vào các bảng.")
+    except sqlite3.OperationalError:
+        # Bỏ qua nếu cột đã tồn tại
+        pass
+
+    # Bảng lịch sử trò chuyện (Thêm user_id)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS chat_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL, 
         sender TEXT NOT NULL,
         text TEXT NOT NULL,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )
     """)
     
-    # Bảng ghi chú biết ơn
+    # Bảng ghi chú biết ơn (Thêm user_id)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS gratitude_notes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL,
         content TEXT NOT NULL,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )
     """)
     
-    # Bảng lưu trữ tranh vẽ cảm xúc
+    # Bảng lưu trữ tranh vẽ cảm xúc (Thêm user_id)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS emotion_artworks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL,
         emotion_emoji TEXT NOT NULL,
         canvas_data TEXT NOT NULL,
         title TEXT,
@@ -45,170 +65,197 @@ def create_tables():
     conn.commit()
     conn.close()
 
-def add_chat_message(sender, text):
-    """Thêm một tin nhắn mới vào lịch sử trò chuyện."""
+# *** SỬA ĐỔI: Thêm user_id ***
+def add_chat_message(user_id, sender, text):
+    """Thêm một tin nhắn mới cho user_id cụ thể."""
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO chat_history (sender, text) VALUES (?, ?)", (sender, text))
+    cursor.execute("INSERT INTO chat_history (user_id, sender, text) VALUES (?, ?, ?)", 
+                   (user_id, sender, text))
     conn.commit()
     conn.close()
 
-def get_chat_history(limit=None):
-    """Lấy toàn bộ lịch sử trò chuyện, không phân biệt người dùng."""
+# *** SỬA ĐỔI: Thêm user_id ***
+def get_chat_history(user_id, limit=None):
+    """Lấy lịch sử trò chuyện của CHỈ user_id này."""
     conn = connect_db()
     cursor = conn.cursor()
+    
+    query = "SELECT sender, text FROM chat_history WHERE user_id = ? ORDER BY timestamp "
+    params = [user_id]
+
     if limit:
-        cursor.execute("SELECT sender, text FROM chat_history ORDER BY timestamp DESC LIMIT ?", (limit,))
+        query += "DESC LIMIT ?"
+        params.append(limit)
     else:
-        cursor.execute("SELECT sender, text FROM chat_history ORDER BY timestamp ASC")
-    history = [{"sender": row[0], "text": row[1]} for row in cursor.fetchall()]
+        query += "ASC"
+        
+    cursor.execute(query, tuple(params))
+    history = [{"sender": row["sender"], "text": row["text"]} for row in cursor.fetchall()]
     conn.close()
     return history[::-1] if limit else history
 
-# ====== BỔ SUNG CHO LỌ BIẾT ƠN ======
-def add_gratitude_note(content):
-    """Thêm một ghi chú biết ơn mới (không cần user_id)."""
+# ====== LỌ BIẾT ƠN ======
+
+# *** SỬA ĐỔI: Thêm user_id ***
+def add_gratitude_note(user_id, content):
+    """Thêm ghi chú biết ơn cho user_id cụ thể."""
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO gratitude_notes (content) VALUES (?)", (content,))
+    cursor.execute("INSERT INTO gratitude_notes (user_id, content) VALUES (?, ?)", 
+                   (user_id, content))
     conn.commit()
     conn.close()
 
-def get_gratitude_notes():
-    """Lấy toàn bộ ghi chú biết ơn kèm thời gian."""
+# *** SỬA ĐỔI: Thêm user_id ***
+def get_gratitude_notes(user_id):
+    """Lấy toàn bộ ghi chú của CHỈ user_id này."""
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, content, timestamp FROM gratitude_notes ORDER BY timestamp ASC")
-    notes = cursor.fetchall()
+    cursor.execute("SELECT id, content, timestamp FROM gratitude_notes WHERE user_id = ? ORDER BY timestamp ASC", 
+                   (user_id,))
+    notes = cursor.fetchall() # Trả về list các Row object
     conn.close()
     return notes
 
-def delete_gratitude_note(note_id):
-    """Xóa ghi chú biết ơn theo id."""
+# *** SỬA ĐỔI: Thêm user_id (Rất quan trọng cho bảo mật) ***
+def delete_gratitude_note(user_id, note_id):
+    """Xóa ghi chú của CHỈ user_id này (người khác không thể xóa)."""
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM gratitude_notes WHERE id = ?", (note_id,))
+    # Thêm user_id vào mệnh đề WHERE để đảm bảo người dùng chỉ xóa được của chính mình
+    cursor.execute("DELETE FROM gratitude_notes WHERE id = ? AND user_id = ?", 
+                   (note_id, user_id))
     conn.commit()
     conn.close()
 
-# ====== BỔ SUNG CHO BẢNG MÀU CẢM XÚC ======
-def add_artwork(emotion_emoji, canvas_data, title=None):
-    """Thêm một tác phẩm nghệ thuật mới với cảm xúc."""
+# ====== BẢNG MÀU CẢM XÚC ======
+
+# *** SỬA ĐỔI: Thêm user_id ***
+def add_artwork(user_id, emotion_emoji, canvas_data, title=None):
+    """Thêm tác phẩm mới cho user_id cụ thể."""
     conn = connect_db()
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO emotion_artworks (emotion_emoji, canvas_data, title) VALUES (?, ?, ?)", 
-        (emotion_emoji, canvas_data, title)
+        "INSERT INTO emotion_artworks (user_id, emotion_emoji, canvas_data, title) VALUES (?, ?, ?, ?)", 
+        (user_id, emotion_emoji, canvas_data, title)
     )
     conn.commit()
     conn.close()
 
-def get_artworks_by_emotion(emotion_emoji=None):
-    """Lấy tác phẩm theo cảm xúc, hoặc tất cả nếu không chỉ định."""
+# *** SỬA ĐỔI: Thêm user_id ***
+def get_artworks_by_emotion(user_id, emotion_emoji=None):
+    """Lấy tác phẩm của CHỈ user_id này."""
     conn = connect_db()
     cursor = conn.cursor()
     
     if emotion_emoji:
         cursor.execute(
-            "SELECT id, emotion_emoji, title, timestamp, date_only FROM emotion_artworks WHERE emotion_emoji = ? ORDER BY timestamp DESC", 
-            (emotion_emoji,)
+            "SELECT * FROM emotion_artworks WHERE user_id = ? AND emotion_emoji = ? ORDER BY timestamp DESC", 
+            (user_id, emotion_emoji)
         )
     else:
         cursor.execute(
-            "SELECT id, emotion_emoji, title, timestamp, date_only FROM emotion_artworks ORDER BY timestamp DESC"
+            "SELECT * FROM emotion_artworks WHERE user_id = ? ORDER BY timestamp DESC",
+            (user_id,)
         )
     
     artworks = cursor.fetchall()
     conn.close()
     return artworks
 
-def get_artwork_data(artwork_id):
-    """Lấy dữ liệu canvas của một tác phẩm."""
+# *** SỬA ĐỔI: Thêm user_id ***
+def get_artwork_data(user_id, artwork_id):
+    """Lấy dữ liệu canvas của CHỈ user_id này."""
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT canvas_data FROM emotion_artworks WHERE id = ?", (artwork_id,))
+    cursor.execute("SELECT canvas_data FROM emotion_artworks WHERE id = ? AND user_id = ?", 
+                   (artwork_id, user_id))
     result = cursor.fetchone()
     conn.close()
     return result[0] if result else None
 
-def get_artworks_by_date():
-    """Lấy tác phẩm được nhóm theo ngày."""
+# *** SỬA ĐỔI: Thêm user_id ***
+def get_artworks_by_date(user_id):
+    """Lấy tác phẩm của CHỈ user_id này, nhóm theo ngày."""
     conn = connect_db()
     cursor = conn.cursor()
     cursor.execute(
         """SELECT date_only, emotion_emoji, title, id, timestamp 
            FROM emotion_artworks 
-           ORDER BY date_only DESC, timestamp DESC"""
+           WHERE user_id = ?
+           ORDER BY date_only DESC, timestamp DESC""",
+        (user_id,)
     )
     
     artworks = cursor.fetchall()
     conn.close()
     
-    # Nhóm theo ngày
     grouped = {}
     for artwork in artworks:
-        date_only = artwork[0]
+        date_only = artwork["date_only"]
         if date_only not in grouped:
             grouped[date_only] = []
         grouped[date_only].append({
-            'id': artwork[3],
-            'emotion_emoji': artwork[1],
-            'title': artwork[2],
-            'timestamp': artwork[4]
+            'id': artwork["id"],
+            'emotion_emoji': artwork["emotion_emoji"],
+            'title': artwork["title"],
+            'timestamp': artwork["timestamp"]
         })
     
     return grouped
 
-# ====== BỔ SUNG CHO NHẬT KÝ CẢM XÚC (MOOD JOURNAL) ======
-import csv
-from datetime import datetime
-import os
+# ====== NHẬT KÝ CẢM XÚC (GÓC AN YÊN - Sửa sang file CSV riêng) ======
 
-MOOD_JOURNAL_FILE = "goc_an_yen_journal.csv"
-
-def add_mood_entry(exercise_type, content):
-    """Thêm một mục vào nhật ký cảm xúc của Góc An Yên."""
+# *** SỬA ĐỔI: Thêm user_id, tạo file riêng cho mỗi user ***
+def add_mood_entry(user_id, exercise_type, content):
+    """Thêm mục vào file CSV CÁ NHÂN của user_id."""
+    
+    # Tạo tên file cá nhân, ví dụ: "thu_goc_an_yen_journal.csv"
+    user_journal_file = f"{user_id}_goc_an_yen_journal.csv"
+    
     now = datetime.now()
     timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
     
-    # Check if file exists
-    file_exists = os.path.exists(MOOD_JOURNAL_FILE)
-    
-    with open(MOOD_JOURNAL_FILE, 'a', newline='', encoding='utf-8') as file:
+    file_exists = os.path.exists(user_journal_file)
+    is_empty = not file_exists or os.path.getsize(user_journal_file) == 0
+
+    with open(user_journal_file, 'a', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         
-        # Write headers if file is new or empty
-        if not file_exists or os.path.getsize(MOOD_JOURNAL_FILE) == 0:
+        if is_empty:
             writer.writerow(["Ngày giờ", "Loại bài tập", "Nội dung cảm nhận"])
         
         writer.writerow([timestamp, exercise_type, content])
 
-def get_mood_entries(exercise_filter=None):
-    """Lấy các mục từ nhật ký cảm xúc của Góc An Yên, có thể lọc theo loại bài tập."""
+# *** SỬA ĐỔI: Thêm user_id, đọc từ file CSV riêng ***
+def get_mood_entries(user_id, exercise_filter=None):
+    """Lấy các mục từ file CSV CÁ NHÂN của user_id."""
+    
+    user_journal_file = f"{user_id}_goc_an_yen_journal.csv"
     entries = []
     
-    if not os.path.exists(MOOD_JOURNAL_FILE):
+    if not os.path.exists(user_journal_file):
         return entries
     
     try:
-        with open(MOOD_JOURNAL_FILE, 'r', newline='', encoding='utf-8') as file:
+        with open(user_journal_file, 'r', newline='', encoding='utf-8') as file:
             reader = csv.DictReader(file)
             for row in reader:
-                timestamp = row.get("Ngày giờ", "")
                 exercise_type = row.get("Loại bài tập", "")
-                content = row.get("Nội dung cảm nhận", "")
                 
                 if exercise_filter is None or exercise_type.strip() == exercise_filter:
                     entries.append({
-                        "timestamp": timestamp,
+                        "timestamp": row.get("Ngày giờ", ""),
                         "exercise_type": exercise_type,
-                        "content": content
+                        "content": row.get("Nội dung cảm nhận", "")
                     })
     except Exception as e:
-        print(f"Error reading mood journal: {e}")
+        print(f"Lỗi đọc file nhật ký {user_journal_file}: {e}")
     
     return entries
 
 # --- KHỞI TẠO BAN ĐẦU ---
+# (Chạy 1 lần khi ứng dụng khởi động)
 create_tables()
-
+print("Đã khởi tạo CSDL và kiểm tra các bảng.")
