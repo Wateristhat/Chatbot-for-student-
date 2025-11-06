@@ -126,18 +126,60 @@ else:
             <span class="brand-minimal-icon"><i class="fa-solid fa-heart"></i></span>
             <span class="text-main">Chào mừng {st.session_state.user_name} đến với</span> <span class="text-brand">Bạn Đồng Hành!</span>
         </div>
-        <div style="text-align: right; margin-top: -1.5rem; margin-right: 1.5rem;">
+        
+        <div style="position: absolute; bottom: 0.8rem; right: 1.5rem;"> 
             <form action="." method="get" target="_self">
                 <input type="hidden" name="logout" value="true">
                 <button type="submit" style="
                     background: none; border: none; color: #ffb2be; 
                     font-size: 1rem; font-weight: 600; cursor: pointer;
                     text-decoration: underline; padding: 0;
+                    display: flex; align-items: center; gap: 5px; /* Căn chỉnh icon và chữ */
                 ">❌ Đăng xuất</button>
             </form>
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # Thêm logic Đăng xuất
+    if st.query_params.get("logout") == "true":
+        st.session_state.user_name = None
+        st.session_state.user_id = None
+        st.query_params.clear()
+        st.rerun()
+
+    st.markdown("---")
+    st.markdown("## ✨ Khám phá các tính năng")
+    
+    st.info("Vui lòng sử dụng **Menu ở thanh bên trái** để truy cập các tính năng.")
+    
+    # --- DỮ LIỆU CÁC TÍNH NĂNG (FEATURE LIST) ---
+    FEATURE_ITEMS = [
+        {"icon": "fa-solid fa-sun", "color": "#FFB300", "title": "Liều Thuốc Tinh Thần", "desc": "Nhận những thông điệp tích cực mỗi ngày."},
+        {"icon": "fa-solid fa-spa", "color": "#4CAF50", "title": "Góc An Yên", "desc": "Thực hành các bài tập hít thở để giảm căng thẳng."},
+        {"icon": "fa-solid fa-jar", "color": "#F48FB1", "title": "Lọ Biết Ơn", "desc": "Ghi lại những điều nhỏ bé khiến bạn mỉm cười."},
+        {"icon": "fa-solid fa-paintbrush", "color": "#2196F3", "title": "Bảng Màu Cảm Xúc", "desc": "Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc."},
+        {"icon": "fa-solid fa-dice", "color": "#AB47BC", "title": "Nhanh Tay Lẹ Mắt", "desc": "Thử thách bản thân với các trò chơi nhẹ nhàng."},
+        {"icon": "fa-solid fa-heart", "color": "#D50000", "title": "Góc Nhỏ", "desc": "Xây dựng kế hoạch chăm sóc bản thân mỗi ngày."},
+        {"icon": "fa-solid fa-phone", "color": "#0288D1", "title": "Hỗ Trợ Khẩn Cấp", "desc": "Danh sách các nguồn lực và đường dây nóng đáng tin cậy."},
+        {"icon": "fa-solid fa-robot", "color": "#757575", "title": "Trò Chuyện", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn."},
+        {"icon": "fa-solid fa-book", "color": "#F57C00", "title": "Người Kể Chuyện", "desc": "Lắng nghe những câu chuyện chữa lành tâm hồn."}
+    ]
+
+    # --- TẠO CÁC KHỐI MÔ TẢ TĨNH ---
+    for item in FEATURE_ITEMS:
+        st.markdown(
+            f"""
+            <div class="feature-card">
+                <span class="feature-icon" style="color:{item['color']}"><i class="{item['icon']}"></i></span>
+                <span>
+                    <span class="feature-title">{item['title']}</span><br>
+                    <span class="feature-desc">{item['desc']}</span>
+                </span>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
     # Thêm logic Đăng xuất
     if st.query_params.get("logout") == "true":
@@ -177,5 +219,6 @@ else:
             """,
             unsafe_allow_html=True
         )
+
 
 
