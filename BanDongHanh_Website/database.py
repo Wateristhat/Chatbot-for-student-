@@ -1,228 +1,214 @@
-# Tên file: database.py
-# PHIÊN BẢN ĐÃ NÂNG CẤP ĐỂ CÁ NHÂN HÓA
 import sqlite3
-import streamlit as st
-from datetime import datetime
 
-# Tên file database
-DB_NAME = "bandonghanh.db" 
+DATABASE_NAME = "app_data.db"
 
-# Dùng @st.cache_resource để đảm bảo chỉ có 1 kết nối được tạo
-@st.cache_resource
-def get_db_connection():
-    """Tạo và trả về một kết nối đến database SQLite."""
-    conn = sqlite3.connect(DB_NAME, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
+def connect_db():
+    conn = sqlite3.connect(DATABASE_NAME)
     return conn
 
-def init_db():
-    """
-    Khởi tạo các bảng trong database nếu chúng chưa tồn tại.
-    TẤT CẢ CÁC BẢNG (trừ users) ĐỀU CÓ user_id.
-    """
-    conn = get_db_connection()
-    c = conn.cursor()
+def create_tables():
+    """Tạo bảng chat_history và gratitude_notes nếu chưa tồn tại."""
+    conn = connect_db()
+    cursor = conn.cursor()
     
-    # --- Bảng 1: USERS (QUAN TRỌNG NHẤT) ---
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL,
-        secret_color TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(username, secret_color)
-    )
-    """)
-    
-    # --- Bảng 2: CHAT_HISTORY (TRÒ CHUYỆN) ---
-    c.execute("""
+    # Bảng lịch sử trò chuyện
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS chat_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
         sender TEXT NOT NULL,
         text TEXT NOT NULL,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users (user_id)
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )
     """)
     
-    # --- Bảng 3: GRATITUDE_JAR (LỌ BIẾT ƠN) ---
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS gratitude_jar (
-        entry_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
+    # Bảng ghi chú biết ơn
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS gratitude_notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         content TEXT NOT NULL,
-        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users (user_id)
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )
     """)
     
-    # --- Bảng 4: EMOTION_ARTWORKS (BÓNG MÀU CẢM XÚC) ---
-    c.execute("""
+    # Bảng lưu trữ tranh vẽ cảm xúc
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS emotion_artworks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
         emotion_emoji TEXT NOT NULL,
         canvas_data TEXT NOT NULL,
         title TEXT,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-        date_only DATE DEFAULT (DATE('now')),
-        FOREIGN KEY (user_id) REFERENCES users (user_id)
-    )
-    """)
-
-    # --- Bảng 5: MOOD_JOURNAL (GÓC AN YÊN - THAY THẾ CHO FILE .CSV) ---
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS mood_journal (
-        entry_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        exercise_type TEXT NOT NULL,
-        content TEXT NOT NULL,
-        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users (user_id)
+        date_only DATE DEFAULT (DATE('now'))
     )
     """)
     
     conn.commit()
-    print("Database (Personalized) initialized successfully.")
+    conn.close()
 
-# ===================================================================
-# HÀM QUẢN LÝ NGƯỜI DÙNG (USER)
-# ===================================================================
+def add_chat_message(sender, text):
+    """Thêm một tin nhắn mới vào lịch sử trò chuyện."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO chat_history (sender, text) VALUES (?, ?)", (sender, text))
+    conn.commit()
+    conn.close()
 
-def get_or_create_user(username, secret_color):
-    """Hàm Đăng nhập / Đăng ký"""
-    conn = get_db_connection()
-    c = conn.cursor()
+def get_chat_history(limit=None):
+    """Lấy toàn bộ lịch sử trò chuyện, không phân biệt người dùng."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    if limit:
+        cursor.execute("SELECT sender, text FROM chat_history ORDER BY timestamp DESC LIMIT ?", (limit,))
+    else:
+        cursor.execute("SELECT sender, text FROM chat_history ORDER BY timestamp ASC")
+    history = [{"sender": row[0], "text": row[1]} for row in cursor.fetchall()]
+    conn.close()
+    return history[::-1] if limit else history
+
+# ====== BỔ SUNG CHO LỌ BIẾT ƠN ======
+def add_gratitude_note(content):
+    """Thêm một ghi chú biết ơn mới (không cần user_id)."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO gratitude_notes (content) VALUES (?)", (content,))
+    conn.commit()
+    conn.close()
+
+def get_gratitude_notes():
+    """Lấy toàn bộ ghi chú biết ơn kèm thời gian."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, content, timestamp FROM gratitude_notes ORDER BY timestamp ASC")
+    notes = cursor.fetchall()
+    conn.close()
+    return notes
+
+def delete_gratitude_note(note_id):
+    """Xóa ghi chú biết ơn theo id."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM gratitude_notes WHERE id = ?", (note_id,))
+    conn.commit()
+    conn.close()
+
+# ====== BỔ SUNG CHO BẢNG MÀU CẢM XÚC ======
+def add_artwork(emotion_emoji, canvas_data, title=None):
+    """Thêm một tác phẩm nghệ thuật mới với cảm xúc."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO emotion_artworks (emotion_emoji, canvas_data, title) VALUES (?, ?, ?)", 
+        (emotion_emoji, canvas_data, title)
+    )
+    conn.commit()
+    conn.close()
+
+def get_artworks_by_emotion(emotion_emoji=None):
+    """Lấy tác phẩm theo cảm xúc, hoặc tất cả nếu không chỉ định."""
+    conn = connect_db()
+    cursor = conn.cursor()
     
-    norm_username = username.lower().strip()
-    norm_color = secret_color.lower().strip()
-    
-    if not norm_username or not norm_color:
-        return None 
-
-    try:
-        c.execute(
-            "SELECT user_id FROM users WHERE username = ? AND secret_color = ?",
-            (norm_username, norm_color)
+    if emotion_emoji:
+        cursor.execute(
+            "SELECT id, emotion_emoji, title, timestamp, date_only FROM emotion_artworks WHERE emotion_emoji = ? ORDER BY timestamp DESC", 
+            (emotion_emoji,)
         )
-        user = c.fetchone()
-        
-        if user:
-            return user["user_id"] # Trả về ID nếu đã tồn tại
-        else:
-            c.execute(
-                "INSERT INTO users (username, secret_color) VALUES (?, ?)",
-                (norm_username, norm_color)
-            )
-            conn.commit()
-            return c.lastrowid # Trả về ID của user MỚI
-            
-    except sqlite3.Error as e:
-        print(f"Database error: {e}")
-        return None
+    else:
+        cursor.execute(
+            "SELECT id, emotion_emoji, title, timestamp, date_only FROM emotion_artworks ORDER BY timestamp DESC"
+        )
+    
+    artworks = cursor.fetchall()
+    conn.close()
+    return artworks
 
-# ===================================================================
-# HÀM TÍNH NĂNG "LỌ BIẾT ƠN" (ĐÃ CÁ NHÂN HÓA)
-# ===================================================================
+def get_artwork_data(artwork_id):
+    """Lấy dữ liệu canvas của một tác phẩm."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT canvas_data FROM emotion_artworks WHERE id = ?", (artwork_id,))
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None
 
-def add_gratitude_note(user_id, content):
-    """Thêm ghi chú biết ơn cho 1 user cụ thể."""
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO gratitude_jar (user_id, content) VALUES (?, ?)", 
-        (user_id, content)
-    )
-    conn.commit()
-
-def get_gratitude_notes(user_id):
-    """Lấy ghi chú biết ơn CỦA CHỈ 1 user."""
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        "SELECT entry_id, content, timestamp FROM gratitude_jar WHERE user_id = ? ORDER BY timestamp ASC",
-        (user_id,)
-    )
-    return [dict(row) for row in c.fetchall()]
-
-def delete_gratitude_note(note_id, user_id):
-    """Xóa ghi chú (và kiểm tra xem nó có đúng là của user đó không)."""
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        "DELETE FROM gratitude_jar WHERE entry_id = ? AND user_id = ?", 
-        (note_id, user_id)
-    )
-    conn.commit()
-
-# ===================================================================
-# HÀM TÍNH NĂNG "BÓNG MÀU CẢM XÚC" (ĐÃ CÁ NHÂN HÓA)
-# ===================================================================
-
-def add_artwork(user_id, emotion_emoji, canvas_data, title=None):
-    """Thêm tác phẩm cho 1 user."""
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO emotion_artworks (user_id, emotion_emoji, canvas_data, title) VALUES (?, ?, ?, ?)",
-        (user_id, emotion_emoji, canvas_data, title)
-    )
-    conn.commit()
-
-def get_artworks_by_date(user_id):
-    """Lấy tác phẩm CỦA CHỈ 1 user, nhóm theo ngày."""
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
+def get_artworks_by_date():
+    """Lấy tác phẩm được nhóm theo ngày."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute(
         """SELECT date_only, emotion_emoji, title, id, timestamp 
            FROM emotion_artworks 
-           WHERE user_id = ? 
-           ORDER BY date_only DESC, timestamp DESC""",
-        (user_id,)
+           ORDER BY date_only DESC, timestamp DESC"""
     )
     
-    artworks = c.fetchall()
+    artworks = cursor.fetchall()
+    conn.close()
+    
+    # Nhóm theo ngày
     grouped = {}
     for artwork in artworks:
-        date_only = artwork["date_only"]
+        date_only = artwork[0]
         if date_only not in grouped:
             grouped[date_only] = []
-        grouped[date_only].append(dict(artwork))
+        grouped[date_only].append({
+            'id': artwork[3],
+            'emotion_emoji': artwork[1],
+            'title': artwork[2],
+            'timestamp': artwork[4]
+        })
+    
     return grouped
 
-# (Thêm các hàm get_artwork_data, get_artworks_by_emotion... tương tự,
-#  luôn thêm `user_id` và mệnh đề `WHERE user_id = ?`)
+# ====== BỔ SUNG CHO NHẬT KÝ CẢM XÚC (MOOD JOURNAL) ======
+import csv
+from datetime import datetime
+import os
 
-# ===================================================================
-# HÀM TÍNH NĂNG "GÓC AN YÊN" (ĐÃ CÁ NHÂN HÓA)
-# ===================================================================
+MOOD_JOURNAL_FILE = "goc_an_yen_journal.csv"
 
-def add_mood_entry(user_id, exercise_type, content):
-    """Thêm một mục nhật ký cảm xúc CỦA 1 user."""
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO mood_journal (user_id, exercise_type, content) VALUES (?, ?, ?)",
-        (user_id, exercise_type, content)
-    )
-    conn.commit()
-
-def get_mood_entries(user_id, exercise_filter=None):
-    """Lấy các mục nhật ký CỦA CHỈ 1 user."""
-    conn = get_db_connection()
-    c = conn.cursor()
+def add_mood_entry(exercise_type, content):
+    """Thêm một mục vào nhật ký cảm xúc của Góc An Yên."""
+    now = datetime.now()
+    timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
     
-    query = "SELECT timestamp, exercise_type, content FROM mood_journal WHERE user_id = ?"
-    params = [user_id]
+    # Check if file exists
+    file_exists = os.path.exists(MOOD_JOURNAL_FILE)
     
-    if exercise_filter:
-        query += " AND exercise_type = ?"
-        params.append(exercise_filter)
+    with open(MOOD_JOURNAL_FILE, 'a', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
         
-    query += " ORDER BY timestamp DESC"
-    
-    c.execute(query, tuple(params))
-    return [dict(row) for row in c.fetchall()]
+        # Write headers if file is new or empty
+        if not file_exists or os.path.getsize(MOOD_JOURNAL_FILE) == 0:
+            writer.writerow(["Ngày giờ", "Loại bài tập", "Nội dung cảm nhận"])
+        
+        writer.writerow([timestamp, exercise_type, content])
 
-# (Lặp lại logic này cho TRÒ CHUYỆN và các tính năng khác)
+def get_mood_entries(exercise_filter=None):
+    """Lấy các mục từ nhật ký cảm xúc của Góc An Yên, có thể lọc theo loại bài tập."""
+    entries = []
+    
+    if not os.path.exists(MOOD_JOURNAL_FILE):
+        return entries
+    
+    try:
+        with open(MOOD_JOURNAL_FILE, 'r', newline='', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                timestamp = row.get("Ngày giờ", "")
+                exercise_type = row.get("Loại bài tập", "")
+                content = row.get("Nội dung cảm nhận", "")
+                
+                if exercise_filter is None or exercise_type.strip() == exercise_filter:
+                    entries.append({
+                        "timestamp": timestamp,
+                        "exercise_type": exercise_type,
+                        "content": content
+                    })
+    except Exception as e:
+        print(f"Error reading mood journal: {e}")
+    
+    return entries
+
+# --- KHỞI TẠO BAN ĐẦU ---
+create_tables()
+
