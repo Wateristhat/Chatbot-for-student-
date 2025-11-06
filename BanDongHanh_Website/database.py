@@ -3,16 +3,18 @@ import sqlite3
 import csv
 import os
 from datetime import datetime
-from zoneinfo import ZoneInfo # ### <<< SỬA ĐỔI 1: Thêm thư viện Múi giờ
+from zoneinfo import ZoneInfo 
 
 DATABASE_NAME = "app_data.db"
-VN_TZ = ZoneInfo("Asia/Ho_Chi_Minh") # ### <<< SỬA ĐỔI 2: Định nghĩa Múi giờ VN (UTC+7)
+VN_TZ = ZoneInfo("Asia/Ho_Chi_Minh") 
 
 def connect_db():
     """Kết nối CSDL, bật chế độ check_same_thread=False cho Streamlit."""
     conn = sqlite3.connect(DATABASE_NAME, check_same_thread=False)
-    conn.row_factory = sqlite3.Row # Giúp trả về kết quả dạng dictionary
+    conn.row_factory = sqlite3.Row 
     return conn
+
+# ====== 1. CÁC HÀM TẠO BẢNG CHÍNH ======
 
 def create_tables():
     """Tạo TẤT CẢ các bảng và THÊM CỘT user_id nếu chưa tồn tại."""
@@ -22,18 +24,15 @@ def create_tables():
     # === Thêm cột user_id (Chạy 1 lần) ===
     try:
         cursor.execute("ALTER TABLE chat_history ADD COLUMN user_id TEXT NOT NULL DEFAULT 'global'")
-        print("Đã thêm cột user_id vào chat_history.")
-    except sqlite3.OperationalError: pass # Bỏ qua
+    except sqlite3.OperationalError: pass
     
     try:
         cursor.execute("ALTER TABLE gratitude_notes ADD COLUMN user_id TEXT NOT NULL DEFAULT 'global'")
-        print("Đã thêm cột user_id vào gratitude_notes.")
-    except sqlite3.OperationalError: pass # Bỏ qua
+    except sqlite3.OperationalError: pass
     
     try:
         cursor.execute("ALTER TABLE emotion_artworks ADD COLUMN user_id TEXT NOT NULL DEFAULT 'global'")
-        print("Đã thêm cột user_id vào emotion_artworks.")
-    except sqlite3.OperationalError: pass # Bỏ qua
+    except sqlite3.OperationalError: pass
 
     # === Tạo bảng (Đã xóa DEFAULT time) ===
     
@@ -42,7 +41,7 @@ def create_tables():
     CREATE TABLE IF NOT EXISTS chat_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id TEXT NOT NULL, 
-        sender TEXT NOT NULL, -- 'user' hoặc 'assistant'
+        sender TEXT NOT NULL,
         text TEXT NOT NULL,
         timestamp DATETIME
     )
@@ -71,7 +70,15 @@ def create_tables():
     )
     """)
     
-    # Bảng Góc Nhỏ
+    conn.commit()
+    conn.close()
+
+def create_activity_tables():
+    """Tạo bảng cho Góc Nhỏ (activities)"""
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    # Bảng lưu các hoạt động tự chăm sóc của người dùng
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS activities (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -86,17 +93,17 @@ def create_tables():
     conn.commit()
     conn.close()
 
-# ====== TRÒ CHUYỆN ======
+# ====== 2. CÁC HÀM TRÒ CHUYỆN ======
 
 def add_chat_message(user_id, sender, text):
     """Thêm tin nhắn mới vào CSDL cho user_id cụ thể."""
     conn = connect_db()
     cursor = conn.cursor()
-    vn_time = datetime.now(VN_TZ) # ### <<< SỬA ĐỔI 3: Lấy giờ VN
+    vn_time = datetime.now(VN_TZ)
     try:
         cursor.execute(
             "INSERT INTO chat_history (user_id, sender, text, timestamp) VALUES (?, ?, ?, ?)",
-            (user_id, sender, text, vn_time) # ### <<< SỬA ĐỔI: Thêm vn_time
+            (user_id, sender, text, vn_time)
         )
         conn.commit()
     except sqlite3.Error as e:
@@ -138,15 +145,15 @@ def clear_chat_history(user_id):
     finally:
         conn.close()
 
-# ====== LỌ BIẾT ƠN ======
+# ====== 3. CÁC HÀM LỌ BIẾT ƠN ======
 
 def add_gratitude_note(user_id, content):
     """Thêm ghi chú biết ơn cho user_id cụ thể."""
     conn = connect_db()
     cursor = conn.cursor()
-    vn_time = datetime.now(VN_TZ) # ### <<< SỬA ĐỔI: Lấy giờ VN
+    vn_time = datetime.now(VN_TZ) 
     cursor.execute("INSERT INTO gratitude_notes (user_id, content, timestamp) VALUES (?, ?, ?)", 
-                   (user_id, content, vn_time)) # ### <<< SỬA ĐỔI: Thêm vn_time
+                   (user_id, content, vn_time)) 
     conn.commit()
     conn.close()
 
@@ -169,17 +176,17 @@ def delete_gratitude_note(user_id, note_id):
     conn.commit()
     conn.close()
 
-# ====== BẢNG MÀU CẢM XÚC ======
+# ====== 4. CÁC HÀM BẢNG MÀU CẢM XÚC ======
 
 def add_artwork(user_id, emotion_emoji, canvas_data, title=None):
     """Thêm tác phẩm mới cho user_id cụ thể."""
     conn = connect_db()
     cursor = conn.cursor()
-    vn_time = datetime.now(VN_TZ) # ### <<< SỬA ĐỔI: Lấy giờ VN
-    vn_date = vn_time.date()      # ### <<< SỬA ĐỔI: Lấy ngày VN
+    vn_time = datetime.now(VN_TZ) 
+    vn_date = vn_time.date()      
     cursor.execute(
         "INSERT INTO emotion_artworks (user_id, emotion_emoji, canvas_data, title, timestamp, date_only) VALUES (?, ?, ?, ?, ?, ?)", 
-        (user_id, emotion_emoji, canvas_data, title, vn_time, vn_date) # ### <<< SỬA ĐỔI: Thêm vn_time, vn_date
+        (user_id, emotion_emoji, canvas_data, title, vn_time, vn_date)
     )
     conn.commit()
     conn.close()
@@ -239,13 +246,13 @@ def get_artworks_by_date(user_id):
         })
     return grouped
 
-# ====== GÓC AN YÊN (CSV) ======
+# ====== 5. CÁC HÀM GÓC AN YÊN (CSV) ======
 
 def add_mood_entry(user_id, exercise_type, content):
     """Thêm mục vào file CSV CÁ NHÂN của user_id."""
     user_journal_file = f"{user_id}_goc_an_yen_journal.csv"
     
-    now = datetime.now(VN_TZ) # ### <<< SỬA ĐỔI: Lấy giờ VN
+    now = datetime.now(VN_TZ) 
     timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
     
     file_exists = os.path.exists(user_journal_file)
@@ -279,10 +286,9 @@ def get_mood_entries(user_id, exercise_filter=None):
                     })
     except Exception as e:
         print(f"Lỗi đọc file nhật ký {user_journal_file}: {e}")
-    
     return entries
 
-# ====== GÓC NHỎ (ACTIVITIES) ======
+# ====== 6. CÁC HÀM GÓC NHỎ (ACTIVITIES) ======
 
 def add_activity(user_id, content, added_date):
     """Thêm một hoạt động mới cho user_id vào ngày cụ thể."""
@@ -350,11 +356,7 @@ def delete_activity(user_id, activity_id):
     finally:
         conn.close()
 
-# --- KHỞI TẠO BAN ĐẦU ---
-# (Chạy 1 lần khi ứng dụng khởi động)
+# --- KHỞI TẠO TẤT CẢ CÁC BẢNG (CHỈ CHẠY 1 LẦN) ---
 create_tables()
-print("Đã khởi tạo CSDL và kiểm tra các bảng (chat, gratitude, artwork).")
-# --- Thêm vào phần KHỞI TẠO BAN ĐẦU ---
-create_chat_history_table()
-print("Đã khởi tạo bảng chat_history.")
-# --- KẾT THÚC PHẦN DÁN THÊM ---
+create_activity_tables()
+print("CSDL đã khởi tạo hoàn tất.")
