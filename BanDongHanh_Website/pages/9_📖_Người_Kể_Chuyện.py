@@ -212,7 +212,7 @@ with col2:
             try:
                 with open(audio_file, 'rb') as f:
                     audio_bytes = f.read()
-                st.audio(audio_bytes, format="audio/mp3")
+                st.audio(audio_bytes, format="audio/mpeg")
                 os.unlink(audio_file) # Xóa file tạm thời
             except Exception as e:
                 st.error(f"Không thể phát âm thanh: {e}")
@@ -240,7 +240,7 @@ if selected_category:
                         try:
                             with open(audio_file, 'rb') as f:
                                 audio_bytes = f.read()
-                            st.audio(audio_bytes, format="audio/mp3")
+                            st.audio(audio_bytes, format="audio/mpeg")
                             os.unlink(audio_file) # Xóa file tạm thời
                         except Exception as e:
                             st.error(f"Lỗi khi phát âm thanh: {e}")
