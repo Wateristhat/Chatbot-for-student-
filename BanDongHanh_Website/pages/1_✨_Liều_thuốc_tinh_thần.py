@@ -1,16 +1,36 @@
+# Sửa file: pages/1_✨_Liều_thuốc_tinh_thần.py
 import streamlit as st
 import random
 import pandas as pd
 from datetime import datetime
 import os
+import sys # ### <<< SỬA ĐỔI: Thêm import
 from gtts import gTTS
 from io import BytesIO
-    
+
+# ### <<< SỬA ĐỔI: Thêm đường dẫn để import database (nếu cần, dù file này dùng CSV) >>>
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# (File này không dùng database.py, nhưng giữ lại cũng không sao)
+
+# --- BẢO VỆ TRANG ---
+### <<< SỬA ĐỔI: Thêm bảo vệ trang ở đầu file >>>
+# Kiểm tra xem người dùng đã đăng nhập chưa (ở Trang chủ)
+if 'user_id' not in st.session_state or st.session_state.user_id is None:
+    st.error("Bạn chưa đăng nhập! Vui lòng quay về Trang chủ.")
+    # Dùng đường dẫn chính xác (tính từ app.py)
+    st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+    st.stop() # Dừng chạy code của trang này
+
+# --- LẤY ID NGƯỜI DÙNG HIỆN TẠI ---
+### <<< SỬA ĐỔI: Lấy user_id từ session_state >>>
+current_user_id = st.session_state.user_id
+
 st.set_page_config(page_title="✨ Liều Thuốc Tinh Thần", page_icon="✨", layout="wide")
 
-# --- CSS: khung trợ lý ảo trải dài như Góc An Yên ---
+# --- CSS (Giữ nguyên) ---
 st.markdown("""
 <style>
+/* (Toàn bộ CSS của bạn được giữ nguyên) */
 .lttt-title-feature {
     font-size:2.6rem; font-weight:700; color:#e53935; text-align:center; margin-bottom:1.7rem; margin-top:0.7rem;
     letter-spacing:0.2px; display: flex; align-items: center; justify-content: center; gap: 1.1rem;
@@ -90,11 +110,10 @@ st.markdown("""
     background-color: #f3e8ff;  /* Đổi màu khi di chuột vào */
     border-color: #ba68c8;
 }
-
 </style>
 """, unsafe_allow_html=True)
 
-# --- Trợ lý ảo đầu trang ---
+# --- Trợ lý ảo đầu trang (Giữ nguyên) ---
 ASSISTANT_MESSAGES = [
     ("🤖", "🌸 Bạn xứng đáng được yêu thương và quan tâm."),
     ("🤖", "✨ Mỗi người đều cần được động viên. Bee luôn bên bạn!"),
@@ -106,7 +125,7 @@ ASSISTANT_MESSAGES = [
 if "current_assistant_message" not in st.session_state or not isinstance(st.session_state.current_assistant_message, tuple):
     st.session_state.current_assistant_message = random.choice(ASSISTANT_MESSAGES)
 
-# --- Tiêu đề tính năng ---
+# --- Tiêu đề tính năng (Giữ nguyên) ---
 st.markdown(
     '<div class="lttt-title-feature">'
     ' <span style="font-size:2.4rem;">✨</span> Liều Thuốc Tinh Thần'
@@ -114,7 +133,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- Khung trợ lý ảo trải dài, pastel, giống Góc An Yên ---
+# --- Khung trợ lý ảo (Giữ nguyên) ---
 avatar, msg = st.session_state.current_assistant_message
 st.markdown(f"""
 <div class="lttt-assist-bigbox">
@@ -136,10 +155,10 @@ with col2:
         audio_bytes.seek(0)
         st.audio(audio_bytes.read(), format="audio/mpeg")
 
-# --- Hộp chọn động viên ---
+# --- Hộp chọn động viên (Giữ nguyên) ---
 st.markdown('<div class="lttt-box">🐝 Chọn điều bạn cần nhất, Bee sẽ gửi động viên phù hợp! Bạn có thể nghe hoặc lưu lại nhé! 🌈</div>', unsafe_allow_html=True)
 
-# --- DATA ---
+# --- DATA (Giữ nguyên) ---
 LTTT_CATEGORIES = {
     "courage": {
         "label": "🐝 Cần Cổ Vũ",
@@ -174,7 +193,7 @@ LTTT_CATEGORIES = {
 }
 LTTT_CATEGORY_ORDER = ["courage", "fun", "peace"]
 
-# --- SESSION STATE ---
+# --- SESSION STATE (Giữ nguyên) ---
 if 'message_category' not in st.session_state:
     st.session_state.message_category = None
 if 'current_message' not in st.session_state:
@@ -184,7 +203,7 @@ if 'saved_encouragements' not in st.session_state:
 if 'show_journal' not in st.session_state:
     st.session_state.show_journal = False
 
-# --- TTS động viên dưới ---
+# --- TTS động viên dưới (Giữ nguyên) ---
 @st.cache_data
 def create_audio_with_tts(text):
     if not text or not text.strip():
@@ -206,36 +225,52 @@ def play_encouragement_audio(message_data):
             st.info("🔊 Không thể tạo âm thanh. Bạn có thể đọc nội dung ở trên nhé!")
 
 # --- CSV Nhật ký ---
-def get_csv_path():
-    return os.path.join(os.path.dirname(__file__), "..", "mood_journal.csv")
+### <<< SỬA ĐỔI: Thêm `user_id` vào các hàm CSV >>>
 
-def ensure_csv_exists():
-    csv_path = get_csv_path()
-    if not os.path.exists(csv_path):
+def get_csv_path(user_id):
+    """Tạo đường dẫn file CSV cá nhân hóa theo user_id."""
+    # Đảm bảo user_id là tên file an toàn
+    safe_user_id = "".join(c for c in user_id if c.isalnum() or c in ('_', '-')).rstrip()
+    if not safe_user_id: safe_user_id = "default_user" # Dự phòng
+    
+    # Tên file mới: "thu_mood_journal.csv"
+    filename = f"{safe_user_id}_mood_journal.csv"
+    
+    # Lưu file ở thư mục cha (cùng cấp với app.py)
+    return os.path.join(os.path.dirname(__file__), "..", filename)
+
+def ensure_csv_exists(user_id):
+    """Đảm bảo file CSV của user_id tồn tại và có đúng cột."""
+    csv_path = get_csv_path(user_id)
+    
+    if not os.path.exists(csv_path) or os.path.getsize(csv_path) == 0:
         df = pd.DataFrame(columns=["Ngày giờ", "Loại", "Nội dung"])
         df.to_csv(csv_path, index=False, encoding='utf-8')
     else:
         try:
             df = pd.read_csv(csv_path, encoding='utf-8')
             if list(df.columns) != ["Ngày giờ", "Loại", "Nội dung"]:
-                backup_path = csv_path.replace('.csv', '_backup.csv')
-                df.to_csv(backup_path, index=False, encoding='utf-8')
+                # Nếu file cũ sai cấu trúc, tạo file mới
                 df = pd.DataFrame(columns=["Ngày giờ", "Loại", "Nội dung"])
                 df.to_csv(csv_path, index=False, encoding='utf-8')
         except Exception:
+            # Nếu file bị lỗi không đọc được, tạo file mới
             df = pd.DataFrame(columns=["Ngày giờ", "Loại", "Nội dung"])
             df.to_csv(csv_path, index=False, encoding='utf-8')
 
-def save_message_to_journal():
+def save_message_to_journal(user_id):
+    """Lưu thông điệp vào file CSV CÁ NHÂN của user_id."""
     try:
-        ensure_csv_exists()
-        csv_path = get_csv_path()
+        ensure_csv_exists(user_id)
+        csv_path = get_csv_path(user_id)
+        
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message_type = "Liều thuốc tinh thần"
         if st.session_state.current_message:
             content = f"{st.session_state.current_message['name']}: {st.session_state.current_message['text']}"
         else:
             content = "Không có nội dung"
+            
         df = pd.read_csv(csv_path, encoding='utf-8')
         new_row = pd.DataFrame({
             "Ngày giờ": [current_time],
@@ -244,17 +279,21 @@ def save_message_to_journal():
         })
         df = pd.concat([df, new_row], ignore_index=True)
         df.to_csv(csv_path, index=False, encoding='utf-8')
+        
         st.success("✅ Đã lưu thông điệp vào nhật ký cảm xúc!")
         st.balloons()
     except Exception as e:
         st.error(f"❌ Có lỗi khi lưu thông điệp: {str(e)}")
 
-def show_journal_history():
+def show_journal_history(user_id):
+    """Hiển thị lịch sử từ file CSV CÁ NHÂN của user_id."""
     try:
-        ensure_csv_exists()
-        csv_path = get_csv_path()
+        ensure_csv_exists(user_id)
+        csv_path = get_csv_path(user_id)
+        
         df = pd.read_csv(csv_path, encoding='utf-8')
         filtered_df = df[df["Loại"] == "Liều thuốc tinh thần"]
+        
         if filtered_df.empty:
             st.info("📝 Chưa có thông điệp nào được lưu trong nhật ký.")
         else:
@@ -264,7 +303,7 @@ def show_journal_history():
     except Exception as e:
         st.error(f"❌ Có lỗi khi đọc nhật ký: {str(e)}")
 
-# --- Chọn loại thông điệp ---
+# --- Chọn loại thông điệp (Giữ nguyên) ---
 st.markdown("### 🌟 Bạn đang cần điều gì lúc này?")
 cols = st.columns(len(LTTT_CATEGORY_ORDER))
 for idx, cat in enumerate(LTTT_CATEGORY_ORDER):
@@ -278,7 +317,7 @@ for idx, cat in enumerate(LTTT_CATEGORY_ORDER):
 
 st.write("---")
 
-# --- Hiển thị thông điệp ---
+# --- Hiển thị thông điệp (Giữ nguyên) ---
 if st.session_state.current_message and st.session_state.message_category:
     msg = st.session_state.current_message
     st.markdown(
@@ -298,6 +337,8 @@ if st.session_state.current_message and st.session_state.message_category:
         if st.button("🔊 Đọc to", key="tts_msg", use_container_width=True):
             play_encouragement_audio(msg)
     with col3:
+        # Nút "Lưu vào lọ động viên" này lưu vào session_state (tạm thời, không phải lỗi bảo mật)
+        # Chúng ta giữ nguyên logic này
         if st.button("💝 Lưu vào lọ động viên", key="save_enc", use_container_width=True):
             enc = {
                 "avatar": msg["avatar"], "text": msg["text"],
@@ -313,13 +354,16 @@ if st.session_state.current_message and st.session_state.message_category:
 
     col_journal1, col_journal2 = st.columns(2)
     with col_journal1:
+        ### <<< SỬA ĐỔI: Truyền `current_user_id` vào hàm save >>>
         if st.button("📓 Lưu vào nhật ký cảm xúc", key="save_journal", use_container_width=True):
-            save_message_to_journal()
+            save_message_to_journal(current_user_id)
+            
     with col_journal2:
         if st.button("📖 Xem nhật ký đã lưu", key="view_journal", use_container_width=True):
             st.session_state.show_journal = not st.session_state.show_journal
 
-# --- Lọ động viên cá nhân ---
+# --- Lọ động viên cá nhân (Giữ nguyên) ---
+# Logic này dùng st.session_state nên đã an toàn và riêng tư cho mỗi user
 if st.session_state.saved_encouragements:
     st.write("---")
     st.markdown(f'<div class="lttt-box" style="background:#fffde7;border-left:5px solid #ffd54f;"><b>🍯 Lọ Động Viên Của Bạn ({len(st.session_state.saved_encouragements)} lời động viên)</b></div>', unsafe_allow_html=True)
@@ -344,14 +388,13 @@ if st.session_state.saved_encouragements:
 # --- Nhật ký động viên ---
 if st.session_state.show_journal:
     st.write("---")
-    show_journal_history()
+    ### <<< SỬA ĐỔI: Truyền `current_user_id` vào hàm show >>>
+    show_journal_history(current_user_id)
+    
     if st.button("❌ Đóng nhật ký", key="close_journal"):
         st.session_state.show_journal = False
         st.rerun()
 
-# --- Footer động viên ---
+# --- Footer động viên (Giữ nguyên) ---
 st.markdown('<div class="lttt-footer">💜 <strong>Nhớ nhé:</strong> Mỗi động viên nhỏ đều là một bước tiến lớn. Hãy kiên nhẫn và yêu thương chính mình! 💜</div>', unsafe_allow_html=True)
-
-
-
 
