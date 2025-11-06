@@ -2,24 +2,24 @@
 import streamlit as st
 import random
 from datetime import datetime
-import sys # ### <<< SỬA ĐỔI
-import os  # ### <<< SỬA ĐỔI
+import sys 
+import os 
+from zoneinfo import ZoneInfo # ### <<< SỬA ĐỔI 1: Thêm thư viện Múi giờ
 
 # ### <<< SỬA ĐỔI: Import database >>>
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import database as db 
 
 # --- BẢO VỆ TRANG ---
-### <<< SỬA ĐỔI: Thêm bảo vệ trang ở đầu file >>>
 if 'user_id' not in st.session_state or st.session_state.user_id is None:
     st.error("Bạn chưa đăng nhập! Vui lòng quay về Trang chủ.")
     st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
     st.stop() # Dừng chạy code của trang này
 
 # --- LẤY ID NGƯỜI DÙNG VÀ NGÀY HIỆN TẠI ---
-### <<< SỬA ĐỔI: Lấy user_id và ngày hôm nay >>>
 current_user_id = st.session_state.user_id
-today_date = datetime.now().strftime("%Y-%m-%d")
+### <<< SỬA ĐỔI 2: Lấy ngày theo giờ Việt Nam >>>
+today_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).strftime("%Y-%m-%d")
 
 # Thiết lập layout rộng
 st.set_page_config(layout="wide")
@@ -134,10 +134,9 @@ if "assistant_message" in st.session_state and st.session_state.assistant_messag
     </div>
     """, unsafe_allow_html=True)
 
-# --- Title & grid (1A) ---
+# --- Title & grid (Giữ nguyên) ---
 st.markdown('<div style="font-size:2rem;font-weight:700;color:#8e24aa;text-align:center;margin-bottom:1.1rem;">🌈 Chọn từ ngân hàng hoạt động:</div>', unsafe_allow_html=True)
 
-### <<< SỬA ĐỔI: Lấy danh sách hoạt động từ CSDL >>>
 # Lấy danh sách hoạt động của user hôm nay
 db_activities = db.get_activities_by_date(current_user_id, today_date)
 # Lấy nội dung text ra để so sánh
@@ -151,20 +150,16 @@ right_col_actions = unique_ro_actions[half:]
 for idx, col_actions in enumerate([left_col_actions, right_col_actions]):
     with cols[idx]:
         for act in col_actions:
-            # Kiểm tra xem đã chọn (đã có trong CSDL) chưa
             is_selected = act["text"] in selected_actions_text
             btn_label = f'{act["icon"]} {act["text"]}'
             btn_key = f"action_{act['icon']}_{act['text']}"
             
-            # Disable nút nếu đã được chọn (đã thêm vào CSDL)
             if st.button(btn_label, key=btn_key, disabled=is_selected): 
                 if not is_selected:
-                    # Thêm vào CSDL
                     db.add_activity(current_user_id, act["text"], today_date)
                     st.rerun()
 
-# --- Checklist: các hoạt động đã chọn (2B) ---
-### <<< SỬA ĐỔI: Đọc danh sách từ `db_activities` (đã lấy ở trên) >>>
+# --- Checklist (Giữ nguyên) ---
 if db_activities:
     st.markdown(f'<div style="font-size:1.08rem;font-weight:600;color:#333;margin-top:1rem;margin-bottom:0.3rem;text-align:center;">📋 Danh sách việc đã chọn hôm nay ({today_date}):</div>', unsafe_allow_html=True)
     all_done = True
@@ -172,14 +167,12 @@ if db_activities:
     for i, activity_row in enumerate(db_activities):
         action_text = activity_row["content"]
         activity_id = activity_row["id"]
-        is_done = bool(activity_row["is_done"]) # Lấy trạng thái từ CSDL
+        is_done = bool(activity_row["is_done"]) 
         
-        # Tìm icon
         action_icon = next((a["icon"] for a in unique_ro_actions if a["text"] == action_text), "💖") 
         
-        cols_done = st.columns([0.12, 0.73, 0.07, 0.08]) # Thêm cột cho nút Xóa
+        cols_done = st.columns([0.12, 0.73, 0.07, 0.08])
         with cols_done[0]:
-            # Dùng key duy nhất bằng ID từ CSDL
             new_state = st.checkbox("", value=is_done, key=f"cb_{activity_id}")
         with cols_done[1]:
             st.markdown(
@@ -187,7 +180,6 @@ if db_activities:
                 unsafe_allow_html=True
             )
         with cols_done[2]:
-            # Nút Xóa
             if st.button("🗑️", key=f"del_{activity_id}", help="Xóa hoạt động này khỏi danh sách hôm nay"):
                 db.delete_activity(current_user_id, activity_id)
                 st.toast(f"Đã xóa: {action_text}", icon="🗑️")
@@ -197,7 +189,6 @@ if db_activities:
             st.markdown(f"<span style='margin-left:auto;font-size:1.1rem;'>{'✅' if is_done else '⬜'}</span>", unsafe_allow_html=True)
             
         if new_state != is_done:
-            # Cập nhật trạng thái vào CSDL
             db.update_activity_status(current_user_id, activity_id, new_state)
             
             if new_state:
@@ -217,45 +208,42 @@ if db_activities:
         )
         st.balloons()
 
-# --- Hàm xử lý khi nhấn Enter (input) hoặc Nút Đỏ (button) ---
-### <<< SỬA ĐỔI: Hàm `add_custom_activity` để lưu vào CSDL >>>
+# --- Hàm xử lý (Giữ nguyên) ---
 def add_custom_activity():
     new_activity = st.session_state.custom_activity_input.strip()
     
-    # Lấy danh sách hiện tại từ CSDL để kiểm tra
     current_list = [act["content"] for act in db.get_activities_by_date(current_user_id, today_date)]
     
     if new_activity and new_activity not in current_list:
-        # Thêm vào CSDL
         db.add_activity(current_user_id, new_activity, today_date)
-        st.session_state.custom_activity_input = "" # Xóa input
-        st.rerun() # Tải lại để hiển thị
+        st.session_state.custom_activity_input = "" 
+        st.rerun()
     elif not new_activity:
         st.warning("Vui lòng nhập nội dung hoạt động!")
     else:
         st.warning("Hoạt động này đã có trong danh sách hôm nay!")
 
-# --- KHUNG NHẬP HOẠT ĐỘNG TÙY CHỈNH (1B) ---
+# --- KHUNG NHẬP (Giữ nguyên) ---
 st.markdown('<div class="custom-input-style" style="margin-top:1.2rem; margin-bottom:0.5rem;">', unsafe_allow_html=True)
 
 st.text_input(
     label="Thêm một hoạt động mới vào danh sách:",
     placeholder="🚀 Nhập hoạt động bạn muốn làm...", 
     key="custom_activity_input",
-    on_change=add_custom_activity # Vẫn giữ on_change để xử lý Enter
+    on_change=add_custom_activity
 )
 st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<div id="add_activity_btn">', unsafe_allow_html=True)
 if st.button("✨ Thêm hoạt động vào danh sách", key="add_activity_button", on_click=add_custom_activity):
-    pass # Logic đã nằm trong on_click
+    pass 
 st.markdown('</div>', unsafe_allow_html=True)
 
 
-# --- Footer động viên (3) (Giữ nguyên) ---
+# --- Footer (Giữ nguyên) ---
 st.markdown('<div style="background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:10px;padding:0.7rem 1rem;text-align:center;font-size:0.98rem;margin:1.5rem 0 1.1rem 0;color:#333;">💜 <strong>Nhớ nhé:</strong> Mỗi hành động nhỏ đều là một bước tiến lớn trong việc chăm sóc bản thân. Hãy kiên nhẫn và yêu thương chính mình! 💜</div>', unsafe_allow_html=True)
 
-### <<< SỬA ĐỔI: Thêm nút quay về Trang chủ >>>
+# --- Nút quay về (Giữ nguyên) ---
 st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ 🏠 Quay về Trang chủ", icon=None)
 st.markdown("""
 <style>
