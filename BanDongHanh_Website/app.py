@@ -18,9 +18,9 @@ db.create_tables()
 
 # --- 2. CÀI ĐẶT TRANG (ĐÃ SỬA LỖI TÊN) ---
 st.set_page_config(
-    page_title="Trang chủ", # <-- Sửa thành "Trang chủ"
-    page_icon="💖",        # <-- Icon y hệt
-    layout="wide"
+    page_title="Trang chủ",
+    page_icon="💖",
+    layout="wide"
 )
 
 # --- 3. GỌI HÀM TOÀN CỤC (TỪ 0_...py) ---
