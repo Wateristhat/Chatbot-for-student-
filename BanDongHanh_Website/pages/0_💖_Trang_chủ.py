@@ -163,23 +163,105 @@ else:
         {"icon": "fa-solid fa-book", "color": "#F57C00", "title": "Người Kể Chuyện", "desc": "Lắng nghe những câu chuyện chữa lành tâm hồn.", "page": "Người_Kể_Chuyện"}
     ]
     
-    st.markdown('<div class="menu-list">', unsafe_allow_html=True)
-    for item in MENU_ITEMS:
-        # THAY ĐỔI QUAN TRỌNG: href="{item['page']}" thay vì href="/{item['page']}"
-        # Streamlit sẽ tự động hiểu đây là link nội bộ và không tải lại trang
+    st.markdown("""<div style="font-size:1.7rem; font-weight:700; margin-bottom:0.3rem;">✨ Khám phá các tính năng</div>""", unsafe_allow_html=True)
+ 
+# ----------- MENU MỚI SỬ DỤNG st.page_link CHO CÁC TRANG CÒN LẠI -----------
+MENU_ITEMS = [
+    {"icon": "fa-solid fa-sun", "color": "#FFB300", "title": "Liều Thuốc Tinh Thần", "desc": "Nhận những thông điệp tích cực mỗi ngày.", "file": "1_✨_Liều_thuốc_tinh_thần.py"},
+    {"icon": "fa-solid fa-spa", "color": "#4CAF50", "title": "Góc An Yên", "desc": "Thực hành các bài tập hít thở để giảm căng thẳng.", "file": "2_🫧_Góc_An_Yên.py"},
+    {"icon": "fa-solid fa-jar", "color": "#F48FB1", "title": "Lọ Biết Ơn", "desc": "Ghi lại những điều nhỏ bé khiến bạn mỉm cười.", "file": "3_🍯_Lọ_biết_ơn.py"},
+    {"icon": "fa-solid fa-paintbrush", "color": "#2196F3", "title": "Bảng Màu Cảm Xúc", "desc": "Thỏa sức sáng tạo, vẽ để giải tỏa cảm xúc.", "file": "4_🎨_Bảng_màu_cảm_xúc.py"},
+    {"icon": "fa-solid fa-dice", "color": "#AB47BC", "title": "Nhanh Tay Lẹ Mắt", "desc": "Thử thách bản thân với các trò chơi nhẹ nhàng.", "file": "5_🎮_Nhanh_tay_lẹ_mắt.py"},
+    {"icon": "fa-solid fa-heart", "color": "#D50000", "title": "Góc Nhỏ", "desc": "Xây dựng kế hoạch chăm sóc bản thân mỗi ngày.", "file": "6_💖_Góc_nhỏ.py"},
+    {"icon": "fa-solid fa-phone", "color": "#0288D1", "title": "Hỗ Trợ Khẩn Cấp", "desc": "Danh sách các nguồn lực và đường dây nóng đáng tin cậy.", "file": "7_🆘_Hỗ_Trợ_Khẩn_Cấp.py"},
+    {"icon": "fa-solid fa-robot", "color": "#757575", "title": "Trò Chuyện", "desc": "Một người bạn AI luôn sẵn sàng lắng nghe bạn.", "file": "8_💬_Trò_chuyện.py"},
+    {"icon": "fa-solid fa-book", "color": "#F57C00", "title": "Người Kể Chuyện", "desc": "Lắng nghe những câu chuyện chữa lành tâm hồn.", "file": "9_📖_Người_Kể_Chuyện.py"}
+]
+ 
+st.markdown('<div class="menu-list">', unsafe_allow_html=True)
+
+for item in MENU_ITEMS:
+    # Bọc mỗi st.page_link trong một st.container để dễ dàng tạo kiểu CSS (sử dụng lại class menu-card)
+    with st.container(border=False):
+        
+        # 1. Hiển thị giao diện đẹp bằng CSS
         st.markdown(
             f"""
-            <a href="{item['page']}" class="menu-card" target="_self">
+            <div class="menu-card-style-only">
                 <span class="menu-icon" style="color:{item['color']}"><i class="{item['icon']}"></i></span>
                 <span>
                     <span class="menu-title">{item['title']}</span><br>
                     <span class="menu-desc">{item['desc']}</span>
                 </span>
-            </a>
+            </div>
             """,
             unsafe_allow_html=True
         )
+
+        # 2. Tạo nút bấm/link ẩn để xử lý điều hướng (giữ Session State)
+        st.page_link(
+            f"pages/{item['file']}", 
+            label=f"Link to {item['title']}", # Label ẩn
+            key=f"link_to_{item['file']}",
+            use_container_width=True
+        )
+        
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Cần sửa CSS của bạn để làm cho st.page_link này trở nên trong suốt và đè lên div .menu-card-style-only
+
+st.markdown("""
+<style>
+    /* ẨN label st.page_link mặc định */
+    div[data-testid="stPageLink"] label { visibility: hidden; height: 0; }
+    
+    /* Làm cho st.page_link trông giống như nút bấm ma, đè lên thẻ div hiển thị */
+    div[data-testid="stPageLink"] button {
+        position: absolute; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%;
+        
+        /* Làm cho nút trong suốt, KHẮC PHỤC LỖI FULL-RELOAD */
+        background: transparent !important;
+        color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        
+        /* Đảm bảo trạng thái hover hoạt động trên thẻ div */
+        z-index: 10;
+        cursor: pointer;
+    }
+    
+    /* Điều chỉnh lại menu-card để có thể thêm lớp trong suốt vào */
+    .menu-card {
+        position: relative; /* Quan trọng để nút ẩn đè lên đúng chỗ */
+        padding: 1.20rem 1.2rem 1.1rem 1.2rem; /* Giữ nguyên padding gốc */
+    }
+
+    /* Thẻ div hiển thị nằm dưới nút ẩn */
+    .menu-card-style-only {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        gap: 1.3rem;
+        padding: 1.20rem 1.2rem 1.1rem 1.2rem; /* Phải giống padding menu-card */
+        z-index: 5;
+    }
+
+    /* Áp dụng hiệu ứng hover cho thẻ .menu-card-style-only khi nút ẩn bị hover */
+    /* Đây là thủ thuật phức tạp, nếu không muốn làm phức tạp CSS thì dùng st.page_link đơn giản hơn */
+    
+</style>
+""", unsafe_allow_html=True)
+        )
     st.markdown('</div>', unsafe_allow_html=True)
     # ----------- KẾT THÚC MENU ĐÃ SỬA LỖI -----------
+
 
 
