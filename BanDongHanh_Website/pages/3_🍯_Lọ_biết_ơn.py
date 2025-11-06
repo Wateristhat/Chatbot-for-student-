@@ -1,12 +1,11 @@
-# Sửa file: pages/Lọ_biết_ơn.py
+# Sửa file: pages/3_🍯_Lọ_biết_ơn.py
 import streamlit as st
 import sys
 import os
 import html
 import time
 import random
-from datetime import datetime
-import tempfile
+from datetime import datetime, timedelta # <<< SỬA ĐỔI 1: Thêm timedelta
 from gtts import gTTS
 from io import BytesIO
 
@@ -15,18 +14,16 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import database as db 
 
 # --- BẢO VỆ TRANG ---
-### <<< SỬA ĐỔI: Thêm bảo vệ trang ở đầu file >>>
 # Kiểm tra xem người dùng đã đăng nhập chưa (ở Trang chủ)
 if 'user_id' not in st.session_state or st.session_state.user_id is None:
     st.error("Bạn chưa đăng nhập! Vui lòng quay về Trang chủ.")
-    # Sửa link quay về Trang chủ cho đúng
     st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
     st.stop() # Dừng chạy code của trang này
 
 # --- LẤY ID NGƯỜI DÙNG HIỆN TẠI ---
-### <<< SỬA ĐỔI: Lấy user_id từ session_state >>>
 current_user_id = st.session_state.user_id
 
+# --- CSS (Giữ nguyên) ---
 st.markdown("""
 <style>
 /* (Giữ nguyên toàn bộ CSS của bạn) */
@@ -81,7 +78,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- DANH SÁCH GỢI Ý BIẾT ƠN LUÂN PHIÊN ---
+# --- DANH SÁCH GỢI Ý BIẾT ƠN LUÂN PHIÊN (Giữ nguyên) ---
 GRATITUDE_SUGGESTIONS = [
     "Hôm nay bạn đã nụ cười với ai? Điều gì khiến bạn cảm thấy vui vẻ?",
     "Có món ăn nào ngon khiến bạn nhớ mãi không? Kể cho mình nghe nhé!",
@@ -93,7 +90,7 @@ GRATITUDE_SUGGESTIONS = [
     "Điều gì trong ngôi nhà của bạn khiến bạn cảm thấy ấm áp và an toàn?"
 ]
 
-# --- VIRTUAL ASSISTANT MESSAGES ---
+# --- VIRTUAL ASSISTANT MESSAGES (Giữ nguyên) ---
 ASSISTANT_MESSAGES = [
     ("🤖", "Mỗi điều biết ơn nhỏ đều là kho báu quý giá!"),
     ("🤖", "Bạn làm rất tốt khi ghi lại những khoảnh khắc đẹp!"),
@@ -161,7 +158,7 @@ def create_audio_file(text):
         st.error(f"Lỗi tạo file âm thanh: {e}")
         return None
 
-# --- SESSION STATE ---
+# --- SESSION STATE (Giữ nguyên) ---
 if 'selected_emotion' not in st.session_state:
     st.session_state.selected_emotion = None
 if 'suggestion_index' not in st.session_state:
@@ -173,7 +170,7 @@ if 'current_assistant_message' not in st.session_state or not isinstance(st.sess
 if 'show_gratitude_response' not in st.session_state:
     st.session_state.show_gratitude_response = False
 
-# --- TIÊU ĐỀ + TRỢ LÝ ẢO ĐẦU TRANG ---
+# --- TIÊU ĐỀ + TRỢ LÝ ẢO ĐẦU TRANG (Giữ nguyên) ---
 st.markdown(
     '<div class="lo-title-feature">'
     ' <span style="font-size:2.5rem;">🍯</span> Lọ Biết ƠN'
@@ -202,10 +199,9 @@ with col2:
         st.audio(audio_bytes.read(), format="audio/mpeg")
 
 # --- NAVIGATION LINK ---
-### <<< SỬA ĐỔI: Sửa link quay về Trang chủ >>>
 st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
 
-# --- Hiển thị avatar trợ lý ảo khi gửi biết ơn ---
+# --- Hiển thị avatar trợ lý ảo khi gửi biết ơn (Giữ nguyên) ---
 if st.session_state.show_gratitude_response:
     avatar, msg = st.session_state.current_assistant_message
     message_to_show = random.choice(GRATITUDE_RESPONSES)
@@ -216,7 +212,7 @@ if st.session_state.show_gratitude_response:
     </div>
     """, unsafe_allow_html=True)
 
-# --- CẢM XÚC BẰNG EMOJI ---
+# --- CẢM XÚC BẰNG EMOJI (Giữ nguyên) ---
 st.markdown("### 💝 Hôm nay bạn cảm thấy thế nào?")
 emotion_cols = st.columns(5)
 emotions = ["😊", "😃", "🥰", "😌", "🤗"]
@@ -231,7 +227,7 @@ if st.session_state.selected_emotion:
     st.markdown(f"<div style='text-align: center; font-size: 1.2rem; color: #FF69B4; margin: 1rem 0;'>Bạn đang cảm thấy {st.session_state.selected_emotion} - Thật tuyệt vời!</div>", unsafe_allow_html=True)
 st.write("---")
 
-# --- ĐỘNG VIÊN BEE ---
+# --- ĐỘNG VIÊN BEE (Giữ nguyên) ---
 if 'current_encouragement' not in st.session_state:
     st.session_state.current_encouragement = get_random_encouragement()
 encouragement = st.session_state.current_encouragement
@@ -259,7 +255,7 @@ with col2:
                 except Exception as e:
                     st.error(f"Không thể phát âm thanh: {e}")
 
-# --- HỘP GỢI Ý BIẾT ƠN LUÂN PHIÊN ---
+# --- HỘP GỢI Ý BIẾT ƠN LUÂN PHIÊN (Giữ nguyên) ---
 current_suggestion = GRATITUDE_SUGGESTIONS[st.session_state.suggestion_index]
 st.markdown(f"""
 <div class="lo-box">
@@ -285,7 +281,7 @@ with col2:
         st.session_state.suggestion_index = (st.session_state.suggestion_index + 1) % len(GRATITUDE_SUGGESTIONS)
         st.rerun()
 
-# --- KHU VỰC NHẬP LIỆU ---
+# --- KHU VỰC NHẬP LIỆU (Giữ nguyên) ---
 st.markdown("### ✍️ Viết điều bạn biết ơn hôm nay:")
 note_text = st.text_area(
     "",
@@ -331,21 +327,33 @@ if gratitude_notes:
         note_content = note["content"]
         timestamp = note["timestamp"]
         
+        ### <<< SỬA ĐỔI 2: Khối code xử lý Múi giờ VN >>>
         try:
-            # Chuyển đổi timestamp (nếu cần, có thể nó đã là datetime)
-            if isinstance(timestamp, str):
-                dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f") # Hoặc format trong CSDL của bạn
-            else:
-                dt = timestamp # Giả sử nó là đối tượng datetime
-            
-            # Cập nhật format thời gian cho chính xác
-            dt_with_timezone = dt.replace(tzinfo=datetime.now().astimezone().tzinfo) # Giả sử giờ CSDL là UTC
-            formatted_date = dt_with_timezone.strftime("%d/%m/%Y lúc %H:%M")
-            day_name = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"][dt_with_timezone.weekday()]
+            # Thử đọc format ISO mới (đã có múi giờ +7)
+            dt = datetime.fromisoformat(timestamp)
+        except ValueError:
+            # Nếu thất bại, thử đọc format UTC cũ (chưa có múi giờ)
+            try:
+                # Format cũ là '2025-11-06 15:36:53' (không có micro giây)
+                dt_utc = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+                # Cộng thêm 7 tiếng để ra giờ Việt Nam
+                dt = dt_utc + timedelta(hours=7)
+            except ValueError:
+                # Thử format cũ (lỡ có micro giây)
+                try:
+                    dt_utc = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
+                    dt = dt_utc + timedelta(hours=7)
+                except Exception:
+                    dt = None # Bó tay
+        
+        # Chỉ format nếu 'dt' hợp lệ
+        if dt:
+            formatted_date = dt.strftime("%d/%m/%Y lúc %H:%M")
+            day_name = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"][dt.weekday()]
             full_date = f"{day_name}, {formatted_date}"
-        except Exception as e:
-            # Fallback nếu format thời gian sai
-            full_date = str(timestamp)
+        else:
+            full_date = str(timestamp) # Hiển thị raw nếu không parse được
+        ### <<< KẾT THÚC SỬA ĐỔI 2 >>>
 
         with st.container():
             st.markdown(f"""
@@ -386,7 +394,7 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-# --- FOOTER KHUYẾN KHÍCH ---
+# --- FOOTER KHUYẾN KHÍCH (Giữ nguyên) ---
 st.markdown("---")
 st.markdown("""
 <div class="lo-footer">
@@ -395,6 +403,3 @@ st.markdown("""
     Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
 </div>
 """, unsafe_allow_html=True)
-
-
-
