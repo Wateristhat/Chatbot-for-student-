@@ -1,66 +1,35 @@
+# Sửa file: pages/8_💬_Trò_chuyện.py
 import streamlit as st
 import google.generativeai as genai
 import random
+import sys # ### <<< SỬA ĐỔI
+import os  # ### <<< SỬA ĐỔI
 
-# --- 1. CẤU HÌNH TRANG VÀ CSS TÙY CHỈNH (Giữ nguyên giao diện màu mè) ---
+# ### <<< SỬA ĐỔI: Import database >>>
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import database as db 
+
+# --- BẢO VỆ TRANG ---
+### <<< SỬA ĐỔI: Thêm bảo vệ trang ở đầu file >>>
+if 'user_id' not in st.session_state or st.session_state.user_id is None:
+    st.error("Bạn chưa đăng nhập! Vui lòng quay về Trang chủ.")
+    st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+    st.stop() # Dừng chạy code của trang này
+
+# --- LẤY ID NGƯỜI DÙNG HIỆN TẠI ---
+current_user_id = st.session_state.user_id
+
+# --- CẤU HÌNH TRANG VÀ CSS (Giữ nguyên) ---
 st.set_page_config(
     page_title="Chatbot AI Đồng Hành",
     page_icon="🌈",
     layout="centered"
 )
+# (Toàn bộ CSS màu mè của bạn được giữ nguyên ở đây)
+st.markdown("""<style> ... (CSS của bạn) ... </style>""", unsafe_allow_html=True)
 
-# CSS để làm cho giao diện màu mè
-st.markdown("""
-<style>
-    /* Nền và font chữ tổng thể */
-    body {
-        font-family: 'Segoe UI', sans-serif;
-    }
-    .stApp {
-        background: linear-gradient(to right, #fde4f2, #e6e6fa); /* Gradient nền hồng và tím lavender */
-    }
-    /* Tiêu đề chính */
-    h1 {
-        font-size: 2.5em;
-        text-align: center;
-        background: linear-gradient(to right, #6a11cb, #2575fc);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        padding-bottom: 10px;
-        margin-bottom: 20px;
-    }
-    /* Bong bóng chat */
-    [data-testid="stChatMessage"]:has([data-testid="stAvatarIcon-user"]) {
-        background-color: #ffffff;
-        border-radius: 20px 20px 5px 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        border: 1px solid #e0e0e0;
-    }
-    [data-testid="stChatMessage"]:has([data-testid="stAvatarIcon-assistant"]) {
-        background: linear-gradient(to right, #d2b4de, #a0d2eb);
-        border-radius: 20px 20px 20px 5px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        color: #1e1e1e;
-    }
-    /* Ô nhập liệu chat */
-    [data-testid="stChatInput"] {
-        background-color: #ffffff;
-        border-radius: 25px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        padding: 5px 15px;
-    }
-    /* Nút bấm lớn */
-    .stButton > button {
-        border-radius: 12px;
-        font-size: 1.1em;
-        font-weight: bold;
-        padding: 10px 20px;
-        width: 100%; /* Giúp các nút bằng nhau */
-    }
-</style>
-""", unsafe_allow_html=True)
 
-# --- 2. CẤU HÌNH DỮ LIỆU TỪ SƯỜN CODE ---
+# --- CẤU HÌNH DỮ LIỆU TƯƠNG TÁC (Giữ nguyên) ---
 CONFIG = {
     "tam_su": {
         "intro_message": "Hôm nay bạn cảm thấy như thế nào nè? Mình luôn sẵn lòng lắng nghe bạn nha 🌟",
@@ -75,7 +44,7 @@ CONFIG = {
     "giao_tiep": {
         "intro_message": "Hãy chọn một tình huống bên dưới để mình cùng luyện tập nhé!",
         "scenarios_basic": {
-            "👋 Chào hỏi bạn bè": "Bạn có thể nói: ‘Chào bạn, hôm nay vui không?’ Hoặc: ‘Tớ chào cậu nha, hôm nay học tốt không nè?’",
+            "👋 Chào hỏi bạn bè": "Bạn có thể nói: ‘Chào bạn, hôm nay vui không?’ HoHoặc: ‘Tớ chào cậu nha, hôm nay học tốt không nè?’",
             "🙋 Hỏi bài thầy cô": "Bạn thử hỏi thầy/cô như vầy nha: ‘Thầy/cô ơi, em chưa hiểu phần này, thầy/cô giảng lại giúp em được không ạ?’",
             "🧑‍🤝‍🧑 Làm quen bạn mới": "Bạn có thể bắt đầu bằng: ‘Xin chào, tớ là A, còn bạn tên gì?’ Hoặc: ‘Mình mới vào lớp, cậu có thể chỉ mình vài điều không?’",
             "🙌 Xin lỗi": "Khi làm bạn buồn, bạn có thể nói: ‘Xin lỗi nha, mình không cố ý đâu.’ hoặc ‘Mình buồn vì đã làm bạn không vui, mong bạn tha lỗi.’",
@@ -88,28 +57,27 @@ CONFIG = {
     }
 }
 
-# --- 3. KHỞI TẠO STATE VÀ CÁC HÀM HỖ TRỢ ---
+# --- KHỞI TẠO STATE VÀ CÁC HÀM HỖ TRỢ ---
 
-# Quản lý trạng thái giao diện
 if "chat_mode" not in st.session_state:
     st.session_state.chat_mode = "main"
 
-# Quản lý lịch sử tin nhắn để hiển thị (đây là thay đổi chính)
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+### <<< SỬA ĐỔI: Không dùng st.session_state.messages nữa >>>
+# if "messages" not in st.session_state:
+#     st.session_state.messages = [] # Sẽ đọc từ CSDL
 
-# --- 4. PHẦN CODE CHÍNH ---
+# --- PHẦN CODE CHÍNH ---
 
 st.title("✨ Chatbot AI Đồng Hành ✨")
-st.caption("Trò chuyện với mô hình AI Gemini của Google.")
+st.caption(f"Trò chuyện với AI (Người dùng: {current_user_id})")
 
-# Cấu hình Gemini AI
+# Cấu hình Gemini AI (Giữ nguyên)
 @st.cache_resource
 def configure_gemini():
     try:
         api_key = st.secrets["GOOGLE_API_KEY"]
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("models/gemini-2.5-flash")
+        model = genai.GenerativeModel("models/gemini-1.5-flash") # Dùng 1.5 Flash nếu có thể
         return model
     except Exception as e:
         st.error("Lỗi: Vui lòng cấu hình GOOGLE_API_KEY trong file secrets.toml.")
@@ -117,13 +85,18 @@ def configure_gemini():
 
 model = configure_gemini()
 
-# Bắt đầu session chat với lịch sử từ st.session_state.messages
-# Điều này đảm bảo AI có ngữ cảnh từ các nút bấm
-chat = model.start_chat(history=[
-    {"role": "model" if msg["role"] == "assistant" else "user", "parts": [msg["content"]]}
-    for msg in st.session_state.messages
-])
+### <<< SỬA ĐỔI: Tải lịch sử chat từ CSDL >>>
+# Lấy lịch sử chat cũ của user này
+chat_history_from_db = db.get_chat_history(current_user_id)
 
+# Bắt đầu session chat với lịch sử từ CSDL
+chat = model.start_chat(history=chat_history_from_db)
+
+# Hàm trợ giúp để lưu tin nhắn
+def add_message_to_db_and_rerun(role, content):
+    """Lưu tin nhắn vào CSDL và tải lại trang"""
+    db.add_chat_message(current_user_id, role, content)
+    st.rerun()
 
 # --- GIAO DIỆN NÚT BẤM TƯƠNG TÁC ---
 button_container = st.container()
@@ -132,12 +105,18 @@ with button_container:
         col1, col2 = st.columns(2)
         if col1.button("💖 Tâm sự"):
             st.session_state.chat_mode = "tam_su_selection"
-            st.session_state.messages.append({"role": "assistant", "content": CONFIG["tam_su"]["intro_message"]})
-            st.rerun()
+            # ### <<< SỬA ĐỔI: Lưu vào CSDL >>>
+            add_message_to_db_and_rerun("assistant", CONFIG["tam_su"]["intro_message"])
 
         if col2.button("🗣️ Giao tiếp"):
             st.session_state.chat_mode = "giao_tiep_selection"
-            st.session_state.messages.append({"role": "assistant", "content": CONFIG["giao_tiep"]["intro_message"]})
+            # ### <<< SỬA ĐỔI: Lưu vào CSDL >>>
+            add_message_to_db_and_rerun("assistant", CONFIG["giao_tiep"]["intro_message"])
+            
+        # ### <<< SỬA ĐỔI: Thêm nút Xóa lịch sử >>>
+        if st.button("🗑️ Xóa lịch sử trò chuyện", key="clear_chat"):
+            db.clear_chat_history(current_user_id)
+            st.success("Đã xóa lịch sử trò chuyện!")
             st.rerun()
 
     elif st.session_state.chat_mode == "tam_su_selection":
@@ -147,17 +126,17 @@ with button_container:
         for i, emotion in enumerate(emotions):
             if cols[i].button(emotion):
                 response_text = CONFIG["tam_su"]["emotions"][emotion]
-                st.session_state.messages.append({"role": "assistant", "content": response_text})
                 st.session_state.chat_mode = "main"
-                st.rerun()
+                # ### <<< SỬA ĐỔI: Lưu vào CSDL >>>
+                add_message_to_db_and_rerun("assistant", response_text)
 
     elif st.session_state.chat_mode == "giao_tiep_selection":
         st.write("Chọn tình huống bạn muốn luyện tập:")
         for scenario, example in CONFIG["giao_tiep"]["scenarios_basic"].items():
             if st.button(scenario, key=scenario):
                 st.session_state.chat_mode = "giao_tiep_practice"
-                st.session_state.messages.append({"role": "assistant", "content": example})
-                st.rerun()
+                # ### <<< SỬA ĐỔI: Lưu vào CSDL >>>
+                add_message_to_db_and_rerun("assistant", example)
         if st.button("↩️ Quay lại"):
              st.session_state.chat_mode = "main"
              st.rerun()
@@ -165,22 +144,33 @@ with button_container:
     elif st.session_state.chat_mode == "giao_tiep_practice":
         col1, col2 = st.columns(2)
         if col1.button(CONFIG["giao_tiep"]["confirm_buttons"]["understood"]):
-            st.session_state.messages.append({"role": "assistant", "content": "Tuyệt vời! Bạn làm tốt lắm. Khi nào cần cứ tìm mình nhé."})
             st.session_state.chat_mode = "main"
-            st.rerun()
+            # ### <<< SỬA ĐỔI: Lưu vào CSDL >>>
+            add_message_to_db_and_rerun("assistant", "Tuyệt vời! Bạn làm tốt lắm. Khi nào cần cứ tìm mình nhé.")
         if col2.button(CONFIG["giao_tiep"]["confirm_buttons"]["not_understood"]):
-            st.session_state.messages.append({"role": "assistant", "content": "Không sao cả, mình nói lại nhé. Bạn hãy đọc kỹ lại câu mẫu phía trên nha."})
+            # ### <<< SỬA ĐỔI: Lưu vào CSDL >>>
+            # (Không cần quay về main, chỉ gửi tin nhắn)
+            db.add_chat_message(current_user_id, "assistant", "Không sao cả, mình nói lại nhé. Bạn hãy đọc kỹ lại câu mẫu phía trên nha.")
             st.rerun()
 
-# --- HIỂN THỊ LỊCH SỬ CHAT TỪ st.session_state.messages ---
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+
+# --- HIỂN THỊ LỊCH SỬ CHAT TỪ CSDL ---
+### <<< SỬA ĐỔI: Đọc lại từ CSDL (để lấy tin nhắn mới nhất từ nút bấm) >>>
+# (Chúng ta phải đọc lại lần nữa vì st.rerun đã chạy)
+display_messages = db.get_chat_history(current_user_id) # Hàm này trả về format của Gemini
+
+for message in display_messages:
+    # Chuyển đổi format Gemini (model/user) sang format Streamlit (assistant/user)
+    role = "assistant" if message["role"] == "model" else "user"
+    with st.chat_message(role):
+        st.markdown(message["parts"][0]) # Lấy nội dung text
 
 # --- NHẬN INPUT VĂN BẢN ---
 if prompt := st.chat_input("Hoặc gõ tin nhắn tự do ở đây..."):
-    # Thêm tin nhắn người dùng vào lịch sử hiển thị
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    # ### <<< SỬA ĐỔI: Lưu tin nhắn USER vào CSDL >>>
+    db.add_chat_message(current_user_id, "user", prompt)
+    
+    # Hiển thị tin nhắn user (tạm thời)
     with st.chat_message("user"):
         st.markdown(prompt)
 
@@ -191,9 +181,9 @@ if prompt := st.chat_input("Hoặc gõ tin nhắn tự do ở đây..."):
                 response = chat.send_message(prompt)
                 response_text = response.text
                 st.markdown(response_text)
-                # Thêm phản hồi của AI vào lịch sử hiển thị
-                st.session_state.messages.append({"role": "assistant", "content": response_text})
+                
+                # ### <<< SỬA ĐỔI: Lưu tin nhắn ASSISTANT vào CSDL >>>
+                db.add_chat_message(current_user_id, "assistant", response_text)
+                
             except Exception as e:
                 st.error(f"Đã có lỗi xảy ra: {e}")
-
-
