@@ -1,9 +1,21 @@
-Kể chuyện
-# pages/9_📖_Người_Kể_Chuyện.py
+# File: pages/9_📖_Người_Kể_Chuyện.py (Sửa lỗi bảo vệ trang và điều hướng)
 import streamlit as st
 import random
 from gtts import gTTS
 from io import BytesIO
+import sys 
+import os 
+import tempfile
+from datetime import datetime
+
+# --- BẢO VỆ TRANG ---
+if 'user_id' not in st.session_state or st.session_state.user_id is None:
+    st.error("Bạn chưa đăng nhập! Vui lòng quay về Trang chủ.")
+    st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+    st.stop() 
+
+# --- LẤY ID NGƯỜI DÙNG HIỆN TẠI ---
+current_user_id = st.session_state.user_id
 
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Người Kể Chuyện", page_icon="📖", layout="wide")
@@ -36,7 +48,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- NỘI DUNG TRUYỆN (ĐÃ PHỤC HỒI ĐẦY ĐỦ) ---
+# --- NỘI DUNG TRUYỆN ---
 @st.cache_data
 def load_stories():
     return {
@@ -55,7 +67,7 @@ def load_stories():
             },
             {
                 "title": "Chiếc gương và người đánh giày",
-                "content": "Một người đàn ông giàu có muốn mua một chiếc gương lớn và hoàn hảo. Ông đến một tiệm gương và hỏi liệu có chiếc gương nào không tì vết không. Người thợ gương trả lời: 'Không có chiếc gương nào hoàn hảo, thưa ngài. Chỉ có gương và bụi.' Sau đó, ông thấy một người đánh giày với khuôn mặt rạng rỡ, dù công việc rất vất vả. Ông hỏi bí quyết. Người đánh giày đáp: 'Tôi luôn thấy hạnh phúc khi làm việc của mình, và tôi không bao giờ nhìn vào những thứ không phải là công việc của tôi.' Bài học: Hạnh phúc không nằm ở sự hoàn hảo hay giàu có, mà ở cách chúng ta nhìn nhận công việc và cuộc sống của mình."
+                "content": "Một người đàn ông giàu có muốn mua một chiếc gương lớn và hoàn hảo. Ông đến hỏi một ông chủ cửa hàng đồ cũ, ông này trả lời: 'Không có chiếc gương nào hoàn hảo, thưa ngài. Chỉ có gương và bụi.' Sau đó, ông thấy một người đánh giày với khuôn mặt rạng rỡ, dù công việc rất vất vả. Ông hỏi bí quyết. Người đánh giày đáp: 'Tôi luôn thấy hạnh phúc khi làm việc của mình, và tôi không bao giờ nhìn vào những thứ không phải là công việc của tôi.' Bài học: Hạnh phúc không nằm ở sự hoàn hảo hay giàu có, mà ở cách chúng ta nhìn nhận công việc và cuộc sống của mình."
             },
             {
                 "title": "Quy tắc của cây Tre",
@@ -69,7 +81,6 @@ def load_stories():
                 "title": "Hố sâu và chiếc thang",
                 "content": "Một người đang đi trên đường thì bị rơi xuống một cái hố sâu. Anh ta cố gắng kêu cứu nhưng không ai nghe thấy. Anh tuyệt vọng. Một lúc sau, một người đi qua, thấy anh ta và quăng xuống một sợi dây thừng. Anh ta leo lên được. Sau này, anh ta thấy một người khác cũng bị rơi xuống hố đó. Thay vì quăng dây thừng, anh ta nhảy xuống hố. Người bị nạn hoảng hốt: 'Anh làm gì vậy?' Anh ta mỉm cười và nói: 'Tôi hiểu cảm giác của anh. Tôi đã từng ở đây. Tôi biết đường ra.' Bài học: Sự đồng cảm và kinh nghiệm vượt qua khó khăn là món quà lớn nhất mà chúng ta có thể chia sẻ với người khác."
             },
-            # --- 5 TRUYỆN TRUYỀN CẢM HỨNG MỚI ĐƯỢC THÊM VÀO ---
             {
                 "title": "Người thợ gốm và chiếc bình hỏng",
                 "content": "Một người thợ gốm luôn giữ lại những chiếc bình bị nứt hoặc méo mó, dù chúng không bán được. Khi người học việc hỏi tại sao, ông nói: 'Bình lành lặn dùng để đựng nước, nhưng những chiếc bình hỏng này lại tạo ra âm thanh độc đáo khi gió thổi qua. Chúng dùng để tạo ra âm nhạc.' Bài học: Những khiếm khuyết hay sai lầm của bạn không phải là vô dụng. Chúng có thể tạo ra những giá trị và ý nghĩa khác biệt mà bạn không ngờ tới."
@@ -90,7 +101,6 @@ def load_stories():
                 "title": "Phép màu của sự bắt đầu",
                 "content": "Nhà văn người Brazil Paulo Coelho từng nói: 'Khi bạn thực sự muốn điều gì đó, cả vũ trụ sẽ hợp lực giúp bạn đạt được điều đó.' Nhiều người trì hoãn ước mơ vì sợ thất bại. Nhưng câu chuyện này dạy rằng, bước đi đầu tiên, dù nhỏ bé đến đâu, là điều kiện tiên quyết để tạo ra 'phép màu' của sự hỗ trợ từ bên ngoài. Bài học: Hãy bắt đầu. Chỉ khi bạn bắt đầu hành động, những cơ hội, sự giúp đỡ và nguồn lực cần thiết mới xuất hiện để hỗ trợ bạn trên hành trình của mình."
             }
-            # --- KẾT THÚC CÁC TRUYỆN MỚI ---
         ],
         "Truyện ngụ ngôn": [
             {
@@ -145,6 +155,17 @@ if "nkc_assistant_message" not in st.session_state:
     st.session_state.nkc_assistant_message = random.choice(ASSISTANT_MESSAGES)
 avatar, msg = st.session_state.nkc_assistant_message
 
+def create_audio_file(text):
+    try:
+        tts = gTTS(text=text, lang='vi', slow=False)
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
+            tmp_file.name = tmp_file.name # Bắt buộc phải có
+            tts.save(tmp_file.name)
+            return tmp_file.name
+    except Exception as e:
+        # st.error(f"Lỗi tạo file âm thanh: {e}")
+        return None
+
 # --- GIAO DIỆN CHÍNH ---
 st.markdown(
     '<div class="nkc-title-feature">'
@@ -166,13 +187,17 @@ with col1:
         st.rerun()
 with col2:
     if st.button("🔊 Nghe trợ lý ảo", key="tts_msg_story"):
-        audio_bytes = BytesIO()
-        tts = gTTS(text=msg, lang='vi', slow=False)
-        tts.write_to_fp(audio_bytes)
-        audio_bytes.seek(0)
-        st.audio(audio_bytes.read(), format="audio/mp3")
+        audio_file = create_audio_file(msg)
+        if audio_file:
+            try:
+                with open(audio_file, 'rb') as f:
+                    audio_bytes = f.read()
+                st.audio(audio_bytes, format="audio/mp3")
+                os.unlink(audio_file) # Xóa file tạm thời
+            except Exception as e:
+                st.error(f"Không thể phát âm thanh: {e}")
 
-st.markdown("⬅️ [Quay về Trang chủ](/)", unsafe_allow_html=True)
+st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
 st.write("---")
 
 selected_category = st.selectbox(
@@ -190,11 +215,12 @@ if selected_category:
             if st.button("Nghe truyện 🎧", key=f"listen_{selected_category}_{i}"):
                 with st.spinner("Đang chuẩn bị âm thanh..."):
                     full_text = f"Câu chuyện {story['title']}. {story['content']}"
-                    try:
-                        tts = gTTS(text=full_text, lang='vi', slow=False)
-                        fp = BytesIO()
-                        tts.write_to_fp(fp)
-                        fp.seek(0)
-                        st.audio(fp, format="audio/mp3")
-                    except Exception as e:
-                        st.error(f"Lỗi khi tạo âm thanh: {e}")
+                    audio_file = create_audio_file(full_text)
+                    if audio_file:
+                        try:
+                            with open(audio_file, 'rb') as f:
+                                audio_bytes = f.read()
+                            st.audio(audio_bytes, format="audio/mp3")
+                            os.unlink(audio_file) # Xóa file tạm thời
+                        except Exception as e:
+                            st.error(f"Lỗi khi phát âm thanh: {e}")
