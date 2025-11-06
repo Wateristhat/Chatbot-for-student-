@@ -20,7 +20,7 @@ import database as db
 if 'user_id' not in st.session_state or st.session_state.user_id is None:
     st.error("Bạn chưa đăng nhập! Vui lòng quay về Trang chủ.")
     # Sửa link quay về Trang chủ cho đúng
-    st.page_link("0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+    st.page_link("../0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
     st.stop() # Dừng chạy code của trang này
 
 # --- LẤY ID NGƯỜI DÙNG HIỆN TẠI ---
@@ -395,3 +395,4 @@ st.markdown("""
     Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
 </div>
 """, unsafe_allow_html=True)
+
