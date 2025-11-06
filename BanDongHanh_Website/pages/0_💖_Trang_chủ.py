@@ -11,85 +11,56 @@ st.set_page_config(
 
 
 # --- CSS (Giữ nguyên) ---
+# ... (Phần trước) ...
+
+# --- SỬA ĐỔI CSS ĐỂ NÚT ẨN HOẠT ĐỘNG ---
 st.markdown("""
-<link href="https://fonts.googleapis.com/css?family=Quicksand:700,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-    html, body, [class*="css"] { font-family: 'Quicksand', Arial, sans-serif; }
-    .brand-minimal-box {
-        background: linear-gradient(110deg, #ff82ac 3%, #fd5e7c 97%);
-        border-radius: 38px;
-        padding: 2.3rem 2.4rem 2.1rem 2.4rem;
-        margin: 0 auto 2.5rem auto;
-        max-width: 700px;
-        box-shadow: 0 8px 32px rgba(255,88,88,0.08);
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .brand-minimal-header {
-        font-family: 'Quicksand', Arial, sans-serif;
-        font-size: 2.3rem;
-        font-weight: 800;
-        letter-spacing: -1px;
-        color: #fff;
-        margin-bottom: 0.8rem;
-        margin-left: 0.2rem;
-        line-height: 1.22;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 1.1rem 1.5rem;
-    }
-    .brand-minimal-header .text-main, .brand-minimal-header .text-brand {
-        color: #fff; background: none; font-size: 2.3rem; font-weight: 800;
-    }
-    .brand-minimal-icon { font-size: 2.3rem; color: #f9c6d3; margin-right: 0.3rem; }
-    .brand-minimal-desc {
-        color: #fff; font-size: 1.17rem; font-weight: 500; margin-bottom: 1.3rem;
-        margin-left: 0.2rem; line-height: 1.65; text-align: left; width: 100%;
-    }
-    .brand-minimal-desc .fa-heart { color: #ffb2be; font-size: 1.1rem; margin-right: 0.3rem; }
-    .brand-minimal-highlight {
-        background: rgba(255,255,255,0.87); border-radius: 22px; font-size: 1.14rem;
-        color: #444; max-width: 580px; padding: 1.1rem 1.3rem 0.9rem 1.3rem;
-        font-weight: 500; line-height: 1.65; margin-left: 0.1rem; margin-top: 0.1rem;
-        box-shadow: 0 2px 16px rgba(255,88,88,0.07); text-align: left;
-    }
-    .brand-minimal-highlight .highlight-action { color: #fd5e7c; font-weight: 700; font-size: 1.09rem; }
-    .menu-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
-        margin-top: 1.5rem;
-        margin-bottom: 2.2rem;
-    }
-    .menu-card {
-        background: #fff;
-        border-radius: 18px;
-        box-shadow: 0 2px 10px rgba(80,80,120,0.10);
-        display: flex;
-        align-items: center;
-        gap: 1.3rem;
-        min-height: 86px;
-        transition: box-shadow 0.19s, transform 0.12s;
-        border: 2.2px solid transparent;
+    /* ẨN label st.page_link mặc định */
+    div[data-testid="stPageLink"] label { visibility: hidden; height: 0; }
+    
+    /* Làm cho st.page_link (nút bấm) trong suốt và đè lên trên */
+    div[data-testid="stPageLink"] button {
+        position: absolute; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%;
+        
+        /* LÀM CHO NÚT TRONG SUỐT VÀ KHÔNG GÂY ẢNH HƯỞNG */
+        background: transparent !important;
+        color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        
+        z-index: 10; /* Đảm bảo nút này nằm trên div menu-card */
         cursor: pointer;
-        padding: 1.20rem 1.2rem 1.1rem 1.2rem;
-        position: relative; /* QUAN TRỌNG: Cho nút ẩn */
-        text-decoration: none;
-        margin-bottom: 0.3rem;
     }
-    .menu-card:hover {
-        box-shadow: 0 8px 32px rgba(255,88,88,0.15);
+    
+    /* [CẢNH BÁO: DÒNG NÀY ĐÃ ĐƯỢC XÓA]
+    div[data-testid="stVerticalBlock"] > div:nth-child(2) > div:nth-child(2) {
+        position: relative;
+    }
+    */
+    
+    /* Thiết lập lại bối cảnh vị trí tương đối cho mỗi mục menu */
+    div[data-testid="stVerticalBlock"] > div:has(> button[key*="link_to_"]) {
+        position: relative; 
+    }
+    
+    .menu-card {
+        position: relative;
+        z-index: 5;
+    }
+    
+    /* Áp dụng hiệu ứng hover khi nút ẩn bị hover */
+    div[data-testid="stPageLink"] button:hover { /* Sửa target hover */
         transform: translateY(-2px) scale(1.01);
         border: 2.2px solid #f857a6;
+        box-shadow: 0 8px 32px rgba(255,88,88,0.15);
         background: linear-gradient(90deg,#fff6f6 60%,#f7f8fa 100%);
     }
-    .menu-card, .menu-card * { text-decoration: none !important; }
-    .menu-icon { font-size: 2.3rem; flex-shrink: 0; margin-right: 0.1rem; }
-    .menu-title { font-weight:700; font-size:1.18rem; margin-bottom:0.13rem; color: #222; }
-    .menu-desc { color:#444; font-size:1.01rem; font-weight:500; margin-top:0.15rem; }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -260,3 +231,4 @@ st.markdown("""
 
 </style>
 """, unsafe_allow_html=True)
+
