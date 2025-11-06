@@ -2,7 +2,7 @@
 import streamlit as st
 import time
 
-def inject_global_components():
+def inject_global_components(page_file_path):
     """
     Hàm này chèn Nút Loa Cố Định, Logic Nhắc Nhở, và Thẻ Audio Nhạc Nền.
     """
@@ -17,7 +17,7 @@ def inject_global_components():
         st.session_state.music_url = "" 
 
     # ⚠️ SỬA LỖI: Lấy tên trang hiện tại một cách an toàn để làm key ID
-    page_id = st.current_page_name.replace(" ", "_").replace("/", "_").replace(".", "_")
+    page_id = page_file_path.replace(" ", "_").replace("/", "_").replace(".", "_")
     
     # --- KHỐI 1: NÚT LOA CỐ ĐỊNH & LOGIC PROMPT ---
     show_prompt = st.session_state.get('show_music_prompt', False)
