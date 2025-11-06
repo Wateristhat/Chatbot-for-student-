@@ -1,4 +1,4 @@
-# File: 0_💖_Trang_chủ.py (FIX CUỐI CÙNG: Chuyển Menu thành Mô tả Tĩnh và Thêm Đăng Xuất)
+# File: 0_💖_Trang_chủ.py (Đã sửa lỗi mất đăng nhập, loại bỏ Menu tĩnh, và FIX UI)
 import streamlit as st
 from datetime import datetime
 
@@ -10,12 +10,23 @@ st.set_page_config(
 )
 
 
-# --- CSS (Bổ sung class feature-card mới) ---
+# --- CSS (Đã sửa khối st.info) ---
 st.markdown("""
 <link href="https://fonts.googleapis.com/css?family=Quicksand:700,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
     html, body, [class*="css"] { font-family: 'Quicksand', Arial, sans-serif; }
+    
+    /* FIX: Tăng kích thước và độ nổi bật cho khung thông báo st.info */
+    div[data-testid="stAlert"] {
+        padding: 1.5rem 1.8rem !important; /* Tăng khoảng đệm bên trong */
+        margin: 2.5rem 0 !important;      /* Tăng khoảng cách so với các khối khác */
+        font-size: 1.25rem !important;    /* Tăng cỡ chữ */
+        font-weight: 600 !important;
+        border-radius: 15px !important;
+        line-height: 1.6;
+    }
+    
     .brand-minimal-box {
         background: linear-gradient(110deg, #ff82ac 3%, #fd5e7c 97%);
         border-radius: 38px;
@@ -70,7 +81,7 @@ st.markdown("""
         border: 2.2px solid transparent;
         padding: 1.20rem 1.2rem 1.1rem 1.2rem;
         margin-bottom: 1.25rem;
-        pointer-events: none; /* QUAN TRỌNG: Loại bỏ khả năng nhấp */
+        pointer-events: none; /* Loại bỏ khả năng nhấp */
     }
     .feature-icon { font-size: 2.3rem; flex-shrink: 0; margin-right: 0.1rem; }
     .feature-title { font-weight:700; font-size:1.18rem; margin-bottom:0.13rem; color: #222; }
@@ -148,7 +159,9 @@ else:
 
     st.markdown("---")
     st.markdown("## ✨ Khám phá các tính năng")
-    st.info("Vui lòng sử dụng **Menu ở thanh bên trái (Sidebar)** để truy cập các tính năng.")
+    
+    # SỬA ĐỔI: Bỏ từ chuyên môn "Sidebar" và chỉ dùng "Menu ở thanh bên trái"
+    st.info("Vui lòng sử dụng **Menu ở thanh bên trái** để truy cập các tính năng.")
     
     # --- DỮ LIỆU CÁC TÍNH NĂNG (FEATURE LIST) ---
     FEATURE_ITEMS = [
@@ -177,5 +190,3 @@ else:
             """,
             unsafe_allow_html=True
         )
-
-
