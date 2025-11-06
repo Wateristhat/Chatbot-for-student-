@@ -200,7 +200,7 @@ else:
 
             # 2. Tạo nút bấm/link ẩn (st.page_link) ĐÈ LÊN trên khối HTML
             st.page_link(
-                page=f"pages/{item['file']}", # Sử dụng tham số 'page' và đường dẫn chuẩn hóa
+                page=item['page'], # Sử dụng tham số 'page' và đường dẫn chuẩn hóa
                 label=f"Link to {item['title']}", # Label ẩn
                 key=f"link_to_{item['file']}",
                 use_container_width=True
@@ -260,4 +260,5 @@ st.markdown("""
 
 </style>
 """, unsafe_allow_html=True)
+
 
