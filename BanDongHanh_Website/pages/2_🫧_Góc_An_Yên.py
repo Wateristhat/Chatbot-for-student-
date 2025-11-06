@@ -458,7 +458,7 @@ with tab2:
                     time.sleep(1); st.rerun()
                 else: st.warning("Vui lòng nhập cảm nhận của bạn trước khi lưu!")
         with col2:
-            if st.button("❌ Hủy", key="cancel_observation", use_container_width=True): # Sửa key
+            if st.button("❌ Hủy", key="cancel_543", use_container_width=True): # Sửa key
                 st.session_state.show_543_sharing = False
                 st.rerun()
 
