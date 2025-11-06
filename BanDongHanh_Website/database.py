@@ -7,8 +7,8 @@ from datetime import datetime
 # Tên file database
 DB_NAME = "bandonghanh.db" 
 
-# Dùng @st.singleton để đảm bảo chỉ có 1 kết nối được tạo
-@st.singleton
+# Dùng @st.cache_resource để đảm bảo chỉ có 1 kết nối được tạo
+@st.cache_resource
 def get_db_connection():
     """Tạo và trả về một kết nối đến database SQLite."""
     conn = sqlite3.connect(DB_NAME, check_same_thread=False)
