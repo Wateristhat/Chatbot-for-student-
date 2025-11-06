@@ -126,28 +126,12 @@ else:
             <span class="brand-minimal-icon"><i class="fa-solid fa-heart"></i></span>
             <span class="text-main">Chào mừng {st.session_state.user_name} đến với</span> <span class="text-brand">Bạn Đồng Hành!</span>
         </div>
-        <div style="text-align: right; margin-top: -1.5rem; margin-right: 1.5rem;">
-            <form action="." method="get" target="_self">
-                <input type="hidden" name="logout" value="true">
-                <button type="submit" style="
-                    background: none; border: none; color: #ffb2be; 
-                    font-size: 1rem; font-weight: 600; cursor: pointer;
-                    text-decoration: underline; padding: 0;
-                ">❌ Đăng xuất</button>
-            </form>
-        </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Thêm logic Đăng xuất
-    if st.query_params.get("logout") == "true":
-        st.session_state.user_name = None
-        st.session_state.user_id = None
-        st.query_params.clear()
-        st.rerun()
-
     st.markdown("---")
     st.markdown("## ✨ Khám phá các tính năng")
+    
     st.info("Vui lòng sử dụng **Menu ở thanh bên trái** để truy cập các tính năng.")
     
     # --- DỮ LIỆU CÁC TÍNH NĂNG (FEATURE LIST) ---
@@ -177,3 +161,4 @@ else:
             """,
             unsafe_allow_html=True
         )
+
