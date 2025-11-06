@@ -1,11 +1,33 @@
+# Sửa file: pages/6_💖_Góc_nhỏ.py
 import streamlit as st
 import random
+from datetime import datetime
+import sys # ### <<< SỬA ĐỔI
+import os  # ### <<< SỬA ĐỔI
+
+# ### <<< SỬA ĐỔI: Import database >>>
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import database as db 
+
+# --- BẢO VỆ TRANG ---
+### <<< SỬA ĐỔI: Thêm bảo vệ trang ở đầu file >>>
+if 'user_id' not in st.session_state or st.session_state.user_id is None:
+    st.error("Bạn chưa đăng nhập! Vui lòng quay về Trang chủ.")
+    st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+    st.stop() # Dừng chạy code của trang này
+
+# --- LẤY ID NGƯỜI DÙNG VÀ NGÀY HIỆN TẠI ---
+### <<< SỬA ĐỔI: Lấy user_id và ngày hôm nay >>>
+current_user_id = st.session_state.user_id
+today_date = datetime.now().strftime("%Y-%m-%d")
 
 # Thiết lập layout rộng
 st.set_page_config(layout="wide")
 
+# --- CSS (Giữ nguyên) ---
 st.markdown("""
 <style>
+/* (Toàn bộ CSS của bạn được giữ nguyên) */
 .gn-assist-bigbox {
     background: linear-gradient(120deg,#e0e7ff 0%,#f3e8ff 100%);
     border-radius: 38px; box-shadow: 0 8px 36px rgba(124,77,255,.13);
@@ -14,9 +36,6 @@ st.markdown("""
 }
 .gn-assist-icon {font-size:3.2rem; margin-bottom:0.7rem;}
 .gn-assist-text {font-size:1.7rem; font-weight:700; color:#6d28d9; margin-bottom:1.1rem;}
-
-/* --- CSS ĐỂ LÀM CÁC NÚT BẤM TO HƠN --- */
-/* Cập nhật stButton để thêm style cho Nút Đỏ */
 .stButton > button {
     padding: 0.8rem 1.2rem;
     font-size: 1.15rem;
@@ -31,10 +50,8 @@ st.markdown("""
     background-color: #f3e8ff;
     border-color: #b39ddb;
 }
-
-/* Style riêng cho nút ĐỎ (thêm hoạt động) */
 #add_activity_btn > button {
-    background-color: #ff6347 !important; /* Màu đỏ nổi bật, tương tự như hình */
+    background-color: #ff6347 !important; /* Màu đỏ nổi bật */
     color: white !important;
     font-weight: 700;
     border: none;
@@ -47,10 +64,8 @@ st.markdown("""
     background-color: #ff4d4d !important;
     box-shadow: 0 4px 12px rgba(255, 99, 71, 0.4);
 }
-
-/* CSS cho ô input tùy chỉnh */
 .custom-input-style label {
-    font-size: 0; /* Ẩn label mặc định của st.text_input */
+    font-size: 0; /* Ẩn label mặc định */
 }
 .custom-input-style input {
     border-radius: 10px;
@@ -62,6 +77,8 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
+
+# --- Trợ lý ảo (Giữ nguyên) ---
 st.markdown(f"""
 <div class="gn-assist-bigbox">
     <div class="gn-assist-icon">🤖</div>
@@ -69,7 +86,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# --- ASSISTANT BUTTONS ---
 col1, col2 = st.columns([2,2])
 with col1:
     if st.button("💬 Gợi ý hoạt động", key="suggest_activity"):
@@ -92,7 +108,7 @@ with col2:
         st.session_state.assistant_message = f"🤖 Trợ lý ảo: {motivation}"
         st.session_state.assistant_mode = "motivation"
 
-# --- ACTION LIST DATA ---
+# --- ACTION LIST DATA (Giữ nguyên) ---
 RO_ACTIONS = [
     {"text": "Uống một ly nước đầy", "icon": "💧"},
     {"text": "Vươn vai và duỗi người trong 1 phút", "icon": "🤸‍♀️"},
@@ -105,25 +121,13 @@ RO_ACTIONS = [
 ]
 unique_ro_actions = RO_ACTIONS
 
-# --- CHIA ĐỀU 2 CỘT ---
-half = (len(unique_ro_actions)+1) // 2
-left_col_actions = unique_ro_actions[:half]
-right_col_actions = unique_ro_actions[half:]
-
-# --- HIỂN THỊ MESSAGE TỪ ASSISTANT ---
+# --- HIỂN THỊ MESSAGE TỪ ASSISTANT (Giữ nguyên) ---
 if "assistant_message" in st.session_state and st.session_state.assistant_message:
     st.markdown(f"""
     <div style="
-        background: #e9f3fd;
-        border-radius: 16px;
-        padding: 2.2rem 2.8rem;
-        font-size: 1.23rem;
-        color: #1565c0;
-        max-width: 1700px;
-        margin-left: auto;
-        margin-right: auto;
-        margin-top: 1.1rem;
-        margin-bottom: 1.1rem;
+        background: #e9f3fd; border-radius: 16px; padding: 2.2rem 2.8rem;
+        font-size: 1.23rem; color: #1565c0; max-width: 1700px;
+        margin-left: auto; margin-right: auto; margin-top: 1.1rem; margin-bottom: 1.1rem;
         box-shadow: 0 2px 18px rgba(21,101,192,0.06);
     ">
     {st.session_state.assistant_message}
@@ -133,57 +137,80 @@ if "assistant_message" in st.session_state and st.session_state.assistant_messag
 # --- Title & grid (1A) ---
 st.markdown('<div style="font-size:2rem;font-weight:700;color:#8e24aa;text-align:center;margin-bottom:1.1rem;">🌈 Chọn từ ngân hàng hoạt động:</div>', unsafe_allow_html=True)
 
-if "selected_actions" not in st.session_state:
-    st.session_state.selected_actions = []
+### <<< SỬA ĐỔI: Lấy danh sách hoạt động từ CSDL >>>
+# Lấy danh sách hoạt động của user hôm nay
+db_activities = db.get_activities_by_date(current_user_id, today_date)
+# Lấy nội dung text ra để so sánh
+selected_actions_text = [act["content"] for act in db_activities]
 
 cols = st.columns(2)
+half = (len(unique_ro_actions)+1) // 2
+left_col_actions = unique_ro_actions[:half]
+right_col_actions = unique_ro_actions[half:]
+
 for idx, col_actions in enumerate([left_col_actions, right_col_actions]):
     with cols[idx]:
         for act in col_actions:
-            is_selected = act["text"] in st.session_state.selected_actions
+            # Kiểm tra xem đã chọn (đã có trong CSDL) chưa
+            is_selected = act["text"] in selected_actions_text
             btn_label = f'{act["icon"]} {act["text"]}'
             btn_key = f"action_{act['icon']}_{act['text']}"
             
-            if st.button(btn_label, key=btn_key, disabled=is_selected): # Disable nút đã chọn
+            # Disable nút nếu đã được chọn (đã thêm vào CSDL)
+            if st.button(btn_label, key=btn_key, disabled=is_selected): 
                 if not is_selected:
-                    st.session_state.selected_actions.append(act["text"])
-                st.rerun()
+                    # Thêm vào CSDL
+                    db.add_activity(current_user_id, act["text"], today_date)
+                    st.rerun()
 
 # --- Checklist: các hoạt động đã chọn (2B) ---
-if st.session_state.selected_actions:
-    st.markdown('<div style="font-size:1.08rem;font-weight:600;color:#333;margin-top:1rem;margin-bottom:0.3rem;text-align:center;">📋 Danh sách việc đã chọn hôm nay:</div>', unsafe_allow_html=True)
+### <<< SỬA ĐỔI: Đọc danh sách từ `db_activities` (đã lấy ở trên) >>>
+if db_activities:
+    st.markdown(f'<div style="font-size:1.08rem;font-weight:600;color:#333;margin-top:1rem;margin-bottom:0.3rem;text-align:center;">📋 Danh sách việc đã chọn hôm nay ({today_date}):</div>', unsafe_allow_html=True)
     all_done = True
-    for i, action_text in enumerate(st.session_state.selected_actions):
-        action_icon = next((a["icon"] for a in unique_ro_actions if a["text"] == action_text), "💖") 
-        done_key = f"done_{action_text}"
-        if done_key not in st.session_state:
-            st.session_state[done_key] = False
-        is_done = st.session_state[done_key]
+    
+    for i, activity_row in enumerate(db_activities):
+        action_text = activity_row["content"]
+        activity_id = activity_row["id"]
+        is_done = bool(activity_row["is_done"]) # Lấy trạng thái từ CSDL
         
-        cols_done = st.columns([0.12, 0.8, 0.08])
+        # Tìm icon
+        action_icon = next((a["icon"] for a in unique_ro_actions if a["text"] == action_text), "💖") 
+        
+        cols_done = st.columns([0.12, 0.73, 0.07, 0.08]) # Thêm cột cho nút Xóa
         with cols_done[0]:
-            new_state = st.checkbox("", value=is_done, key=f"cb_{action_text}_{i}")
+            # Dùng key duy nhất bằng ID từ CSDL
+            new_state = st.checkbox("", value=is_done, key=f"cb_{activity_id}")
         with cols_done[1]:
             st.markdown(
                 f'<div style="background:#f9f9fb; border-radius:10px; padding:0.6rem 0.9rem; margin-bottom:0.6rem; display:flex; align-items:center; font-size:1.01rem; border:1.4px solid #ede7f6;"><span style="font-size:1.08rem;margin-right:0.6rem;">{action_icon}</span><span style="font-weight:600;">{action_text}</span></div>',
                 unsafe_allow_html=True
             )
         with cols_done[2]:
+            # Nút Xóa
+            if st.button("🗑️", key=f"del_{activity_id}", help="Xóa hoạt động này khỏi danh sách hôm nay"):
+                db.delete_activity(current_user_id, activity_id)
+                st.toast(f"Đã xóa: {action_text}", icon="🗑️")
+                st.rerun()
+                
+        with cols_done[3]:
             st.markdown(f"<span style='margin-left:auto;font-size:1.1rem;'>{'✅' if is_done else '⬜'}</span>", unsafe_allow_html=True)
             
         if new_state != is_done:
+            # Cập nhật trạng thái vào CSDL
+            db.update_activity_status(current_user_id, activity_id, new_state)
+            
             if new_state:
                 st.toast(f"🎉 Tuyệt vời! Bạn đã hoàn thành: {action_text}", icon="🌟")
                 st.balloons()
             else:
                 st.toast(f"📝 Đã bỏ đánh dấu: {action_text}", icon="ℹ️")
-            st.session_state[done_key] = new_state
             st.rerun() 
 
         if not new_state:
             all_done = False
 
-    if all_done and st.session_state.selected_actions:
+    if all_done and db_activities:
         st.markdown(
             '<div style="background:#fffde7;border-radius:17px;padding:1.1rem 1rem;text-align:center;font-size:1.15rem;margin:1.2rem 0;color:#333;border:2px solid #ffd54f;"><b>🎉 CHÚC MỪNG! 🎉</b><br>Bạn đã hoàn thành tất cả các mục tiêu tự chăm sóc cho hôm nay!<br>🌟 Bạn thật tuyệt vời! Hãy tự hào về bản thân nhé! 🌟</div>',
             unsafe_allow_html=True
@@ -191,36 +218,63 @@ if st.session_state.selected_actions:
         st.balloons()
 
 # --- Hàm xử lý khi nhấn Enter (input) hoặc Nút Đỏ (button) ---
+### <<< SỬA ĐỔI: Hàm `add_custom_activity` để lưu vào CSDL >>>
 def add_custom_activity():
-    # Lấy nội dung từ input
-    # Vì on_change kích hoạt hàm này, nó sử dụng key của input
     new_activity = st.session_state.custom_activity_input.strip()
     
-    # Kiểm tra không rỗng và chưa có trong danh sách
-    if new_activity and new_activity not in st.session_state.selected_actions:
-        st.session_state.selected_actions.append(new_activity)
-        st.session_state.custom_activity_input = "" # Xóa nội dung input sau khi thêm
-        st.rerun() # Re-run để cập nhật danh sách
+    # Lấy danh sách hiện tại từ CSDL để kiểm tra
+    current_list = [act["content"] for act in db.get_activities_by_date(current_user_id, today_date)]
+    
+    if new_activity and new_activity not in current_list:
+        # Thêm vào CSDL
+        db.add_activity(current_user_id, new_activity, today_date)
+        st.session_state.custom_activity_input = "" # Xóa input
+        st.rerun() # Tải lại để hiển thị
+    elif not new_activity:
+        st.warning("Vui lòng nhập nội dung hoạt động!")
+    else:
+        st.warning("Hoạt động này đã có trong danh sách hôm nay!")
 
 # --- KHUNG NHẬP HOẠT ĐỘNG TÙY CHỈNH (1B) ---
 st.markdown('<div class="custom-input-style" style="margin-top:1.2rem; margin-bottom:0.5rem;">', unsafe_allow_html=True)
 
-# 1. Khung Input (Placeholder đã chỉnh sửa)
 st.text_input(
     label="Thêm một hoạt động mới vào danh sách:",
-    placeholder="🚀 Nhập hoạt động bạn muốn làm...", # Bỏ "và nhấn Enter"
+    placeholder="🚀 Nhập hoạt động bạn muốn làm...", 
     key="custom_activity_input",
     on_change=add_custom_activity # Vẫn giữ on_change để xử lý Enter
 )
 st.markdown('</div>', unsafe_allow_html=True)
 
-# 2. Nút Đỏ (Kích thước bằng input)
 st.markdown('<div id="add_activity_btn">', unsafe_allow_html=True)
 if st.button("✨ Thêm hoạt động vào danh sách", key="add_activity_button", on_click=add_custom_activity):
-    # Hàm add_custom_activity sẽ được gọi khi nhấn nút
-    pass
+    pass # Logic đã nằm trong on_click
 st.markdown('</div>', unsafe_allow_html=True)
 
 
-# --- Footer động viên (3) ---
+# --- Footer động viên (3) (Giữ nguyên) ---
 st.markdown('<div style="background:#f3e5f5;border-left:5px solid #ba68c8;border-radius:10px;padding:0.7rem 1rem;text-align:center;font-size:0.98rem;margin:1.5rem 0 1.1rem 0;color:#333;">💜 <strong>Nhớ nhé:</strong> Mỗi hành động nhỏ đều là một bước tiến lớn trong việc chăm sóc bản thân. Hãy kiên nhẫn và yêu thương chính mình! 💜</div>', unsafe_allow_html=True)
+
+### <<< SỬA ĐỔI: Thêm nút quay về Trang chủ >>>
+st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ 🏠 Quay về Trang chủ", icon=None)
+st.markdown("""
+<style>
+    /* CSS cho nút quay về trang chủ (Giống trang Game) */
+    button[data-testid="stPageLink"] {
+        display: inline-block;
+        background: linear-gradient(135deg, #FF6B6B, #4ECDC4) !important;
+        color: white !important;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 18px !important;
+        font-size: 1.15rem;
+        font-weight: bold;
+        margin-top: 20px;
+        border: none !important;
+        width: auto;
+    }
+    div[data-testid="stPageLink"] {
+        text-align: center;
+    }
+</style>
+""", unsafe_allow_html=True)
