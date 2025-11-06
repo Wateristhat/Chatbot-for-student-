@@ -1,17 +1,14 @@
 # Dán toàn bộ code này vào file 0_💖_Trang_chủ.py
 import streamlit as st
 from datetime import datetime
-import time 
-# ⚠️ BỔ SUNG 1: Import hàm tiện ích mới tạo
-import header_utils as hu
+
 
 st.set_page_config(
     page_title="Chào mừng - Bạn Đồng Hành",
     page_icon="💖",
     layout="wide"
 )
-# ⚠️ BỔ SUNG 2: Gọi hàm để chèn nút loa và nhạc nền (Đặt sau set_page_config)
-hu.inject_global_components(__file__)
+
 
 # --- CSS (Giữ nguyên, không thay đổi) ---
 st.markdown("""
@@ -184,6 +181,5 @@ else:
         )
     st.markdown('</div>', unsafe_allow_html=True)
     # ----------- KẾT THÚC MENU ĐÃ SỬA LỖI -----------
-
 
 
