@@ -525,7 +525,7 @@ with tab3:
         with col1:
             if st.button("💾 Lưu vào nhật ký", key="save_observation", use_container_width=True):
                 if feeling_content.strip():
-                    add_mood_entry("Ô Cửa Sổ Thần Kỳ - Hòa Nhập", feeling_content.strip())
+                    add_mood_entry("Ô Cửa Sổ Thần Kỳ", feeling_content.strip())
                     st.success("✅ Đã lưu cảm nhận vào nhật ký!")
                     st.session_state.show_observation_sharing = False
                     time.sleep(1); st.rerun()
@@ -538,7 +538,7 @@ with tab3:
 # --- PHẦN XEM LỊCH SỬ (Giữ nguyên logic) ---
 st.write("---")
 st.header("📖 Lịch Sử Góc An Yên")
-history_description = "Xem lại những cảm nhận và trải nghiệm của bạn từ các bài tập trong Góc An Yên dành cho học sinh hòa nhập."
+history_description = "Xem lại những cảm nhận và trải nghiệm của bạn từ các bài tập trong Góc An Yên."
 st.markdown(f'<div class="inclusive-instruction">{history_description}</div>', unsafe_allow_html=True)
 create_tts_button(history_description, "history_desc")
 
@@ -550,8 +550,8 @@ if st.session_state.get("show_history", False):
     all_entries = get_mood_entries()
     inclusive_exercises = [
         "Hơi Thở Nhiệm Màu", 
-        "Chạm Vào Hiện Tại (5-4-3-2-1) - Hòa Nhập", 
-        "Ô Cửa Sổ Thần Kỳ - Hòa Nhập"
+        "Chạm Vào Hiện Tại (5-4-3-2-1)", 
+        "Ô Cửa Sổ Thần Kỳ"
     ]
     inclusive_entries = [entry for entry in all_entries if entry["exercise_type"] in inclusive_exercises]
     if inclusive_entries:
