@@ -26,8 +26,21 @@ st.set_page_config(
     layout="centered"
 )
 # (Toàn bộ CSS màu mè của bạn được giữ nguyên ở đây)
-st.markdown("""<style> ... (CSS của bạn) ... </style>""", unsafe_allow_html=True)
+st.markdown("""
+<style> 
+    /* BẮT ĐẦU PHẦN BẠN CHỈNH SỬA Ở ĐÂY */
+    
+    /* Đặt màu nền cho TOÀN BỘ ỨNG DỤNG (Container chính) */
+    .stApp {
+        background-color: #E6E6FA; /* Màu Lavender Pastel */
+    }
 
+    /* KẾT THÚC PHẦN BẠN CHỈNH SỬA */
+    
+    /* ... (Nếu bạn có các CSS khác cho nút bấm, tiêu đề thì giữ nguyên chúng) ... */ 
+    
+</style>
+""", unsafe_allow_html=True)
 
 # --- CẤU HÌNH DỮ LIỆU TƯƠNG TÁC (Giữ nguyên) ---
 CONFIG = {
