@@ -1,4 +1,5 @@
-import streamlit as st  # <-- 1. SỬA LỖI TYPO 'streaimport'
+# Sửa file: pages/2_🫧_Góc_An_Yên.py
+import streamlit as st
 import time
 import random
 import pandas as pd
@@ -10,22 +11,34 @@ import requests
 from gtts import gTTS
 from io import BytesIO
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from database import add_mood_entry, get_mood_entries
+from database import add_mood_entry, get_mood_entries # Import các hàm đã sửa
 
-# --- 2. GIỮ NGUYÊN CSS BUTTON CỤC BỘ (VÌ KHÔNG DÙNG style.py) ---
+# --- BẢO VỆ TRANG ---
+### <<< SỬA ĐỔI: Thêm bảo vệ trang ở đầu file >>>
+if 'user_id' not in st.session_state or st.session_state.user_id is None:
+    st.error("Bạn chưa đăng nhập! Vui lòng quay về Trang chủ.")
+    # Dùng đường dẫn chính xác (tính từ app.py)
+    st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
+    st.stop() # Dừng chạy code của trang này
+
+# --- LẤY ID NGƯỜI DÙNG HIỆN TẠI ---
+### <<< SỬA ĐỔI: Lấy user_id từ session_state >>>
+current_user_id = st.session_state.user_id
+
+# --- CSS BUTTON CỤC BỘ (Giữ nguyên) ---
 st.markdown("""
 <style>
 .stButton > button {
-    font-size: 1.5rem !important;      /* Tăng cỡ chữ lên 1.5 lần */
-    padding: 1.8rem 3.6rem !important;  /* Tăng chiều cao & chiều ngang nút */
-    border-radius: 18px !important;      /* Bo tròn nút */
-    min-width: 220px;                   /* Đặt chiều rộng tối thiểu lớn hơn */
-    min-height: 68px;                   /* Đặt chiều cao tối thiểu lớn hơn */
+    font-size: 1.5rem !important;
+    padding: 1.8rem 3.6rem !important;
+    border-radius: 18px !important;
+    min-width: 220px;
+    min-height: 68px;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# Check TTS availability
+# Check TTS availability (Giữ nguyên)
 try:
     from gtts import gTTS
     GTTS_AVAILABLE = True
@@ -38,18 +51,15 @@ try:
 except ImportError:
     EDGE_TTS_AVAILABLE = False
 
-# --- 3. SỬA LỖI CẤU HÌNH TRANG (THÊM DẤU PHẨY VÀ COLLAPSED) ---
+# --- CẤU HÌNH TRANG (Giữ nguyên) ---
 st.set_page_config(
     page_title="Góc An Yên", 
     page_icon="🫧", 
     layout="wide", 
-    initial_sidebar_state="collapsed" # <-- SỬA LỖI Ở ĐÂY
+    initial_sidebar_state="collapsed"
 )
 
-# --- 4. XÓA CSS SIDEBAR CỤC BỘ GÂY LỖI ---
-# (Khối st.markdown(""" <style> [data-testid="stSidebar"] { ... } </style> """) đã bị xóa)
-
-# --- CÁC THÔNG ĐIỆP ĐỘNG VIÊN NGẪU NHIÊN ---
+# --- CÁC THÔNG ĐIỆP ĐỘNG VIÊN (Giữ nguyên) ---
 ENCOURAGEMENT_MESSAGES = [
     "🌟 Bạn đang làm rất tốt! Hãy tiếp tục nhé!",
     "💙 Mỗi hơi thở đều là một món quà cho bản thân.",
@@ -57,7 +67,7 @@ ENCOURAGEMENT_MESSAGES = [
 ]
 ASSISTANT_AVATARS = ["🤖", "😊", "🌟", "💙", "🌸", "✨"]
 
-# --- HÀM TEXT-TO-SPEECH CẢI TIẾN ---
+# --- HÀM TEXT-TO-SPEECH (Giữ nguyên) ---
 
 def validate_text_input(text):
     if text is None: return False, "", "text_is_none"
@@ -75,9 +85,7 @@ def check_network_connectivity():
         return response.status_code == 200
     except: return False
 
-# --- 5. SỬA LỖI ÂM THANH: DÙNG TEMPFILE THAY VÌ BYTESIO ---
 def gtts_with_diagnostics(text):
-    """Tạo âm thanh bằng gTTS (SỬA LẠI DÙNG TEMPFILE cho điện thoại)"""
     if not GTTS_AVAILABLE:
         return None, "gTTS không có sẵn trong hệ thống"
     
@@ -89,7 +97,7 @@ def gtts_with_diagnostics(text):
     if not check_network_connectivity():
         return None, "network_error"
     
-    temp_path = "" # Khởi tạo
+    temp_path = ""
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
             temp_path = tmp_file.name
@@ -167,10 +175,7 @@ def create_tts_button_enhanced(text, key_suffix, button_text="🔊 Đọc to"):
             audio_data, result_code = text_to_speech_enhanced(text)
             
             if audio_data and result_code.startswith("success"):
-                # if "edge_tts" in result_code: st.success("🎵 Đã tạo âm thanh bằng Edge TTS") # <--- ĐÃ XÓA
-                # else: st.success("🎵 Đã tạo âm thanh bằng Google TTS")                      # <--- ĐÃ XÓA
-                
-                st.audio(audio_data, format="audio/mpeg")  
+                st.audio(audio_data, format="audio/mpeg") 
             else:
                 error_msg = get_error_message(result_code)
                 if "network" in result_code.lower(): st.error(error_msg)
@@ -179,17 +184,16 @@ def create_tts_button_enhanced(text, key_suffix, button_text="🔊 Đọc to"):
 
 def create_tts_button(text, key_suffix, button_text="🔊 Đọc to"):
     create_tts_button_enhanced(text, key_suffix, button_text)
-@st.cache_data  
+@st.cache_data 
 def text_to_speech(text):
     audio_data, result_code = text_to_speech_enhanced(text)
     return audio_data if audio_data else None
 
 
-# --- CSS CHO GIAO DIỆN THÂN THIỆN ---
+# --- CSS GIAO DIỆN (Giữ nguyên) ---
 st.markdown("""
 <style>
-    /* (CSS .stButton > button đã bị xóa khỏi đây) */
-
+/* (Toàn bộ CSS của bạn được giữ nguyên) */
     .assistant-card {
         background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
         border-radius: 20px; padding: 2rem; margin: 1.5rem 0;
@@ -224,23 +228,13 @@ st.markdown("""
         border-left: 5px solid #4caf50;
         box-shadow: 0 3px 10px rgba(0,0,0,0.1);
     }
-    .big-friendly-button {
-        background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%);
-        color: white; border: none; border-radius: 25px; padding: 1rem 2rem;
-        font-size: 1.2rem; font-weight: 600; cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(76,175,80,0.3);
-        width: 100%; margin: 0.5rem 0;
-    }
-    .big-friendly-button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(76,175,80,0.4); }
-    .progress-container { background: #f5f5f5; border-radius: 10px; padding: 1rem; margin: 1rem 0; text-align: center; }
     .inclusive-instruction {
         background: #e1f5fe; border-radius: 10px; padding: 1rem;
         margin: 0.5rem 0; border-left: 4px solid #03a9f4;
         font-size: 1.1rem; line-height: 1.8;
     }
     
-    /* --- 7. THÊM CSS TƯƠNG THÍCH ĐIỆN THOẠI --- */
+    /* --- CSS TƯƠNG THÍCH ĐIỆN THOẠI (Giữ nguyên) --- */
     @media (max-width: 900px) {
         .assistant-card {
             padding: 1.5rem 1rem;
@@ -260,7 +254,6 @@ st.markdown("""
         .inclusive-instruction h4 {
             font-size: 1.1rem;
         }
-        /* Làm cho nút to ban đầu nhỏ lại trên điện thoại */
         .stButton > button {
             font-size: 1.1rem !important;
             padding: 1rem 1.5rem !important;
@@ -270,7 +263,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- TRỢ LÝ ẢO ĐỘNG VIÊN ---
+# --- TRỢ LÝ ẢO (Giữ nguyên) ---
 def show_virtual_assistant():
     if 'current_avatar' not in st.session_state:
         st.session_state.current_avatar = random.choice(ASSISTANT_AVATARS)
@@ -288,21 +281,19 @@ def show_virtual_assistant():
     with col1:
         if st.button("🔄 Thông điệp mới", help="Nhận thông điệp động viên mới"):
             
-            # --- Logic chọn AVATAR mới (đảm bảo khác avatar cũ) ---
+            # --- Logic chọn AVATAR mới (Giữ nguyên) ---
             current_avatar = st.session_state.current_avatar
             new_avatar = random.choice(ASSISTANT_AVATARS)
             
-            # Thêm safeguard: Chỉ lặp nếu danh sách có nhiều hơn 1 avatar
             if len(ASSISTANT_AVATARS) > 1:
                 while new_avatar == current_avatar:
                     new_avatar = random.choice(ASSISTANT_AVATARS)
             st.session_state.current_avatar = new_avatar
 
-            # --- Logic chọn THÔNG ĐIỆP mới (đảm bảo khác thông điệp cũ) ---
+            # --- Logic chọn THÔNG ĐIỆP mới (Giữ nguyên) ---
             current_message = st.session_state.current_message
             new_message = random.choice(ENCOURAGEMENT_MESSAGES)
 
-            # Thêm safeguard: Chỉ lặp nếu danh sách có nhiều hơn 1 thông điệp
             if len(ENCOURAGEMENT_MESSAGES) > 1:
                 while new_message == current_message:
                     new_message = random.choice(ENCOURAGEMENT_MESSAGES)
@@ -315,7 +306,8 @@ def show_virtual_assistant():
 # --- GIAO DIỆN CHÍNH ---
 st.title("🫧 Góc An Yên")
 
-# --- 8. SỬA LỖI ĐƯỜNG DẪN LINK ---
+# --- SỬA LỖI ĐƯỜNG DẪN LINK ---
+### <<< SỬA ĐỔI: Đảm bảo đường dẫn page_link chính xác >>>
 st.page_link("pages/0_💖_Trang_chủ.py", label="⬅️ Quay về Trang chủ", icon="🏠")
 
 show_virtual_assistant()
@@ -334,8 +326,9 @@ st.write("---")
 # --- CÁC TAB CHỨC NĂNG ---
 tab1, tab2, tab3 = st.tabs(["🌬️ Hơi Thở Nhiệm Màu", "🖐️ Chạm Vào Hiện Tại", "🖼️ Ô Cửa Sổ Thần Kỳ"])
 
-# --- TAB 1: BÀI TẬP HÍT THỞ (Giữ nguyên logic) ---
+# --- TAB 1: BÀI TẬP HÍT THỞ ---
 with tab1:
+    # (Toàn bộ logic giao diện của Tab 1 giữ nguyên)
     st.markdown('<div class="exercise-card">', unsafe_allow_html=True)
     st.header("🌬️ Hơi Thở Nhiệm Màu")
     
@@ -365,6 +358,7 @@ with tab1:
     )
 
     if st.button("🌟 Bắt đầu hít thở", type="primary", use_container_width=True):
+        # (Logic chạy hít thở giữ nguyên)
         placeholder = st.empty()
         progress_bar = st.progress(0, text="Chuẩn bị bắt đầu...")
         start_time = time.time()
@@ -415,7 +409,8 @@ with tab1:
         with col1:
             if st.button("💾 Lưu vào nhật ký", key="save_breathing", use_container_width=True):
                 if feeling_content.strip():
-                    add_mood_entry("Hơi Thở Nhiệm Màu", feeling_content.strip())
+                    ### <<< SỬA ĐỔI: Truyền `current_user_id` vào hàm add_mood_entry >>>
+                    add_mood_entry(current_user_id, "Hơi Thở Nhiệm Màu", feeling_content.strip())
                     st.success("✅ Đã lưu cảm nhận vào nhật ký!")
                     st.session_state.show_breathing_sharing = False
                     time.sleep(1); st.rerun()
@@ -425,8 +420,9 @@ with tab1:
                 st.session_state.show_breathing_sharing = False
                 st.rerun()
 
-# --- TAB 2: BÀI TẬP 5-4-3-2-1 (Giữ nguyên logic) ---
+# --- TAB 2: BÀI TẬP 5-4-3-2-1 ---
 with tab2:
+    # (Toàn bộ logic giao diện của Tab 2 giữ nguyên)
     st.markdown('<div class="exercise-card">', unsafe_allow_html=True)
     st.header("🖐️ Chạm Vào Hiện Tại (5-4-3-2-1)")
     instruction_541 = """
@@ -471,18 +467,20 @@ with tab2:
         with col1:
             if st.button("💾 Lưu vào nhật ký", key="save_543", use_container_width=True):
                 if feeling_content.strip():
-                    add_mood_entry("Chạm Vào Hiện Tại (5-4-3-2-1) - Hòa Nhập", feeling_content.strip())
+                    ### <<< SỬA ĐỔI: Truyền `current_user_id` vào hàm add_mood_entry >>>
+                    add_mood_entry(current_user_id, "Chạm Vào Hiện Tại (5-4-3-2-1) - Hòa Nhập", feeling_content.strip())
                     st.success("✅ Đã lưu cảm nhận vào nhật ký!")
                     st.session_state.show_543_sharing = False
                     time.sleep(1); st.rerun()
                 else: st.warning("Vui lòng nhập cảm nhận của bạn trước khi lưu!")
         with col2:
-            if st.button("❌ Hủy", key="cancel_543", use_container_width=True): # Sửa key
+            if st.button("❌ Hủy", key="cancel_543", use_container_width=True):
                 st.session_state.show_543_sharing = False
                 st.rerun()
 
-# --- TAB 3: BÀI TẬP QUAN SÁT (Giữ nguyên logic) ---
+# --- TAB 3: BÀI TẬP QUAN SÁT ---
 with tab3:
+    # (Toàn bộ logic giao diện của Tab 3 giữ nguyên)
     st.markdown('<div class="exercise-card">', unsafe_allow_html=True)
     st.header("🖼️ Ô Cửa Sổ Thần Kỳ")
     instruction_window = """
@@ -544,7 +542,8 @@ with tab3:
         with col1:
             if st.button("💾 Lưu vào nhật ký", key="save_observation", use_container_width=True):
                 if feeling_content.strip():
-                    add_mood_entry("Ô Cửa Sổ Thần Kỳ", feeling_content.strip())
+                    ### <<< SỬA ĐỔI: Truyền `current_user_id` vào hàm add_mood_entry >>>
+                    add_mood_entry(current_user_id, "Ô Cửa Sổ Thần Kỳ", feeling_content.strip())
                     st.success("✅ Đã lưu cảm nhận vào nhật ký!")
                     st.session_state.show_observation_sharing = False
                     time.sleep(1); st.rerun()
@@ -554,7 +553,7 @@ with tab3:
                 st.session_state.show_observation_sharing = False
                 st.rerun()
 
-# --- PHẦN XEM LỊCH SỬ (Giữ nguyên logic) ---
+# --- PHẦN XEM LỊCH SỬ ---
 st.write("---")
 st.header("📖 Lịch Sử Góc An Yên")
 history_description = "Xem lại những cảm nhận và trải nghiệm của bạn từ các bài tập trong Góc An Yên."
@@ -566,15 +565,20 @@ if st.button("📖 Xem lịch sử của tôi", use_container_width=True):
 
 if st.session_state.get("show_history", False):
     st.markdown("### 💭 Các cảm nhận đã lưu:")
-    all_entries = get_mood_entries()
+    
+    ### <<< SỬA ĐỔI: Truyền `current_user_id` vào hàm get_mood_entries >>>
+    all_entries = get_mood_entries(current_user_id)
+    
+    # Logic lọc các bài tập của GÓC AN YÊN (Giữ nguyên)
     inclusive_exercises = [
         "Hơi Thở Nhiệm Màu", 
-        "Chạm Vào Hiện Tại (5-4-3-2-1)", 
+        "Chạm Vào Hiện Tại (5-4-3-2-1) - Hòa Nhập", 
         "Ô Cửa Sổ Thần Kỳ"
     ]
     inclusive_entries = [entry for entry in all_entries if entry["exercise_type"] in inclusive_exercises]
+    
     if inclusive_entries:
-        inclusive_entries.sort(key=lambda x: x["timestamp"], reverse=True)
+        inclusive_entries.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
         for entry in inclusive_entries:
             with st.container():
                 if "Hơi Thở" in entry["exercise_type"]: icon, bg_color = "🌬️", "#e3f2fd"
@@ -585,14 +589,14 @@ if st.session_state.get("show_history", False):
                             padding: 1.5rem; border-radius: 12px; margin-bottom: 15px;
                             box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                     <div style="font-size: 1rem; color: #666; margin-bottom: 8px; font-weight: 600;">
-                        {icon} <strong>{entry["exercise_type"]}</strong> • {entry["timestamp"]}
+                        {icon} <strong>{entry["exercise_type"]}</strong> • {entry.get("timestamp", "Không rõ ngày")}
                     </div>
                     <div style="color: #333; line-height: 1.6; font-size: 1.1rem;">
-                        {entry["content"]}
+                        {entry.get("content", "Không có nội dung")}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-                create_tts_button(f"Cảm nhận từ {entry['exercise_type']}: {entry['content']}", f"entry_{entry['timestamp']}")
+                create_tts_button(f"Cảm nhận từ {entry['exercise_type']}: {entry.get('content')}", f"entry_{entry.get('timestamp')}")
             st.write("")
     else:
         st.markdown("""
