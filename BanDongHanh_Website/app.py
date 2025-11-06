@@ -1,7 +1,98 @@
-# Trong file app.py
+# Tên file: app.py
+# (Đây là file chính, cũng là "Trang chủ")
+
 import streamlit as st
-import database as db
+import database  # Import file database.py MỚI của chúng ta
+import time
 
-db.create_tables() # <-- Đặt ở đây
+# --- CẤU HÌNH BAN ĐẦU ---
+st.set_page_config(
+    page_title="Trang chủ - Bạn Đồng Hành",
+    page_icon="❤️",
+    layout="wide"
+)
 
-st.switch_page("pages/0_💖_Trang_chủ.py")
+# KHỞI TẠO DATABASE (chỉ chạy 1 lần)
+# (Sử dụng hàm init_db() từ file database.py MỚI)
+database.init_db()
+
+# ===================================================================
+# HÀM ĐĂNG XUẤT (Phải được định nghĩa ở app.py)
+# ===================================================================
+def logout():
+    """Xóa thông tin user khỏi phiên và tải lại trang"""
+    if "user_id" in st.session_state:
+        del st.session_state.user_id
+    if "username" in st.session_state:
+        del st.session_state.username
+    st.rerun() # Tải lại, sẽ quay về trang đăng nhập
+
+# ===================================================================
+# TRANG ĐĂNG NHẬP (Hiển thị nếu chưa đăng nhập)
+# ===================================================================
+def show_login_page():
+    """Hiển thị form đăng nhập"""
+    
+    st.image("image_c067ff.png") # Thay bằng đường dẫn đúng
+
+    with st.form("login_form"):
+        st.write("👋 **Chào bạn, mình là Bạn Đồng Hành ❤️**")
+        st.write("Trước khi bắt đầu, chúng mình làm quen nhé?")
+        
+        username = st.text_input("Bạn tên là gì?")
+        secret_color = st.text_input("Màu sắc yêu thích của bạn là gì?", type="password")
+        
+        submitted = st.form_submit_button("Lưu thông tin và bắt đầu!")
+
+    if submitted:
+        if not username or not secret_color:
+            st.error("Bạn ơi, nhập cả tên và màu sắc yêu thích nhé!")
+        else:
+            with st.spinner("Đang kiểm tra..."):
+                # Gọi hàm get_or_create_user từ database.py MỚI
+                user_id = database.get_or_create_user(username, secret_color)
+                
+            if user_id:
+                st.success(f"Chào mừng trở lại, {username.capitalize()}!")
+                # LƯU THÔNG TIN VÀO PHIÊN LÀM VIỆC
+                st.session_state.user_id = user_id
+                st.session_state.username = username.capitalize()
+                
+                time.sleep(1) # Chờ 1 giây để user đọc
+                st.rerun() # Tải lại trang, sẽ vào app chính
+            else:
+                st.error("Có lỗi xảy ra. Vui lòng thử lại.")
+
+# ===================================================================
+# TRANG CHỦ (Hiển thị nếu ĐÃ đăng nhập)
+# =R==================================================================
+def show_main_page():
+    """Hiển thị nội dung Trang chủ"""
+    
+    # Thêm nút Đăng xuất vào sidebar
+    # (Streamlit sẽ tự động tạo sidebar khi thấy thư mục 'pages')
+    st.sidebar.title(f"Xin chào, {st.session_state.username}! 👋")
+    st.sidebar.button("Đăng xuất (Đổi tên)", on_click=logout)
+    
+    # --- Nội dung trang chủ của bạn ---
+    st.title(f"❤️ Chào mừng bạn đến với Bạn Đồng Hành!")
+    st.write("Hãy chọn một tính năng bên trái để khám phá nhé.")
+    st.write("Đây là nội dung của Trang chủ.")
+    # (Bạn có thể thêm bất cứ nội dung gì bạn muốn cho Trang chủ ở đây)
+
+
+# ===================================================================
+# HÀM LOGIC CHÍNH (CỔNG BẢO VỆ)
+# ===================================================================
+def main():
+    # Kiểm tra xem 'user_id' đã được lưu trong phiên chưa
+    if 'user_id' not in st.session_state:
+        # Nếu CHƯA, hiển thị trang đăng nhập
+        show_login_page()
+    else:
+        # Nếu ĐÃ đăng nhập, hiển thị trang chủ
+        show_main_page()
+
+# --- CHẠY ỨNG DỤNG ---
+if __name__ == "__main__":
+    main()
