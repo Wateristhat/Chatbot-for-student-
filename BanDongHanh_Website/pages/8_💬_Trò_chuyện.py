@@ -24,56 +24,58 @@ st.set_page_config(
 )
 
 # <<< SỬA ĐỔI MÀU NỀN VÀ BONG BÓNG CHAT >>>
+# THAY THẾ TOÀN BỘ KHỐI CSS CŨ BẰNG KHỐI NÀY:
+
 st.markdown("""
 <style>
-    /* Nền và font chữ tổng thể */
-    body {
-        font-family: 'Segoe UI', sans-serif;
-    }
-    .stApp {
-        /* Tông: Hoàng hôn Mơ mộng (Hồng phấn -> Xanh baby) */
-        background: linear-gradient(135deg, #FFC8DD, #BDE0FE);
-    }
-    /* Tiêu đề chính */
-    h1 {
-        font-size: 2.5em;
-        text-align: center;
-        background: linear-gradient(to right, #FF70A6, #8D5FFF); /* Màu nổi bật */
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        padding-bottom: 10px;
-        margin-bottom: 20px;
-    }
-    /* Bong bóng chat USER (Giữ nguyên trắng, sửa border) */
-    [data-testid="stChatMessage"]:has([data-testid="stAvatarIcon-user"]) {
-        background-color: #ffffff;
-        border-radius: 20px 20px 5px 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        border: 1px solid #ffafcc; /* Border hồng nhạt */
-    }
-    /* Bong bóng chat ASSISTANT (Gradient Xanh lá nhạt, màu trung tính) */
-    [data-testid="stChatMessage"]:has([data-testid="stAvatarIcon-assistant"]) {
-        background: linear-gradient(135deg, #B5EAD7, #CDEBCC); /* Gradient Xanh lá/Mint nhạt */
-        border-radius: 20px 20px 20px 5px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        color: #1e1e1e;
-        border: 1px solid #99c9b3;
-    }
-    /* Ô nhập liệu chat (Giữ nguyên) */
-    [data-testid="stChatInput"] {
-        background-color: #ffffff;
-        border-radius: 25px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        padding: 5px 15px;
-    }
-    /* Nút bấm lớn (Giữ nguyên) */
-    .stButton > button {
-        border-radius: 12px;
-        font-size: 1.1em;
-        font-weight: bold;
-        padding: 10px 20px;
-        width: 100%;
-    }
+    /* Nền và font chữ tổng thể */
+    body {
+        font-family: 'Segoe UI', sans-serif;
+    }
+    .stApp {
+        /* Tông: Hoàng hôn Mơ mộng (Hồng phấn -> Xanh baby) */
+        background: linear-gradient(135deg, #FFC8DD, #BDE0FE);
+    }
+    /* Tiêu đề chính */
+    h1 {
+        font-size: 2.5em;
+        text-align: center;
+        background: linear-gradient(to right, #FF70A6, #8D5FFF); /* Màu nổi bật */
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    /* Bong bóng chat USER (Giữ nguyên trắng, sửa border) */
+    [data-testid="stChatMessage"]:has([data-testid="stAvatarIcon-user"]) {
+        background-color: #ffffff;
+        border-radius: 20px 20px 5px 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border: 1px solid #ffafcc; /* Border hồng nhạt */
+    }
+    /* Bong bóng chat ASSISTANT (Gradient Xanh lá nhạt, màu trung tính) */
+    [data-testid="stChatMessage"]:has([data-testid="stAvatarIcon-assistant"]) {
+        background: linear-gradient(135deg, #B5EAD7, #CDEBCC); /* Gradient Xanh lá/Mint nhạt */
+        border-radius: 20px 20px 20px 5px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        color: #1e1e1e;
+        border: 1px solid #99c9b3;
+    }
+    /* Ô nhập liệu chat (Giữ nguyên) */
+    [data-testid="stChatInput"] {
+        background-color: #ffffff;
+        border-radius: 25px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        padding: 5px 15px;
+    }
+    /* Nút bấm lớn (Giữ nguyên) */
+    .stButton > button {
+        border-radius: 12px;
+        font-size: 1.1em;
+        font-weight: bold;
+        padding: 10px 20px;
+        width: 100%;
+    }
 </style>
 """, unsafe_allow_html=True)
 
