@@ -8,6 +8,7 @@ import random
 from datetime import datetime, timedelta # <<< SỬA ĐỔI 1: Thêm timedelta
 from gtts import gTTS
 from io import BytesIO
+import tempfile
 
 # Import database đã sửa
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -419,4 +420,5 @@ st.markdown("""
     Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
 </div>
 """, unsafe_allow_html=True)
+
 
