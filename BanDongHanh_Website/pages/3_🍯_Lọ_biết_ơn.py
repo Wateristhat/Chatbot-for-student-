@@ -213,17 +213,33 @@ if st.session_state.show_gratitude_response:
     """, unsafe_allow_html=True)
 
 # --- CẢM XÚC BẰNG EMOJI (Giữ nguyên) ---
+# CODE MỚI THAY THẾ KHỐI CẢM XÚC
+
+# --- CẢM XÚC BẰNG EMOJI (Hiển thị nhãn cố định) ---
 st.markdown("### 💝 Hôm nay bạn cảm thấy thế nào?")
-emotion_cols = st.columns(5)
-emotions = ["😊", "😃", "🥰", "😌", "🤗"]
-emotion_names = ["Vui vẻ", "Hạnh phúc", "Yêu thương", "Bình yên", "Ấm áp"]
-for i, (col, emotion, name) in enumerate(zip(emotion_cols, emotions, emotion_names)):
-    with col:
-        if st.button(emotion, key=f"emotion_{i}", help=name):
-            st.session_state.selected_emotion = emotion
+emotion_data = [
+    {"emoji": "😊", "name": "Vui vẻ"},
+    {"emoji": "😃", "name": "Hạnh phúc"},
+    {"emoji": "🥰", "name": "Yêu thương"},
+    {"emoji": "😌", "name": "Bình yên"},
+    {"emoji": "🤗", "name": "Ấm áp"},
+]
+
+cols = st.columns(len(emotion_data))
+for i, data in enumerate(emotion_data):
+    with cols[i]:
+        # 1. Nút bấm (sử dụng icon làm label)
+        if st.button(data["emoji"], key=f"emotion_{i}", use_container_width=True):
+            st.session_state.selected_emotion = data["emoji"]
             st.rerun()
+        
+        # 2. Nhãn chữ hiển thị CỐ ĐỊNH phía dưới (dễ hòa nhập)
+        # Sử dụng st.markdown để tạo nhãn cố định
+        st.markdown(f"<p style='text-align: center; font-weight: 600; color: #4a148c; margin-top:-0.5rem;'>{data['name']}</p>", unsafe_allow_html=True)
+
 
 if st.session_state.selected_emotion:
+    # Hiển thị thông báo khi đã chọn
     st.markdown(f"<div style='text-align: center; font-size: 1.2rem; color: #FF69B4; margin: 1rem 0;'>Bạn đang cảm thấy {st.session_state.selected_emotion} - Thật tuyệt vời!</div>", unsafe_allow_html=True)
 st.write("---")
 
@@ -403,3 +419,4 @@ st.markdown("""
     Cảm ơn bạn đã chia sẻ những điều tuyệt vời trong cuộc sống! 🌟"
 </div>
 """, unsafe_allow_html=True)
+
