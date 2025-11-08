@@ -240,7 +240,7 @@ for idx, (col, emo) in enumerate(zip(cols, EMOTIONS)):
             """, unsafe_allow_html=True)
 
             st.button(
-                label=f"select_{idx}", # Label ẩn, chỉ dùng cho key
+                label=emo['label'], # <<< SỬA ĐỔI: Dùng tên cảm xúc (Vui vẻ, Buồn...)
                 on_click=select_emotion,
                 args=[idx],
                 key=f"btn_emo_{idx}",
