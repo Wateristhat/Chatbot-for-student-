@@ -4,6 +4,7 @@ import csv
 import os
 from datetime import datetime
 from zoneinfo import ZoneInfo 
+import bcrypt
 
 DATABASE_NAME = "app_data.db"
 VN_TZ = ZoneInfo("Asia/Ho_Chi_Minh") 
@@ -35,6 +36,17 @@ def create_tables():
     except sqlite3.OperationalError: pass
 
     # === Tạo bảng (Đã xóa DEFAULT time) ===
+    # Bảng Users
+    cursor.execute(
+    """
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        password_hash BLOB NOT NULL,
+        created_at DATETIME
+    )
+    """
+    )
     
     # Bảng Trò chuyện
     cursor.execute("""
@@ -360,3 +372,50 @@ def delete_activity(user_id, activity_id):
 create_tables()
 create_activity_tables()
 print("CSDL đã khởi tạo hoàn tất.")
+
+# ====== 7. HÀM NGƯỜI DÙNG (AUTH) ======
+
+def create_user(username: str, password: str) -> bool:
+    """Tạo người dùng mới với mật khẩu băm bằng bcrypt. Trả về True nếu thành công."""
+    if not username or not password:
+        return False
+    username = username.strip()
+    if len(username) < 3 or len(password) < 6:
+        return False
+    pw_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        vn_time = datetime.now(VN_TZ)
+        cursor.execute(
+            "INSERT INTO users (username, password_hash, created_at) VALUES (?, ?, ?)",
+            (username, pw_hash, vn_time),
+        )
+        conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        # username đã tồn tại
+        return False
+    finally:
+        conn.close()
+
+def get_user_by_username(username: str):
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT id, username, password_hash FROM users WHERE username = ?", (username.strip(),))
+        row = cursor.fetchone()
+        return row
+    finally:
+        conn.close()
+
+def verify_user(username: str, password: str) -> bool:
+    """Kiểm tra username/password. Trả True nếu hợp lệ."""
+    row = get_user_by_username(username)
+    if not row:
+        return False
+    pw_hash = row["password_hash"]
+    try:
+        return bcrypt.checkpw(password.encode("utf-8"), pw_hash)
+    except Exception:
+        return False
