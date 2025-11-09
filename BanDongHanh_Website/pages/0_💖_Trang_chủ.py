@@ -1,6 +1,17 @@
 # File: 0_💖_Trang_chủ.py (FIX CUỐI CÙNG: Chuyển Menu thành Mô tả Tĩnh và Thêm Đăng Xuất)
 import streamlit as st
 from datetime import datetime
+import sys, os
+import importlib
+
+# Import database helpers
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import database as db
+# Đảm bảo nạp lại module nếu Streamlit đã cache lần trước
+try:
+    db = importlib.reload(db)
+except Exception:
+    pass
 
 
 st.set_page_config(
@@ -85,7 +96,7 @@ if 'user_id' not in st.session_state:
     st.session_state.user_id = None
 
 if not st.session_state.user_name:
-    # --- Giao diện chưa đăng nhập ---
+    # --- Giới thiệu ngắn ---
     st.markdown(f"""
     <div class="brand-minimal-box">
         <div class="brand-minimal-header">
@@ -98,26 +109,51 @@ if not st.session_state.user_name:
         </div>
         <div class="brand-minimal-highlight">
             Cùng truyền cảm hứng và lan tỏa yêu thương mỗi ngày. Được thiết kế để giúp bạn vượt qua thử thách trong học tập, cuộc sống, và nuôi dưỡng sự cân bằng cảm xúc.<br>
-            <span class="highlight-action">Hãy bắt đầu khám phá nhé!</span>
+            <span class="highlight-action">Hãy bắt đầu bằng việc đăng nhập hoặc tạo tài khoản nhé!</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.title("👋 Chào bạn, mình là Bạn Đồng Hành 💖")
-    st.header("Trước khi bắt đầu, chúng mình làm quen nhé?")
+    tab_login, tab_register = st.tabs(["💖 Đăng nhập", "📝 Đăng ký"])
 
-    with st.form(key="welcome_form", clear_on_submit=True):
-        name = st.text_input("📝 Bạn tên là gì?")
-        submitted = st.form_submit_button("💖 Lưu thông tin và bắt đầu!")
-        if submitted:
-            if not name:
-                st.warning("⚠️ Bạn ơi, hãy cho mình biết tên của bạn nhé!")
-            else:
-                st.session_state.user_name = name
-                st.session_state['user_id'] = name
-                st.session_state.user_info = {}
-                st.success("✅ Lưu thông tin thành công! Chào mừng bạn đến với Bạn Đồng Hành!")
-                st.rerun()
+    with tab_login:
+        with st.form("login_form"):
+            username = st.text_input("Tên đăng nhập")
+            password = st.text_input("Mật khẩu", type="password")
+            submit_login = st.form_submit_button("Đăng nhập")
+            if submit_login:
+                if not username or not password:
+                    st.warning("Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.")
+                else:
+                    if db.verify_user(username, password):
+                        st.session_state.user_name = username
+                        st.session_state['user_id'] = username
+                        st.success("Đăng nhập thành công!")
+                        st.rerun()
+                    else:
+                        st.error("Sai tên đăng nhập hoặc mật khẩu.")
+
+    with tab_register:
+        with st.form("register_form"):
+            new_username = st.text_input("Tên đăng nhập mới")
+            new_password = st.text_input("Mật khẩu", type="password")
+            new_password2 = st.text_input("Nhập lại mật khẩu", type="password")
+            submit_reg = st.form_submit_button("Tạo tài khoản")
+            if submit_reg:
+                if not new_username or not new_password or not new_password2:
+                    st.warning("Vui lòng nhập đầy đủ thông tin.")
+                elif len(new_username.strip()) < 3:
+                    st.warning("Tên đăng nhập phải có ít nhất 3 ký tự.")
+                elif len(new_password) < 6:
+                    st.warning("Mật khẩu phải có ít nhất 6 ký tự.")
+                elif new_password != new_password2:
+                    st.warning("Mật khẩu nhập lại không khớp.")
+                else:
+                    ok = db.create_user(new_username, new_password)
+                    if ok:
+                        st.success("Tạo tài khoản thành công! Bạn có thể đăng nhập ngay.")
+                    else:
+                        st.error("Tên đăng nhập đã tồn tại hoặc dữ liệu không hợp lệ.")
 else:
     # --- Giao diện đã đăng nhập ---
     st.markdown(f"""
@@ -129,8 +165,17 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("---")
+    col_welcome, col_logout = st.columns([4,1])
+    with col_welcome:
+        st.markdown("---")
     st.markdown("## ✨ Khám phá các tính năng")
+    with col_logout:
+        if st.button("🚪 Đăng xuất"):
+            for key in ["user_name", "user_id", "user_info"]:
+                if key in st.session_state:
+                    del st.session_state[key]
+            st.experimental_set_query_params()
+            st.rerun()
     
     st.info("Vui lòng sử dụng **Menu ở thanh bên trái** để truy cập các tính năng.")
     
@@ -161,4 +206,28 @@ else:
             """,
             unsafe_allow_html=True
         )
+
+    # --- TRUY CẬP NHANH: LIÊN KẾT TỚI CÁC TRANG ---
+    st.markdown("---")
+    st.markdown("## 🚀 Truy cập nhanh")
+    st.caption("Bạn có thể bấm nhanh vào các liên kết dưới đây để chuyển đến từng tính năng.")
+
+    quick_links = [
+        {"path": "pages/1_✨_Liều_thuốc_tinh_thần.py", "label": "✨ Liều Thuốc Tinh Thần", "icon": "✨"},
+        {"path": "pages/2_🫧_Góc_An_Yên.py", "label": "🫧 Góc An Yên", "icon": "🫧"},
+        {"path": "pages/3_🍯_Lọ_biết_ơn.py", "label": "🍯 Lọ Biết Ơn", "icon": "🍯"},
+        {"path": "pages/4_🎨_Bảng_màu_cảm_xúc.py", "label": "🎨 Bảng Màu Cảm Xúc", "icon": "🎨"},
+        {"path": "pages/5_🎮_Nhanh_tay_lẹ_mắt.py", "label": "🎮 Nhanh Tay Lẹ Mắt", "icon": "🎮"},
+        {"path": "pages/6_❤️_Góc_nhỏ.py", "label": "❤️ Góc Nhỏ", "icon": "❤️"},
+        {"path": "pages/7_🆘_Hỗ_Trợ_Khẩn_Cấp.py", "label": "🆘 Hỗ Trợ Khẩn Cấp", "icon": "🆘"},
+        {"path": "pages/8_💬_Trò_chuyện.py", "label": "💬 Trò Chuyện", "icon": "💬"},
+        {"path": "pages/9_📖_Người_Kể_Chuyện.py", "label": "📖 Người Kể Chuyện", "icon": "📖"},
+    ]
+
+    # Hiển thị theo 3 cột trên desktop, tự động xếp dọc trên mobile
+    cols = st.columns(3)
+    for idx, link in enumerate(quick_links):
+        with cols[idx % 3]:
+            st.page_link(link["path"], label=link["label"])  # icon đã nằm trong label
+        
 
