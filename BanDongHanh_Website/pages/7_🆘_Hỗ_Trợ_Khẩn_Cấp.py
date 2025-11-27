@@ -9,19 +9,58 @@ from gtts import gTTS
 
 @st.cache_data(ttl=60 * 60 * 24)
 def geocode_address(address: str):
+    """
+    Tìm tọa độ từ địa chỉ tiếng Việt với Nominatim.
+    Ưu tiên kết quả ở Việt Nam, thử nhiều variants nếu cần.
+    """
     try:
+        # Thử query đầy đủ với countrycodes=vn
         resp = requests.get(
             "https://nominatim.openstreetmap.org/search",
-            params={"q": address, "format": "json", "limit": 1, "addressdetails": 1},
+            params={
+                "q": address,
+                "format": "json",
+                "limit": 5,
+                "addressdetails": 1,
+                "countrycodes": "vn",  # Ưu tiên Việt Nam
+            },
             headers={"User-Agent": "BanDongHanh/1.0 (contact: example@example.com)"},
-            timeout=20,
+            timeout=30,
         )
         resp.raise_for_status()
         data = resp.json()
-        if not data:
-            return None
-        return float(data[0]["lat"]), float(data[0]["lon"])
-    except Exception:
+        
+        if data:
+            # Chọn kết quả có importance cao nhất
+            best = max(data, key=lambda x: float(x.get("importance", 0)))
+            return float(best["lat"]), float(best["lon"])
+        
+        # Fallback: thử query đơn giản hơn (bỏ số nhà, chỉ giữ quận/thành)
+        # Ví dụ: "Quận 1, TP.HCM" hoặc "Hà Nội"
+        simple_query = ", ".join([p.strip() for p in address.split(",")[-2:]])  # 2 phần cuối
+        if simple_query and simple_query != address:
+            resp2 = requests.get(
+                "https://nominatim.openstreetmap.org/search",
+                params={
+                    "q": simple_query,
+                    "format": "json",
+                    "limit": 3,
+                    "countrycodes": "vn",
+                },
+                headers={"User-Agent": "BanDongHanh/1.0 (contact: example@example.com)"},
+                timeout=30,
+            )
+            resp2.raise_for_status()
+            data2 = resp2.json()
+            if data2:
+                best = max(data2, key=lambda x: float(x.get("importance", 0)))
+                return float(best["lat"]), float(best["lon"])
+        
+        return None
+    except Exception as e:
+        # Debug: in lỗi để dev biết
+        import sys
+        print(f"[Geocoding Error] {e}", file=sys.stderr)
         return None
 
 def _build_overpass_query(lat: float, lon: float, radius_m: int, tags: list[str]) -> str:
@@ -205,7 +244,9 @@ st.info(
 st.write("---")
 st.header("🩺 Tra cứu cơ sở y tế gần bạn")
 st.markdown("""
-Nhập địa chỉ hoặc mô tả vị trí (ví dụ: *"Bến Thành, Quận 1, TP.HCM"*). Ứng dụng sẽ tìm **Bệnh viện**, **Phòng khám**, **Nhà thuốc** và **Bác sĩ** trong bán kính bạn chọn.
+Nhập địa chỉ hoặc mô tả vị trí. Ứng dụng sẽ tìm **Bệnh viện**, **Phòng khám**, **Nhà thuốc** và **Bác sĩ** trong bán kính bạn chọn.
+
+**Mẹo:** Nhập tên quận/huyện và tỉnh/thành cho kết quả tốt nhất (ví dụ: *"Quận 1, TP.HCM"*, *"Hoàn Kiếm, Hà Nội"*)
 """)
 
 # CSS bổ sung cho mobile responsive
@@ -222,7 +263,7 @@ st.markdown("""
 
 col_addr, col_radius = st.columns([2,1])
 with col_addr:
-    address_input = st.text_input("📍 Địa chỉ của bạn", placeholder="Ví dụ: 1600 Đường Nguyễn Văn Cừ, Quận 5, TP.HCM")
+    address_input = st.text_input("📍 Địa chỉ của bạn", placeholder="Ví dụ: Quận 1, TP.HCM hoặc Hoàn Kiếm, Hà Nội")
 with col_radius:
     radius_km = st.slider("Bán kính (km)", min_value=1, max_value=25, value=10, step=1)
 
@@ -248,7 +289,15 @@ if search_btn:
         with st.spinner("Đang xác định tọa độ..."):
             coords = geocode_address(address_input.strip())
         if not coords:
-            st.error("Không tìm được tọa độ cho địa chỉ này. Hãy thử cụ thể hơn hoặc thêm tên tỉnh/thành.")
+            st.error("❌ Không tìm được tọa độ cho địa chỉ này.")
+            st.info("""
+            **Gợi ý:** Hãy thử nhập theo các cách sau:
+            - `Quận 1, TP.HCM` hoặc `Quận 1, Hồ Chí Minh`
+            - `Bến Thành, Quận 1, TP.HCM`
+            - `Hoàn Kiếm, Hà Nội`
+            - `Đà Nẵng` (chỉ tên thành phố)
+            - Thử bỏ số nhà, chỉ giữ tên đường/quận/thành phố
+            """)
         else:
             lat, lon = coords
             st.success(f"Tọa độ: {lat:.5f}, {lon:.5f}")
@@ -287,5 +336,6 @@ if search_btn:
                                 os.unlink(audio_file)
                             except Exception:
                                 pass
+
 
 
