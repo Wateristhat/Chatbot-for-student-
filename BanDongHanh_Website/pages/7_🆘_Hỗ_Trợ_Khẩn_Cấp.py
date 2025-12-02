@@ -10,58 +10,117 @@ from gtts import gTTS
 @st.cache_data(ttl=60 * 60 * 24)
 def geocode_address(address: str):
     """
-    Tìm tọa độ từ địa chỉ tiếng Việt với Nominatim.
-    Ưu tiên kết quả ở Việt Nam, thử nhiều variants nếu cần.
+    Tìm tọa độ từ địa chỉ tiếng Việt với nhiều fallback:
+    1. Nominatim (primary)
+    2. Photon API (fallback cho Streamlit Cloud)
+    3. Simplified query với cả 2 services
     """
-    try:
-        # Thử query đầy đủ với countrycodes=vn
-        resp = requests.get(
-            "https://nominatim.openstreetmap.org/search",
-            params={
-                "q": address,
-                "format": "json",
-                "limit": 5,
-                "addressdetails": 1,
-                "countrycodes": "vn",  # Ưu tiên Việt Nam
-            },
-            headers={"User-Agent": "BanDongHanh/1.0 (contact: example@example.com)"},
-            timeout=30,
-        )
-        resp.raise_for_status()
-        data = resp.json()
-        
-        if data:
-            # Chọn kết quả có importance cao nhất
-            best = max(data, key=lambda x: float(x.get("importance", 0)))
-            return float(best["lat"]), float(best["lon"])
-        
-        # Fallback: thử query đơn giản hơn (bỏ số nhà, chỉ giữ quận/thành)
-        # Ví dụ: "Quận 1, TP.HCM" hoặc "Hà Nội"
-        simple_query = ", ".join([p.strip() for p in address.split(",")[-2:]])  # 2 phần cuối
-        if simple_query and simple_query != address:
-            resp2 = requests.get(
-                "https://nominatim.openstreetmap.org/search",
+    import time
+    import sys
+    
+    # --- METHOD 1: Nominatim (OpenStreetMap) ---
+    def try_nominatim(query, max_retries=2):
+        for attempt in range(max_retries):
+            try:
+                resp = requests.get(
+                    "https://nominatim.openstreetmap.org/search",
+                    params={
+                        "q": query,
+                        "format": "json",
+                        "limit": 5,
+                        "addressdetails": 1,
+                        "countrycodes": "vn",
+                    },
+                    headers={"User-Agent": "BanDongHanh/1.0 (contact: bandonghanh@streamlit.app)"},
+                    timeout=15,
+                )
+                
+                # Check for rate limiting
+                if resp.status_code == 429:
+                    print(f"[Nominatim] Rate limited, attempt {attempt+1}/{max_retries}", file=sys.stderr)
+                    if attempt < max_retries - 1:
+                        time.sleep(2 ** attempt)  # Exponential backoff
+                        continue
+                    return None
+                
+                resp.raise_for_status()
+                data = resp.json()
+                
+                if data:
+                    best = max(data, key=lambda x: float(x.get("importance", 0)))
+                    return float(best["lat"]), float(best["lon"])
+            except Exception as e:
+                print(f"[Nominatim Error] {e}", file=sys.stderr)
+                if attempt < max_retries - 1:
+                    time.sleep(1)
+        return None
+    
+    # --- METHOD 2: Photon API (Fallback, không có rate limit khắt khe) ---
+    def try_photon(query):
+        try:
+            resp = requests.get(
+                "https://photon.komoot.io/api/",
                 params={
-                    "q": simple_query,
-                    "format": "json",
-                    "limit": 3,
-                    "countrycodes": "vn",
+                    "q": query,
+                    "limit": 5,
+                    "lang": "vi",
+                    "osm_tag": "place",  # Ưu tiên địa danh
                 },
-                headers={"User-Agent": "BanDongHanh/1.0 (contact: example@example.com)"},
-                timeout=30,
+                timeout=15,
             )
-            resp2.raise_for_status()
-            data2 = resp2.json()
-            if data2:
-                best = max(data2, key=lambda x: float(x.get("importance", 0)))
-                return float(best["lat"]), float(best["lon"])
+            resp.raise_for_status()
+            data = resp.json()
+            
+            features = data.get("features", [])
+            if features:
+                # Lọc kết quả có country = Vietnam
+                vn_features = [f for f in features if f.get("properties", {}).get("country") == "Việt Nam"]
+                if not vn_features:
+                    vn_features = features  # Fallback all results
+                
+                # Chọn feature đầu tiên (relevance cao nhất)
+                coords = vn_features[0]["geometry"]["coordinates"]
+                return float(coords[1]), float(coords[0])  # Photon trả [lon, lat]
+        except Exception as e:
+            print(f"[Photon Error] {e}", file=sys.stderr)
+        return None
+    
+    # --- TRY FULL ADDRESS ---
+    result = try_nominatim(address)
+    if result:
+        return result
+    
+    # Fallback to Photon
+    result = try_photon(address)
+    if result:
+        return result
+    
+    # --- TRY SIMPLIFIED ADDRESS (last 2 parts) ---
+    parts = [p.strip() for p in address.split(",")]
+    if len(parts) > 1:
+        simple_query = ", ".join(parts[-2:])
+        if simple_query != address:
+            result = try_nominatim(simple_query)
+            if result:
+                return result
+            
+            result = try_photon(simple_query)
+            if result:
+                return result
+    
+    # --- TRY CITY/PROVINCE ONLY (last part) ---
+    if len(parts) > 0:
+        city_only = parts[-1].strip()
+        result = try_nominatim(city_only)
+        if result:
+            return result
         
-        return None
-    except Exception as e:
-        # Debug: in lỗi để dev biết
-        import sys
-        print(f"[Geocoding Error] {e}", file=sys.stderr)
-        return None
+        result = try_photon(city_only)
+        if result:
+            return result
+    
+    print(f"[Geocoding Failed] All methods exhausted for: {address}", file=sys.stderr)
+    return None
 
 def _build_overpass_query(lat: float, lon: float, radius_m: int, tags: list[str]) -> str:
     regex = "|".join(tags)
@@ -267,6 +326,27 @@ with col_addr:
 with col_radius:
     radius_km = st.slider("Bán kính (km)", min_value=1, max_value=25, value=10, step=1)
 
+# Địa chỉ mẫu để test nhanh
+with st.expander("💡 Địa chỉ mẫu để thử nghiệm"):
+    st.markdown("""
+    **TP. Hồ Chí Minh:**
+    - `Quận 1, TP.HCM`
+    - `Bến Thành, Quận 1, TP.HCM`
+    - `Thủ Đức, TP.HCM`
+    
+    **Hà Nội:**
+    - `Hoàn Kiếm, Hà Nội`
+    - `Hồ Gươm, Hà Nội`
+    - `Cầu Giấy, Hà Nội`
+    
+    **Đà Nẵng:**
+    - `Hải Châu, Đà Nẵng`
+    - `Cầu Rồng, Đà Nẵng`
+    
+    **Khác:**
+    - `Huế` | `Nha Trang` | `Cần Thơ` | `Vũng Tàu`
+    """)
+
 facility_map = {
     "Bệnh viện": "hospital",
     "Phòng khám": "clinic",
@@ -281,22 +361,44 @@ selected_facilities = st.multiselect(
     help="Chọn một hoặc nhiều loại để lọc kết quả"
 )
 
+# Debug mode toggle (ẩn trong expander)
+debug_mode = st.checkbox("🔧 Chế độ debug (hiển thị chi tiết API)", value=False)
+
 search_btn = st.button("🔍 Tìm cơ sở gần tôi", type="primary")
 if search_btn:
     if not address_input.strip():
         st.warning("Vui lòng nhập địa chỉ trước khi tìm kiếm.")
     else:
-        with st.spinner("Đang xác định tọa độ..."):
+        status_placeholder = st.empty()
+        if debug_mode:
+            status_placeholder.info("🔄 Đang thử Nominatim API...")
+        
+        with st.spinner("Đang xác định tọa độ (thử nhiều API)..."):
             coords = geocode_address(address_input.strip())
+        
+        if debug_mode:
+            status_placeholder.empty()
         if not coords:
             st.error("❌ Không tìm được tọa độ cho địa chỉ này.")
+            st.warning("""
+            **Có thể do:**
+            - API geocoding đang quá tải hoặc bị rate limit trên Streamlit Cloud
+            - Địa chỉ không đủ cụ thể hoặc không tồn tại trong bản đồ OpenStreetMap
+            """)
             st.info("""
-            **Gợi ý:** Hãy thử nhập theo các cách sau:
+            **Gợi ý khắc phục:**
+            
+            1️⃣ **Thử các địa chỉ đơn giản hơn:**
             - `Quận 1, TP.HCM` hoặc `Quận 1, Hồ Chí Minh`
-            - `Bến Thành, Quận 1, TP.HCM`
             - `Hoàn Kiếm, Hà Nội`
             - `Đà Nẵng` (chỉ tên thành phố)
-            - Thử bỏ số nhà, chỉ giữ tên đường/quận/thành phố
+            
+            2️⃣ **Hoặc thử các địa điểm nổi tiếng:**
+            - `Bến Thành, TP.HCM`
+            - `Hồ Gươm, Hà Nội`
+            - `Cầu Rồng, Đà Nẵng`
+            
+            3️⃣ **Nếu vẫn lỗi:** Đợi vài phút rồi thử lại (có thể API đang bị giới hạn tạm thời)
             """)
         else:
             lat, lon = coords
