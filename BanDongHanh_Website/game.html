@@ -25,7 +25,7 @@
     }
     
     h1 {
-      font-size: 1.8rem; /* Lỗi cũ của bạn là 1,8rem, mình sửa thành 1.8rem */
+      font-size: 1.8rem;
       color: #2E8B57;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
       margin: 10px 0;
@@ -69,7 +69,6 @@
       background: linear-gradient(to bottom, #87CEEB, #98FB98);
       box-shadow: 0 8px 25px rgba(0,0,0,0.4);
       cursor: pointer;
-      /* --- GIỮ NGUYÊN GIAO DIỆN GỐC (Không co giãn) --- */
     }
     
     canvas:hover {
@@ -219,13 +218,37 @@
     let backgroundMusic = null;
     let musicPlaying = false;
     function initAudio() { try { audioContext = new (window.AudioContext || window.webkitAudioContext)(); if (audioContext.state === 'suspended') { audioContext.resume(); } createBackgroundMusic(); } catch(e) { audioContext = null; } }
-    function createBackgroundMusic() { /* (code nhạc nền) */ }
+    function createBackgroundMusic() { /* (code nhạc nền giả lập) */ }
     function playMusicNote(frequency, duration) { /* (code nhạc nền) */ }
     function toggleBackgroundMusic() { if (!audioContext) { initAudio(); } musicPlaying = !musicPlaying; const button = document.getElementById('musicToggle'); if (musicPlaying) { button.textContent = '🎵 Tắt nhạc nền'; button.style.background = 'linear-gradient(135deg, #FF6B6B, #4ECDC4)'; if (backgroundMusic) { backgroundMusic(); } } else { button.textContent = '🎵 Bật nhạc nền'; button.style.background = 'linear-gradient(135deg, #95a5a6, #bdc3c7)'; } }
     function playSound(frequency, duration, type = 'sine', volume = 0.1) { if (!audioEnabled) return; if (audioContext && audioContext.state !== 'suspended') { try { const oscillator = audioContext.createOscillator(); const gainNode = audioContext.createGain(); oscillator.connect(gainNode); gainNode.connect(audioContext.destination); oscillator.frequency.value = frequency; oscillator.type = type; gainNode.gain.setValueAtTime(0, audioContext.currentTime); gainNode.gain.exponentialRampToValueAtTime(volume, audioContext.currentTime + 0.01); gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration); oscillator.start(); oscillator.stop(audioContext.currentTime + duration); return; } catch(e) {} } try { const sampleRate = 8000; const samples = duration * sampleRate; const buffer = new ArrayBuffer(44 + samples * 2); const view = new DataView(buffer); const writeString = (offset, string) => { for (let i = 0; i < string.length; i++) { view.setUint8(offset + i, string.charCodeAt(i)); } }; writeString(0, 'RIFF'); view.setUint32(4, 36 + samples * 2, true); writeString(8, 'WAVE'); writeString(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true); view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true); writeString(36, 'data'); view.setUint32(40, samples * 2, true); for (let i = 0; i < samples; i++) { const sample = Math.sin(frequency * 2 * Math.PI * i / sampleRate) * volume * 32767; view.setInt16(44 + i * 2, sample, true); } const blob = new Blob([buffer], { type: 'audio/wav' }); const url = URL.createObjectURL(blob); const audio = new Audio(url); audio.volume = 0.3; audio.play().catch(e => {}); audio.onended = () => { URL.revokeObjectURL(url); }; } catch(e) {} }
     function toggleAudio() { audioEnabled = !audioEnabled; const button = document.getElementById('audioToggle'); if (audioEnabled) { button.textContent = '🔊 Âm thanh: Bật'; button.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)'; } else { button.textContent = '🔇 Âm thanh: Tắt'; button.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)'; musicPlaying = false; document.getElementById('musicToggle').textContent = '🎵 Bật nhạc nền'; } }
-    function speakText(text) { if ('speechSynthesis' in window) { const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'vi-VN'; utterance.rate = 0.8; speechSynthesis.speak(utterance); } }
-    function speakEncouragement() { const message = document.getElementById('encouragementMessage').textContent; speakText(message); }
+    
+    // --- 🔴 PHẦN ĐÃ SỬA: HÀM ĐỌC VĂN BẢN MỚI ---
+    function speakText(text) { 
+        if ('speechSynthesis' in window) { 
+            // 1. Lọc bỏ icon/emoji để không bị đọc tiếng Anh
+            const cleanText = text.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '').trim();
+
+            // 2. Dừng các âm thanh đang đọc dở
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            
+            // 3. Cố định tiếng Việt
+            utterance.lang = 'vi-VN'; 
+            utterance.rate = 1.0; 
+
+            // Phát âm thanh
+            window.speechSynthesis.speak(utterance); 
+        } 
+    }
+
+    function speakEncouragement() { 
+        const message = document.getElementById('encouragementMessage').textContent; 
+        speakText(message); 
+    }
+    
     function updateScoreDisplay() { document.getElementById('currentScore').textContent = `Điểm hiện tại: ${score}`; document.getElementById('highScore').textContent = `Điểm cao nhất: ${highScore}`; }
     function setGameMode(mode) { gameMode = mode; player.gravity = gameSettings[mode].gravity; log(`Game mode changed to: ${mode}`, 'info'); document.querySelectorAll('.mode-button').forEach(btn => { btn.classList.remove('active'); }); event.target.classList.add('active'); }
     
