@@ -88,7 +88,7 @@ try:
 
     # --- Sửa chiều cao (Giữ nguyên) ---
     # Bạn có thể giảm 1200 xuống 800 hoặc 600 để vừa hơn
-    st.components.v1.html(game_html_content_fixed, height=800, scrolling=False) 
+    st.components.v1.html(game_html_content_fixed, height=1200, scrolling=True) 
     st.info("👉 Nhấn phím SPACE (máy tính) hoặc chạm vào màn hình (điện thoại) để chơi game!")
 except Exception as e:
     st.error(f"Không thể tải game. Kiểm tra file game.html. Chi tiết lỗi: {e}")
