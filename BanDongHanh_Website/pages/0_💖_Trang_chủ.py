@@ -19,7 +19,17 @@ st.set_page_config(
     page_icon="💖",
     layout="wide"
 )
-
+# --- 🚀 KÍCH HOẠT PWA (THÊM ĐOẠN NÀY) ---
+st.markdown("""
+<link rel="manifest" href="static/manifest.json">
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('static/sw.js');
+        });
+    }
+</script>
+""", unsafe_allow_html=True)
 
 # --- CSS (Bổ sung class feature-card mới) ---
 st.markdown("""
@@ -230,4 +240,5 @@ else:
         with cols[idx % 3]:
             st.page_link(link["path"], label=link["label"])  # icon đã nằm trong label
         
+
 
